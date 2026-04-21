@@ -12,7 +12,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to my FastAPI backend!"}
+    return {"message": "Welcome to my FastAPI backend"}
 
 
 @app.get("/health")
