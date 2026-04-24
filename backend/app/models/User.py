@@ -1,4 +1,5 @@
 # app/models/user.py
+#example only , willl be removed later
 from sqlalchemy import Column, Integer, String
 from app.database import Base
 
