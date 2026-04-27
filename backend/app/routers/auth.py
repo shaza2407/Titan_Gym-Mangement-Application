@@ -34,7 +34,7 @@ async def detect_role(userID: int, db: AsyncSession) -> str:
     raise HTTPException(400, "User has no assigned role")
 
 
-#POST /auth/signup 
+#POST /auth/signup/
 @router.post("/signup", response_model=SignUpResponse)
 async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)):  
 
