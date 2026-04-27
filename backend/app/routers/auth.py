@@ -51,7 +51,8 @@ async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)
             email=payload.email.lower(),
             name=payload.name,
             password=hashed_password,
-            role=payload.role.value   
+            role=payload.role.value,
+            phone=payload.phone
         )
         db.add(user)
         await db.flush()  
@@ -83,6 +84,7 @@ async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)
     return SignUpResponse(
         userID=user.userID,
         email=user.email,
+        phone=user.phone,
         name=user.name,
         role=user.role
     )
