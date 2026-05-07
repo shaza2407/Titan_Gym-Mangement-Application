@@ -7,3 +7,4 @@ class Coach(Base):
     coachID = Column("coachID", Integer, primary_key=True , index=True)
     userID  = Column("userID", Integer, ForeignKey("users.userID"), nullable=False)
 
+
