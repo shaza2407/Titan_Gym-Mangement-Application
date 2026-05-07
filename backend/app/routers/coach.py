@@ -3,11 +3,15 @@ from datetime import date,datetime, timedelta
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from app.models.class_session import ClassSession, ClassRequest, RequestStatus
-from app.schemas.coach import (ClassSessionResponse, ClassSessionResponse, DashboardStatsResponse)
+from app.schemas.coach import (ClassSessionResponse, DashboardStatsResponse, CoachCreate)
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
+from app.models.coach import Coach
 
 router = APIRouter()
+
+
+
 
 @router.get("/{coach_id}/dashboard/upcoming-classes", response_model=list[ClassSessionResponse])
 async def get_dashboard_upcoming_classes(coach_id: int, limit: int=3, db: AsyncSession = Depends(get_session)):
@@ -29,7 +33,7 @@ async def get_dashboard_upcoming_classes(coach_id: int, limit: int=3, db: AsyncS
     result = await db.execute(query)
     upcoming_classes = result.scalars().all()
 
-    return {"upcoming_classes": upcoming_classes}
+    return upcoming_classes
 
 
 
@@ -56,10 +60,10 @@ async def get_dashboard_stats(coach_id: int, db: AsyncSession = Depends(get_sess
     total_students = await db.execute(students_query) or 0
 
     # active gyms
-    gyms_query = select(func.count(ClassSession.gym_id.distinct())).filter(
-        ClassSession.coach_id == coach_id
-    )
-    active_gyms = await db.execute(gyms_query) or 0
+    # gyms_query = select(func.count(ClassSession.gym_id.distinct())).filter(
+    #     ClassSession.coach_id == coach_id
+    # )
+    # active_gyms = await db.execute(gyms_query) or 0
 
     # pending requests
     pending_query = select(func.count()).select_from(ClassRequest).filter(
@@ -71,7 +75,7 @@ async def get_dashboard_stats(coach_id: int, db: AsyncSession = Depends(get_sess
     return DashboardStatsResponse(
         weekly_classes=weekly_classes.scalar() or 0,
         total_students=total_students.scalar() or 0,
-        active_gyms=active_gyms.scalar() or 0,
+        # active_gyms=active_gyms.scalar() or 0,
         pending_requests=pending_requests.scalar() or 0
     )
 
