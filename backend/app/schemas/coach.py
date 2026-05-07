@@ -16,5 +16,5 @@ class ClassSessionResponse(BaseModel):
 class DashboardStatsResponse(BaseModel):
     weekly_classes: int
     total_students: int
-    active_gyms: int
+    # active_gyms: int
     pending_requests: int
