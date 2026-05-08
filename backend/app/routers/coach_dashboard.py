@@ -2,8 +2,9 @@ from datetime import date,datetime, timedelta
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
-from app.models.class_session import ClassSession, ClassRequest, RequestStatus
-from app.schemas.coach import (ClassSessionResponse, DashboardStatsResponse, CoachCreate)
+from app.models.class_session import ClassSession
+from app.models.class_request import ClassRequest,RequestStatus
+from app.schemas.coach_schemas import (ClassSessionResponse, DashboardStatsResponse)
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
 from app.models.coach import Coach
@@ -50,14 +51,14 @@ async def get_dashboard_stats(coach_id: int, db: AsyncSession = Depends(get_sess
         ClassSession.date <= end_of_Week
     )
 
-    weekly_classes = await db.execute(weekly_query) or 0
+    weekly_classes = await db.scalar(weekly_query) or 0
 
     # total students
-    students_query = select(func.sum(ClassSession.current_students)).filter(
+    clients_query = select(func.sum(ClassSession.current_clients)).filter(
         ClassSession.coach_id == coach_id
     )
 
-    total_students = await db.execute(students_query) or 0
+    total_clients = await db.scalar(clients_query) or 0
 
     # active gyms
     # gyms_query = select(func.count(ClassSession.gym_id.distinct())).filter(
@@ -70,31 +71,12 @@ async def get_dashboard_stats(coach_id: int, db: AsyncSession = Depends(get_sess
         ClassRequest.coach_id == coach_id,
         ClassRequest.status == RequestStatus.PENDING
     )
-    pending_requests = await db.execute(pending_query) or 0
+    pending_requests = await db.scalar(pending_query) or 0
 
     return DashboardStatsResponse(
-        weekly_classes=weekly_classes.scalar() or 0,
-        total_students=total_students.scalar() or 0,
+        weekly_classes=weekly_classes,
+        total_clients=total_clients,
         # active_gyms=active_gyms.scalar() or 0,
-        pending_requests=pending_requests.scalar() or 0
     )
 
 
-
-# @router.post("/{coach_id}/class_requests/",status_code=201)
-# async def request_new_class(coach_id: int, payload: CreateClassRequestPayload, db: AsyncSession = Depends(get_session)):
-
-#     new_request = ClassRequest(
-#         coach_id=coach_id,
-#         class_type=payload.class_type,
-#         requested_date=payload.requested_date,
-#         requested_time=payload.requested_time,
-#         gym_id = payload.gym_id,
-#         status=RequestStatus.pending
-#     )
-
-#     db.add(new_request)
-#     await db.commit()
-#     await db.refresh(new_request)
-
-#     return {"message": "Class request submitted successfully", "request_id": new_request.id}
