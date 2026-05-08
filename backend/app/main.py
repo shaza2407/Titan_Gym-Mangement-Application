@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.params import Depends
 from app.database import get_session
 from app.routers import auth
-from app.routers import coach
+from app.routers import coach_dashboard
 
 
 app = FastAPI(title="Titan Gym Management System")
@@ -20,5 +20,5 @@ def read_root():
 
 # Register routers
 app.include_router(auth.router)
-app.include_router(coach.router)
+app.include_router(coach_dashboard.router)
 
