@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/coach/coach_schedule/presentation/screens/coach_schedule_page.dart';
+import 'package:frontend/features/coach/coach_schedule/presentation/screens/coach_schedule_screen.dart';
 
 class QuickActionsSection extends StatelessWidget {
   const QuickActionsSection({super.key});
@@ -37,7 +37,7 @@ class QuickActionsSection extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CoachSchedulePage(),
+                    builder: (context) => const CoachSchedulePage(coachId: 2), // Pass the actual coach ID here
                   ),
                 );
               },

@@ -34,7 +34,7 @@ class MyClassesResponse(BaseModel):
 
 class CreateClassRequestPayload(BaseModel):
     class_name:str
-    gym_id:int
+    gym_location: Optional[str] = None
     requested_date:date
     requested_time:time
     duration:int
@@ -47,7 +47,7 @@ class ClassRequestResponse(BaseModel):
     class_name: str
     requested_date: date
     requested_time: time
-    gym_id: int
+    gym_location: str
     status: str       
     reason_for_request: Optional[str]
     created_at: datetime
