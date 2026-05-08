@@ -66,7 +66,7 @@ class CoachSchedulePage extends StatelessWidget {
                     context: context,
                     isScrollControlled: true, // Allows the sheet to take up more screen space for the keyboard
                     backgroundColor: Colors.transparent, // Important: lets our rounded corners show!
-                    builder: (context) => const RequestClassBottomSheet(),
+                    builder: (context) => const RequestClassScreen(coachId: 2,),
                   );
                 },
                 icon: const Icon(Icons.add, color: Colors.white),
