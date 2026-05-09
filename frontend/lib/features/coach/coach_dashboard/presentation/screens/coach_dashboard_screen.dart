@@ -28,17 +28,17 @@ Widget build(BuildContext context) {
               StatsSection(
                 stats: [
                   StatItemData(
-                    icon: const Icon(Icons.calendar_month, color: Colors.purple),
+                    icon: Icon(Icons.calendar_month, color: Colors.purple),
                     label: "Weekly Classes",
                     number: 8,
                   ),
                   StatItemData(
-                    icon: const Icon(Icons.people_alt_outlined, color: Color(0xFF2196F3)),
+                    icon: Icon(Icons.people_alt_outlined, color: Color(0xFF2196F3)),
                     label: "Total Students",
                     number: 106,
                   ),
                   StatItemData(
-                    icon: const Icon(Icons.apartment_outlined, color: Color(0xFF4CAF50)),
+                    icon: Icon(Icons.apartment_outlined, color: Color(0xFF4CAF50)),
                     label: "Active Gyms",
                     number: 2,
                   ),
