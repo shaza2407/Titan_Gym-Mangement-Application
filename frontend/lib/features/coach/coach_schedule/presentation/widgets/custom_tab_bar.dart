@@ -21,6 +21,7 @@ class CustomTabBar extends StatelessWidget {
                 color: Colors.white, // The white "pill" indicating selection
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
+                  // ignore: deprecated_member_use
                   BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4),
                 ],
               ),

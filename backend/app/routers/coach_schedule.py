@@ -90,7 +90,7 @@ async def get_my_classes(coach_id: int, db: AsyncSession = Depends(get_session))
     return list(myClasses_map.values())
 
 
-@router.get("/{coach_id}/class-request",response_model=list[ClassRequestResponse])
+@router.get("/{coach_id}/class-requests",response_model=list[ClassRequestResponse])
 async def get_requests_list(coach_id:int, db:AsyncSession=Depends(get_session)):
     query = select(ClassRequest).filter(
         ClassRequest.coach_id==coach_id
@@ -100,7 +100,7 @@ async def get_requests_list(coach_id:int, db:AsyncSession=Depends(get_session)):
     return result.scalars().all()
 
 
-@router.post("/{coach_id}/class_requests/",status_code=201)
+@router.post("/{coach_id}/class_request/",status_code=201)
 async def request_new_class(coach_id: int, payload: CreateClassRequestPayload, db: AsyncSession = Depends(get_session)):
 
     new_request = ClassRequest(

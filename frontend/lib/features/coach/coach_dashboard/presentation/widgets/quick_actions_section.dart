@@ -37,7 +37,9 @@ class QuickActionsSection extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CoachSchedulePage(coachId: 2), // Pass the actual coach ID here
+                    builder: (context) => const CoachScheduleScreen(
+                      coachId: 2,
+                    ), // Pass the actual coach ID here
                   ),
                 );
               },
