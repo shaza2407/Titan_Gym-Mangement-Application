@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/coach/shared/data/coach_api_service.dart';
 
 class ScheduleDayCard extends StatelessWidget {
   final String dayName;
-  // In a real app, you'd pass a List of Class objects here. 
-  // For UI testing, we'll just hardcode the internal items.
+  final List<ClassSessionModel> classes;
 
-  const ScheduleDayCard({super.key, required this.dayName});
+  const ScheduleDayCard({
+    super.key,
+    required this.dayName,
+    required this.classes, 
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,20 +29,21 @@ class ScheduleDayCard extends StatelessWidget {
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          // Example of a single class item inside the day card
-          _buildScheduleItem("Morning Cardio Blast", "07:00 AM", "Titan Downtown", "12/20"),
-          const SizedBox(height: 12),
-          _buildScheduleItem("Evening Yoga Flow", "07:00 PM", "Titan Downtown", "15/15"),
+          // ← REPLACE hardcoded items with real data
+          ...classes.map((cls) => Column(
+            children: [
+              _buildScheduleItem(cls.title, cls.startTime, "Gym", "${cls.currentClients}/${cls.maxStudents}"),
+              if (cls != classes.last) const SizedBox(height: 12),
+            ],
+          )),
         ],
       ),
     );
   }
 
-  // A private helper method just for building the rows with the purple line
   Widget _buildScheduleItem(String title, String time, String location, String capacity) {
     return Row(
       children: [
-        // The vertical purple line
         Container(
           width: 3,
           height: 40,
@@ -48,7 +53,6 @@ class ScheduleDayCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        // Class Details
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +73,6 @@ class ScheduleDayCard extends StatelessWidget {
             ],
           ),
         ),
-        // Capacity Badge
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
@@ -80,7 +83,7 @@ class ScheduleDayCard extends StatelessWidget {
             capacity,
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade800),
           ),
-        )
+        ),
       ],
     );
   }
