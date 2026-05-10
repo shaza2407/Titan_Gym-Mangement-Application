@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: Colors.white),
       ),
       // home: CoachSchedulePage(),
-      home: const CoachDashboardScreen(),
+      home: const CoachDashboardScreen(coachId: 2,),
       // home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }

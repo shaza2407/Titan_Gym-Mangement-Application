@@ -75,7 +75,7 @@ class _RequestClassScreenState extends State<RequestClassScreen> {
 
     try {
       final url = Uri.parse(
-        'http://127.0.0.1:8000/${widget.coachId}/class_requests/',
+        'http://127.0.0.1:8000/${widget.coachId}/class_request/',
       );
 
       final response = await http.post(
