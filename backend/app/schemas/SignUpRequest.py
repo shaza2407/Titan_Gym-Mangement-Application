@@ -1,12 +1,12 @@
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr , Field
 
 from app.schemas.UserRole import UserRole
 class SignUpRequest(BaseModel):
     name: str
     email: EmailStr
     phone: str
-    password: str
+    password: str = Field(min_length=8)
     role: UserRole
     fitness_goal: str 
     age: int 
