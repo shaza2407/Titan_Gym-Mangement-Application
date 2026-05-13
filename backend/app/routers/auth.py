@@ -10,6 +10,8 @@ from app.schemas.ResetPasswordRequest import ResetPasswordRequest
 from passlib.context import CryptContext
 from jose import jwt
 import datetime
+from backend.app.models import Gym
+from backend.app.models.gym_clients import GymClient
 import bcrypt
 from app.email_utils import send_verification_email, send_reset_email
 import secrets
@@ -121,7 +123,51 @@ async def signin(payload: SignInRequest, db: AsyncSession = Depends(get_session)
         SECRET_KEY,
         algorithm=ALGORITHM
     )
-    return SignInResponse(access_token=token,token_type="bearer",role=role,userID=user.userID)
+
+    # check gym connection for clients
+    # is_gym_connected = False
+    # gymID            = None
+    # gymName          = None
+    # clientID         = None
+
+    # if role == "client":
+    #     # get clientID
+    #     client_result = await db.execute(
+    #         select(Client).filter(Client.userID == user.userID)
+    #     )
+    #     client = client_result.scalar_one_or_none()
+
+    #     if client:
+    #         clientID = client.clientID
+    #         # check if connected to any active gym
+    #         link_result = await db.execute(
+    #             select(GymClient).filter(
+    #                 GymClient.clientID == client.clientID,
+    #                 GymClient.status   == "active"
+    #             )
+    #         )
+    #         gym_link = link_result.scalar_one_or_none()
+
+    #         if gym_link:
+    #             is_gym_connected = True
+    #             gymID            = gym_link.gymID
+    #             # fetch gym name
+    #             gym_result = await db.execute(
+    #                 select(Gym).filter(Gym.gymID == gym_link.gymID)
+    #             )
+    #             gym     = gym_result.scalar_one_or_none()
+    #             gymName = gym.gymName if gym else None
+
+    # return SignInResponse(
+    #     access_token     = token,
+    #     token_type       = "bearer",
+    #     role             = role,
+    #     userID           = user.userID,
+    #     is_gym_connected = is_gym_connected,
+    #     gymID            = gymID,
+    #     gymName          = gymName,
+    #     clientID         = clientID,
+    # )
 
 
 #GET /auth/verify-email?token=***
