@@ -123,7 +123,7 @@ async def signin(payload: SignInRequest, db: AsyncSession = Depends(get_session)
         SECRET_KEY,
         algorithm=ALGORITHM
     )
-
+    return SignInResponse(access_token = token,token_type = "bearer",role = role,userID= user.userID)
     # check gym connection for clients
     # is_gym_connected = False
     # gymID            = None
