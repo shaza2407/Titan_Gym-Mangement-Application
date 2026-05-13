@@ -12,4 +12,4 @@ from app.models.member_invitation import MemberInvitation, InvitationStatus
 from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
 
 
-__all__ = [User, Client, Coach, Admin,ClassSession,ClassRequest ,Gym, Machine, GymMachineInventory]  
+__all__ = [User, Client, Coach, Admin,ClassSession,ClassRequest ,Gym, Machine, GymMachineInventory, MemberInvitation, InvitationStatus, GymClientMembership, ClientMembershipStatus]  
