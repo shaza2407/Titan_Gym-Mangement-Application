@@ -3,6 +3,7 @@ from app.database import Base
 from sqlalchemy import Column, Integer, String, ForeignKey
 
 # extends from user table
+# Stores the client's profile data. Created once at signup. Never changes when they join/leave gyms.
 class Client(Base):
     __tablename__ = "clients"
 
