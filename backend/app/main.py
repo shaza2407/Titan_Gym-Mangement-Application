@@ -6,6 +6,7 @@ from fastapi.params import Depends
 from app.database import get_session
 from app.routers import auth
 from app.routers import coach_dashboard,coach_schedule
+from app.routers import gym
 
 
 app = FastAPI(title="Titan Gym Management System")
@@ -27,8 +28,13 @@ def read_root():
     return {"message": "Welcome to my FastAPI backend"}
 
 
-# Register routers
+# Register and log in routers
 app.include_router(auth.router)
+
+#coach routers
 app.include_router(coach_dashboard.router)
 app.include_router(coach_schedule.router)
+
+#gym routers
+app.include_router(gym.router)
 
