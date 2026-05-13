@@ -8,6 +8,3 @@ class SignUpRequest(BaseModel):
     phone: str
     password: str = Field(min_length=8)
     role: UserRole
-    fitness_goal: str 
-    age: int 
-    gender: str 
