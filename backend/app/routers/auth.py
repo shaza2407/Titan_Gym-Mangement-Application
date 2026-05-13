@@ -59,10 +59,7 @@ async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)
         await db.flush()  
         if payload.role.value == "client":
             client = Client(
-                userID=user.userID,
-                fitness_goal=payload.fitness_goal,
-                age=payload.age,
-                gender=payload.gender
+                userID=user.userID
             )
             db.add(client)
 
