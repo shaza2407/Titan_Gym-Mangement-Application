@@ -10,8 +10,8 @@ from app.schemas.ResetPasswordRequest import ResetPasswordRequest
 from passlib.context import CryptContext
 from jose import jwt
 import datetime
-from backend.app.models import Gym
-from backend.app.models.gym_clients import GymClient
+from backend.app.models.Gym import Gym
+from backend.app.models.gym_clients_membership import GymClientMembership
 import bcrypt
 from app.email_utils import send_verification_email, send_reset_email
 import secrets
