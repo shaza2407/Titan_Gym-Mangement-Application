@@ -1,0 +1,27 @@
+note: cd backend
+1.create .env
+->take data from .env.example
+2.create supabase account
+->put the needed paramaters in .env
+3.download miniconda:
+https://www.anaconda.com/docs/getting-started/miniconda/install/windows-cli-install#powershell
+->setup miniconda
+4.restart vs code
+5.make the VM
+in terminal:
+->conda env create -f environment.yml
+may be needed:
+pip install -r .\requirements.txt
+conda update -n base -c defaults conda 
+conda activate <titan>   
+6.turn the enviroment in vs code to ur new env
+7.to add table
+a.create new file for the table in models
+b. add to all list in init.py and import it
+8.database migration:(only me)
+->creates new migration file
+alembic revision --autogenerate -m "init database"
+->upgrade 
+alembic upgrade head
+-> downgrade
+alembic downgrade <-1>

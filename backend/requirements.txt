@@ -19,3 +19,4 @@ wheel==0.45.1
 python-dotenv
 uvicorn
 asyncpg
+email-validator>=2.0.0
