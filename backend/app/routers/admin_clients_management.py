@@ -10,6 +10,7 @@ from app.models.client import Client
 from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
 from app.models.member_invitation import MemberInvitation, InvitationStatus
+from app.schemas.UserRole import UserRole
 from app.schemas.client_schemas import (
     InviteClientRequest, InviteClientResponse,
     ClientListResponse, ClientListItem,
@@ -115,12 +116,31 @@ async def invite_member(body: InviteClientRequest,
                         db: AsyncSession = Depends(get_session),
                         gym: Gym = Depends(get_admin_gym),
                         ):
+    # 1. Check the email exists in the app
     existing_user = (await db.execute(
         select(User).where(User.email == body.email)
     )).scalar_one_or_none()
-    if existing_user:
-        raise HTTPException(400, "Email already in this Gym.")
 
+    if not existing_user:
+        raise HTTPException(404, "No user found with this email.")
+
+    # 2. Check the user is a client
+    if existing_user.role != UserRole.client:
+        raise HTTPException(400, "This user is not a client.")
+
+    # 3. Check the user isn't already a member of this gym
+    already_member = (await db.execute(
+        select(GymClientMembership).where(
+            GymClientMembership.clientID == existing_user.userID,
+            GymClientMembership.gymID == gym.gymID,
+        )
+    )).scalar_one_or_none()
+
+    if already_member:
+        raise HTTPException(400, "This client is already a member of this gym.")
+
+
+    ## 4. Check for existing pending invitation
     existing_inv = (await db.execute(
         select(MemberInvitation).where(
             MemberInvitation.gymID == gym.gymID,
@@ -146,7 +166,7 @@ async def invite_member(body: InviteClientRequest,
         )
         db.add(inv)
     await db.commit()
-    await send_invitation_email(body.email, gym.name, inv.token)
+    await send_invitation_email(body.email, gym.gymName, inv.token)
 
     return InviteClientResponse(message="Invitation sent successfully.", email=body.email)
 
