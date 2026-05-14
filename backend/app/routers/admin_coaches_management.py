@@ -10,6 +10,7 @@ from app.models.coach import Coach
 from app.models.Gym import Gym
 from app.models.gym_coachs_membership import GymCoachMembership, CoachMembershipStatus
 from app.models.member_invitation import MemberInvitation, InvitationStatus
+from app.schemas.UserRole import UserRole
 from app.schemas.coach_schemas import (
     InviteCoachRequest, InviteCoachResponse,
     CoachListResponse, CoachListItem,
@@ -96,11 +97,31 @@ async def invite_member(body: InviteCoachRequest,
                         db: AsyncSession = Depends(get_session),
                         gym: Gym = Depends(get_admin_gym),
                         ):
+
+    # 1. Check the email exists in the app
     existing_user = (await db.execute(
         select(User).where(User.email == body.email)
     )).scalar_one_or_none()
-    if existing_user:
-        raise HTTPException(400, "Email already in this Gym.")
+
+    if not existing_user:
+        raise HTTPException(404, "No user found with this email.")
+
+    # 2. Check the user is a coach
+    if existing_user.role != UserRole.coach:
+        raise HTTPException(400, "This user is not a coach.")
+
+    # 3. Check the user isn't already a coach in this gym
+    already_member = (await db.execute(
+        select(GymCoachMembership).where(
+            GymCoachMembership.coachID == existing_user.userID,
+            GymCoachMembership.gymID == gym.gymID,
+        )
+    )).scalar_one_or_none()
+
+    if already_member:
+        raise HTTPException(400, "This coach is already a member of this gym.")
+
+    ## 4. Check for existing pending invitation
 
     existing_inv = (await db.execute(
         select(MemberInvitation).where(
@@ -128,7 +149,7 @@ async def invite_member(body: InviteCoachRequest,
         db.add(inv)
 
     await db.commit()
-    await send_invitation_email(body.email, gym.name, inv.token)
+    await send_invitation_email(body.email, gym.gymName, inv.token)
 
     return InviteCoachResponse(message="Invitation sent successfully.", email=body.email)
 
