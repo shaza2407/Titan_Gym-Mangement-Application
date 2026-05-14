@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import date,time,datetime
 from typing import Optional
 
@@ -54,3 +54,30 @@ class ClassRequestResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class InviteCoachRequest(BaseModel):
+    email: EmailStr
+
+class InviteCoachResponse(BaseModel):
+    message: str
+    email:   str
+
+
+class CoachListItem(BaseModel):
+    id: int
+    name: str
+    email: str
+    phone: Optional[str] = None
+    status: str           # "active" | "pending" | "suspended"
+    hire_date: Optional[datetime] = None
+    invitation_sent: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class CoachListResponse(BaseModel):
+    total:   int
+    active:  int
+    pending: int
+    coaches: list[CoachListItem]
