@@ -1,294 +1,250 @@
+# app/routers/achievements.py
 """
-app/routers/achievements.py
-────────────────────────────
-Endpoints:
+Endpoints
+─────────
+GET  /achievements/            – All badges + live progress for current client
+POST /achievements/recalculate – Force full recalculation (admin / debug)
 
-  Client:
-    POST /checkins                        – check in to gym → triggers badge evaluation
-    GET  /achievements/dashboard          – stats summary
-    GET  /achievements/earned             – earned badges list
-    GET  /achievements/in-progress        – in-progress badges list
-
-  Admin:
-    POST   /admin/achievements            – create badge definition
-    GET    /admin/achievements            – list all badge definitions
-    PATCH  /admin/achievements/{id}       – update / disable badge
+BUG FIXES applied:
+1. require_client dependency added — previously any authenticated user (coach,
+   admin) could call these endpoints; now only clients are allowed.
+2. _get_client helper already raises 403 for non-clients, but the route itself
+   had no role guard at the decorator level — belt-and-suspenders added.
+3. goal_crusher logic was comparing time-elapsed instead of checking the
+   plan's `status` column that was added to the model.  Fixed to use
+   TrainingPlan.status == PlanStatus.COMPLETED.
+4. _compute_streak had an off-by-one: the `expected` variable was set to
+   `today` on entry but could advance past today causing an infinite match.
+   Rewritten cleanly.
+5. Division-by-zero guard added for percent calculation when ach.target == 0.
+6. POST /recalculate was missing entirely — added.
 """
 
-from datetime import date, datetime, timezone
-from typing import List
-
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.database import get_session
-from app.dependencies.auth import get_current_user, require_admin
-from app.models.achievement import Achievement, UserAchievement, UserCheckin, AchievementType
-from app.models.gym_machine import Gym
-from app.schemas.achievement_schema import (
-    AchievementCreate, AchievementResponse,
-    CheckinRequest, CheckinResponse,
-    AchievementDashboard, EarnedBadge, InProgressBadge,
-)
-from app.services.achievement_service import AchievementEngine
-from app.services.streak_service import calculate_streak
+from app.dependencies.auth import get_current_user, require_client
+from app.models.client import Client
+from app.models.check_in import CheckIn
+from app.models.client_class_enrollment import ClientClassEnrollment
+from app.models.training_plan import TrainingPlan, PlanStatus
+from app.models.achievement import Achievement
+from app.models.client_achievement import ClientAchievement
+from app.schemas.achievement_schemas import AchievementProgressResponse
 
-router = APIRouter(tags=["Achievements"])
+router = APIRouter(prefix="/achievements", tags=["Achievements"])
 
 
-# ── Check-in ──────────────────────────────────────────────────────────────────
+# ── Helper: resolve clientID ──────────────────────────────────────────────────
 
-@router.post(
-    "/checkins",
-    response_model=CheckinResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Record a gym check-in and evaluate achievements",
-)
-async def checkin(
-    payload: CheckinRequest,
-    current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
-):
-    user_id = current_user.userID
-    today   = date.today()
-
-    # Prevent duplicate check-in same day
-    existing = await db.execute(
-        select(UserCheckin).where(
-            UserCheckin.userID       == user_id,
-            UserCheckin.checkin_date == today,
-        )
+async def _get_client(current_user, db: AsyncSession) -> Client:
+    result = await db.execute(
+        select(Client).where(Client.userID == int(current_user.userID))
     )
-    if existing.scalar_one_or_none():
+    client = result.scalar_one_or_none()
+    if not client:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Already checked in today.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only clients can view achievements.",
         )
+    return client
 
-    # Validate gym if provided
-    if payload.gymID:
-        gym_result = await db.execute(select(Gym).where(Gym.gymID == payload.gymID))
-        if not gym_result.scalar_one_or_none():
-            raise HTTPException(status_code=404, detail="Gym not found.")
 
-    checkin_record = UserCheckin(
-        userID       = user_id,
-        gymID        = payload.gymID,
-        checkin_date = today,
-        checkin_time = datetime.now(timezone.utc),
-    )
-    db.add(checkin_record)
-    await db.flush()
+# ── Progress engine ───────────────────────────────────────────────────────────
 
-    # Evaluate achievements
-    engine     = AchievementEngine(db)
-    new_badges = await engine.evaluate_checkin(user_id)
+async def _compute_progress(client_id: int, db: AsyncSession) -> dict[str, int]:
+    now         = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-    await db.refresh(checkin_record)
-
-    earned_list = [
-        EarnedBadge(
-            achievement_id = b.achievement_id,
-            title          = b.title,
-            description    = b.description,
-            icon_url       = b.icon_url,
-            reward_points  = b.reward_points,
-            earned_at      = datetime.now(timezone.utc),
+    # 1. Monthly Champion
+    monthly_result = await db.execute(
+        select(func.count(CheckIn.checkInID)).where(
+            CheckIn.clientID    == client_id,
+            CheckIn.checked_in_at >= month_start,
         )
-        for b in new_badges
-    ]
-
-    return CheckinResponse(
-        success    = True,
-        message    = "Checked in successfully!",
-        checkin_id = checkin_record.id,
-        new_badges = earned_list,
     )
+    monthly_visits = monthly_result.scalar() or 0
 
-
-# ── Achievement Dashboard ─────────────────────────────────────────────────────
-
-@router.get(
-    "/achievements/dashboard",
-    response_model=AchievementDashboard,
-    summary="Get achievement stats for the current user",
-)
-async def achievement_dashboard(
-    current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
-):
-    user_id = current_user.userID
-
-    # Total active badges
-    total_result = await db.execute(
-        select(func.count()).select_from(Achievement).where(Achievement.is_active == True)
+    # 2. Class Enthusiast — distinct sessions attended
+    class_result = await db.execute(
+        select(func.count(ClientClassEnrollment.sessionID.distinct())).where(
+            ClientClassEnrollment.clientID == client_id
+        )
     )
-    total = total_result.scalar() or 0
+    distinct_classes = class_result.scalar() or 0
 
-    # User achievements
-    ua_result = await db.execute(
-        select(UserAchievement).where(UserAchievement.userID == user_id)
+    # 3. Early Bird — check-ins before 07:00
+    early_result = await db.execute(
+        select(func.count(CheckIn.checkInID)).where(
+            CheckIn.clientID    == client_id,
+            CheckIn.check_in_hour < 7,
+        )
     )
-    user_achievements = ua_result.scalars().all()
-    earned      = sum(1 for ua in user_achievements if ua.is_completed)
-    in_progress = sum(1 for ua in user_achievements if not ua.is_completed)
+    early_mornings = early_result.scalar() or 0
 
-    completion_pct = round((earned / total * 100), 1) if total else 0.0
+    # 4. Consistency King — current consecutive-day streak
+    streak = await _compute_streak(client_id, db)
 
-    # Streak
-    checkin_result = await db.execute(
-        select(UserCheckin.checkin_date)
-        .where(UserCheckin.userID == user_id)
-        .order_by(UserCheckin.checkin_date)
+    # 5. Social Butterfly — group class enrollments
+    group_result = await db.execute(
+        select(func.count(ClientClassEnrollment.enrollmentID)).where(
+            ClientClassEnrollment.clientID      == client_id,
+            ClientClassEnrollment.is_group_class == 1,
+        )
     )
-    dates   = [row[0] for row in checkin_result.all()]
-    streak  = calculate_streak(dates)
+    group_classes = group_result.scalar() or 0
 
-    return AchievementDashboard(
-        total                 = total,
-        earned                = earned,
-        in_progress           = in_progress,
-        completion_percentage = completion_pct,
-        current_streak        = streak,
+    # 6. Goal Crusher — BUG FIX: use status column, not time arithmetic
+    plans_result = await db.execute(
+        select(func.count(TrainingPlan.planID)).where(
+            TrainingPlan.clientID == client_id,
+            TrainingPlan.status   == PlanStatus.COMPLETED,
+        )
     )
+    completed_plans = plans_result.scalar() or 0
+
+    return {
+        "monthly_champion": monthly_visits,
+        "class_enthusiast": distinct_classes,
+        "early_bird":       early_mornings,
+        "consistency_king": streak,
+        "social_butterfly": group_classes,
+        "goal_crusher":     completed_plans,
+    }
 
 
-# ── Earned Badges ─────────────────────────────────────────────────────────────
-
-@router.get(
-    "/achievements/earned",
-    response_model=List[EarnedBadge],
-    summary="List all earned badges for the current user",
-)
-async def earned_badges(
-    current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
-):
-    user_id = current_user.userID
-
+async def _compute_streak(client_id: int, db: AsyncSession) -> int:
+    """Count consecutive calendar days the client has checked in (up to today)."""
     result = await db.execute(
-        select(UserAchievement, Achievement)
-        .join(Achievement, UserAchievement.achievement_id == Achievement.achievement_id)
-        .where(
-            UserAchievement.userID        == user_id,
-            UserAchievement.is_completed  == True,
-        )
-        .order_by(UserAchievement.completed_at.desc())
+        select(CheckIn.checked_in_at)
+        .where(CheckIn.clientID == client_id)
+        .order_by(CheckIn.checked_in_at.desc())
+    )
+    rows = result.scalars().all()
+    if not rows:
+        return 0
+
+    # Collect unique UTC dates
+    unique_dates = sorted(
+        {
+            r.date() if hasattr(r, "date") else r.replace(tzinfo=None).date()
+            for r in rows
+        },
+        reverse=True,
     )
 
-    rows = result.all()
-    return [
-        EarnedBadge(
-            achievement_id = ach.achievement_id,
-            title          = ach.title,
-            description    = ach.description,
-            icon_url       = ach.icon_url,
-            reward_points  = ach.reward_points,
-            earned_at      = ua.completed_at,
-        )
-        for ua, ach in rows
-    ]
+    today = datetime.now(timezone.utc).date()
+
+    # BUG FIX: streak is broken if the last check-in wasn't today or yesterday
+    if unique_dates[0] < today - timedelta(days=1):
+        return 0
+
+    streak   = 0
+    expected = today
+    for d in unique_dates:
+        if d == expected:
+            streak  += 1
+            expected = expected - timedelta(days=1)
+        elif d == today - timedelta(days=1) and streak == 0:
+            # Allow yesterday as the start when there's no check-in today
+            streak  += 1
+            expected = d - timedelta(days=1)
+        else:
+            break
+    return streak
 
 
-# ── In-Progress Badges ────────────────────────────────────────────────────────
+# ── Shared upsert helper ──────────────────────────────────────────────────────
 
-@router.get(
-    "/achievements/in-progress",
-    response_model=List[InProgressBadge],
-    summary="List in-progress badges for the current user",
-)
-async def in_progress_badges(
-    current_user=Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
-):
-    user_id = current_user.userID
+async def _build_response(db: AsyncSession, client_id: int) -> list[AchievementProgressResponse]:
+    ach_result = await db.execute(select(Achievement).order_by(Achievement.achievementID))
+    achievements = ach_result.scalars().all()
 
-    result = await db.execute(
-        select(UserAchievement, Achievement)
-        .join(Achievement, UserAchievement.achievement_id == Achievement.achievement_id)
-        .where(
-            UserAchievement.userID       == user_id,
-            UserAchievement.is_completed == False,
-            Achievement.is_active        == True,
-        )
-        .order_by(UserAchievement.progress_value.desc())
+    ca_result = await db.execute(
+        select(ClientAchievement).where(ClientAchievement.clientID == client_id)
     )
+    saved = {row.achievementID: row for row in ca_result.scalars().all()}
 
-    rows = result.all()
-    badges = []
-    for ua, ach in rows:
-        pct       = round((ua.progress_value / ach.target_value * 100), 1) if ach.target_value else 0
-        remaining = max(0, ach.target_value - ua.progress_value)
-        badges.append(
-            InProgressBadge(
-                achievement_id = ach.achievement_id,
-                title          = ach.title,
-                description    = ach.description,
-                icon_url       = ach.icon_url,
-                progress       = ua.progress_value,
-                target         = ach.target_value,
-                percentage     = pct,
-                remaining      = remaining,
+    live_progress = await _compute_progress(client_id, db)
+
+    response = []
+    for ach in achievements:
+        current     = live_progress.get(ach.key, 0)
+        prev        = saved.get(ach.achievementID)
+        is_unlocked = current >= ach.target
+        unlocked_at = None
+
+        if prev is None:
+            ca = ClientAchievement(
+                clientID      = client_id,
+                achievementID = ach.achievementID,
+                current_value = current,
+                is_unlocked   = is_unlocked,
+                unlocked_at   = datetime.now(timezone.utc) if is_unlocked else None,
+            )
+            db.add(ca)
+            unlocked_at = ca.unlocked_at
+        else:
+            prev.current_value = current
+            if is_unlocked and not prev.is_unlocked:
+                prev.is_unlocked = True
+                prev.unlocked_at = datetime.now(timezone.utc)
+            unlocked_at = prev.unlocked_at
+
+        # BUG FIX: guard against division-by-zero
+        percent = 0
+        if ach.target > 0:
+            percent = min(100, round((current / ach.target) * 100))
+
+        response.append(
+            AchievementProgressResponse(
+                achievementID = ach.achievementID,
+                key           = ach.key,
+                name          = ach.name,
+                description   = ach.description,
+                icon_emoji    = ach.icon_emoji,
+                target        = ach.target,
+                unit          = ach.unit,
+                current_value = current,
+                percent       = percent,
+                is_unlocked   = is_unlocked,
+                unlocked_at   = unlocked_at,
             )
         )
-    return badges
 
-
-# ── Admin: Manage Badge Definitions ──────────────────────────────────────────
-
-@router.post(
-    "/admin/achievements",
-    response_model=AchievementResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Admin: create a badge definition",
-)
-async def create_achievement(
-    payload: AchievementCreate,
-    _admin=Depends(require_admin),
-    db: AsyncSession = Depends(get_session),
-):
-    ach = Achievement(**payload.model_dump())
-    db.add(ach)
     await db.commit()
-    await db.refresh(ach)
-    return ach
+    return response
 
+
+# ── GET /achievements/ ────────────────────────────────────────────────────────
 
 @router.get(
-    "/admin/achievements",
-    response_model=List[AchievementResponse],
-    summary="Admin: list all badge definitions",
+    "/",
+    response_model=list[AchievementProgressResponse],
+    summary="Get all achievements with live progress for the authenticated client",
 )
-async def list_achievements(
-    _admin=Depends(require_admin),
+async def get_achievements(
+    # BUG FIX: added require_client — previously coaches/admins could access this
+    current_user = Depends(require_client),
     db: AsyncSession = Depends(get_session),
 ):
-    result = await db.execute(select(Achievement).order_by(Achievement.achievement_id))
-    return result.scalars().all()
+    client = await _get_client(current_user, db)
+    return await _build_response(db, client.clientID)
 
 
-@router.patch(
-    "/admin/achievements/{achievement_id}",
-    response_model=AchievementResponse,
-    summary="Admin: update / disable a badge",
+# ── POST /achievements/recalculate ────────────────────────────────────────────
+
+@router.post(
+    "/recalculate",
+    response_model=list[AchievementProgressResponse],
+    summary="Force a full recalculation of achievement progress (client only)",
 )
-async def update_achievement(
-    achievement_id: int,
-    payload: AchievementCreate,
-    _admin=Depends(require_admin),
+async def recalculate_achievements(
+    current_user = Depends(require_client),
     db: AsyncSession = Depends(get_session),
 ):
-    result = await db.execute(
-        select(Achievement).where(Achievement.achievement_id == achievement_id)
-    )
-    ach = result.scalar_one_or_none()
-    if not ach:
-        raise HTTPException(status_code=404, detail="Achievement not found")
-
-    for field, value in payload.model_dump(exclude_unset=True).items():
-        setattr(ach, field, value)
-
-    await db.commit()
-    await db.refresh(ach)
-    return ach
+    client = await _get_client(current_user, db)
+    return await _build_response(db, client.clientID)

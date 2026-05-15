@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 
-from backend.app.schemas.Machine import MachineResponse
+from app.schemas.Machine import MachineResponse
 
 
 class InventoryBase(BaseModel):

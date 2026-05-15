@@ -1,26 +1,70 @@
-from app.models.User import User
-from app.models.client import Client
-from app.models.coach import Coach
-from app.models.Admin import Admin
-from app.models.Gym import Gym
-from app.models.gym_clients_membership import GymClientMembership
-from app.models.gym_coachs_membership import GymCoachMembership
-from app.models.member_invitation import MemberInvitation
-from app.models.Machine import Machine
-from app.models.gymMachineInventory import GymMachineInventory
-from app.models.class_request import ClassRequest
-from app.models.class_session import ClassSession
+# ── Auth & User ───────────────────────────────────────────────────────────────
+from app.schemas.UserRole import UserRole
+from app.schemas.SignUpRequest import SignUpRequest
+from app.schemas.SignUpResponse import SignUpResponse
+from app.schemas.SignInRequest import SignInRequest
+from app.schemas.SignInResponse import SignInResponse
+from app.schemas.ForgotPasswordRequest import ForgotPasswordRequest
+from app.schemas.ResetPasswordRequest import ResetPasswordRequest
 
-# New Models for Achievements and Training Plans
-from app.models.achievement import Achievement, UserAchievement, UserCheckIn, UserTrainingPlanProgress
-from app.models.gym_machine import GymMachine
-from app.models.training_plan import TrainingPlan
+# ── Gym ───────────────────────────────────────────────────────────────────────
+from app.schemas.gym import GymBase, GymCreate, GymUpdate, GymResponse, GymWithMachines
 
-# We use strings in __all__ to identify the classes exported by this module
+# ── Machine ───────────────────────────────────────────────────────────────────
+from app.schemas.Machine import MachineBase, MachineCreate, MachineUpdate, MachineResponse
+
+# ── Gym Machine Inventory ─────────────────────────────────────────────────────
+from app.schemas.GymMachineInventory import InventoryBase, InventoryCreate, InventoryResponse
+
+# ── Coach ─────────────────────────────────────────────────────────────────────
+from app.schemas.coach_schemas import (
+    ClassSessionResponse,
+    DashboardStatsResponse,
+    ScheduleStatsResponse,
+    MyClassesResponse,
+    CreateClassRequestPayload,
+    ClassRequestResponse,
+    InviteCoachRequest,
+    InviteCoachResponse,
+    CoachListItem,
+    CoachListResponse,
+)
+
+# ── Achievements ──────────────────────────────────────────────────────────────
+from app.schemas.achievement_schemas import (
+    AchievementProgressResponse,
+    CheckInRequest,
+    CheckInResponse,
+)
+
+# ── Training Plan ─────────────────────────────────────────────────────────────
+from app.schemas.TrainingPlanRequest import TrainingPlanRequest
+from app.schemas.TrainingPlanResponse import (
+    DayPlan,
+    WeekPlan,
+    TrainingPlanResponse,
+    TrainingPlanSummary,
+)
+
 __all__ = [
-    "User", "Client", "Coach", "Admin", "Gym", "Machine",
-    "GymClientMembership", "GymCoachMembership", "MemberInvitation",
-    "GymMachineInventory", "ClassRequest", "ClassSession",
-    "Achievement", "UserAchievement", "UserCheckIn",
-    "UserTrainingPlanProgress", "GymMachine", "TrainingPlan"
+    # Auth & User
+    "UserRole",
+    "SignUpRequest", "SignUpResponse",
+    "SignInRequest", "SignInResponse",
+    "ForgotPasswordRequest", "ResetPasswordRequest",
+    # Gym
+    "GymBase", "GymCreate", "GymUpdate", "GymResponse", "GymWithMachines",
+    # Machine
+    "MachineBase", "MachineCreate", "MachineUpdate", "MachineResponse",
+    # Inventory
+    "InventoryBase", "InventoryCreate", "InventoryResponse",
+    # Coach
+    "ClassSessionResponse", "DashboardStatsResponse", "ScheduleStatsResponse",
+    "MyClassesResponse", "CreateClassRequestPayload", "ClassRequestResponse",
+    "InviteCoachRequest", "InviteCoachResponse", "CoachListItem", "CoachListResponse",
+    # Achievements
+    "AchievementProgressResponse", "CheckInRequest", "CheckInResponse",
+    # Training Plan
+    "TrainingPlanRequest", "DayPlan", "WeekPlan",
+    "TrainingPlanResponse", "TrainingPlanSummary",
 ]

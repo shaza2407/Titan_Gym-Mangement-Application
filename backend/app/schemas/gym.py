@@ -34,3 +34,8 @@ class GymResponse(GymBase):
 
     class Config:
         from_attributes = True
+
+class GymWithMachines(GymResponse):
+    """Extended response that nests the gym's machine inventory."""
+    from app.schemas.GymMachineInventory import InventoryResponse
+    machines: list[InventoryResponse] = []
