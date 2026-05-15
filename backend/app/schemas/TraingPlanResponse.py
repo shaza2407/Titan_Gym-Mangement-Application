@@ -1,46 +1,51 @@
-from pydantic import BaseModel, Field
+# app/schemas/TraingPlanResponse.py
+from pydantic import BaseModel
 from typing import Optional, List, Any
 from datetime import datetime
+from app.models.training_plan import PlanStatus
 
-
-# ─── Response ─────────────────────────────────────────────────────────────────
 
 class DayPlan(BaseModel):
-    day: str                  # e.g. "Monday" or "Day 1"
-    focus: str                # e.g. "Upper Body – Push"
-    exercises: List[Any]      # list of exercise dicts {name, sets, reps, rest}
-    notes: Optional[str] = None
+    day:       str
+    focus:     str
+    exercises: List[Any]
+    notes:     Optional[str] = None
 
 
 class WeekPlan(BaseModel):
-    week: int
-    theme: Optional[str] = None   # e.g. "Foundation Phase"
-    days: List[DayPlan]
+    week:  int
+    theme: Optional[str] = None
+    days:  List[DayPlan]
 
 
 class TrainingPlanResponse(BaseModel):
-    planID:     int
-    clientID:   int
-    title:      str
-    goal:       str
-    level:      Optional[str]
-    weeks:      Optional[int]
-    plan:       List[WeekPlan]          # parsed structure for the frontend
-    raw_json:   str                     # full Gemini output (stored in DB)
-    created_at: datetime
+    planID:       int
+    clientID:     int
+    title:        str
+    goal:         str
+    level:        Optional[str]
+    weeks:        Optional[int]
+    # BUG FIX: status and completed_at were missing — frontend could never
+    # show plan status and the /complete endpoint had no response shape.
+    status:       Optional[PlanStatus] = PlanStatus.IN_PROGRESS
+    completed_at: Optional[datetime]   = None
+    plan:         List[WeekPlan]
+    raw_json:     str
+    created_at:   datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class TrainingPlanSummary(BaseModel):
     """Lightweight version for listing all plans of a client."""
-    planID:     int
-    title:      str
-    goal:       str
-    level:      Optional[str]
-    weeks:      Optional[int]
-    created_at: datetime
+    planID:       int
+    title:        str
+    goal:         str
+    level:        Optional[str]
+    weeks:        Optional[int]
+    # BUG FIX: status was missing from summary too
+    status:       Optional[PlanStatus] = PlanStatus.IN_PROGRESS
+    completed_at: Optional[datetime]   = None
+    created_at:   datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
