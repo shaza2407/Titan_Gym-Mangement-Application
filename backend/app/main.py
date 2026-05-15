@@ -1,14 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.params import Depends
-from app.database import get_session
-from app.routers import auth
-from app.routers import coach_dashboard,coach_schedule
-from app.routers import admin_clients_management, admin_coaches_management
-from app.routers import gym
 
+# Import routers from all branches
+from app.routers import (
+    auth,
+    training_plan,
+    achievements,
+    checkin,
+    coach_dashboard,
+    coach_schedule,
+    gym,
+    admin_clients_management,
+    admin_coaches_management
+)
+
+import app.models  # noqa: F401
 
 app = FastAPI(title="Titan Gym Management System")
 
@@ -20,10 +26,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import (
-    auth
-)
-
 @app.get("/")
 def read_root():
     return {"message": "Welcome to my FastAPI backend"}
@@ -32,6 +34,10 @@ def read_root():
 # Register and log in routers
 app.include_router(auth.router)
 
+# Features (AI Training & Gamification)
+app.include_router(training_plan.router)
+app.include_router(achievements.router)
+app.include_router(checkin.router)
 #coach routers
 app.include_router(coach_dashboard.router)
 app.include_router(coach_schedule.router)

@@ -2,7 +2,10 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from jose import jwt, JWTError
+
 from app.database import get_session
 from app.models import User
 from app.models.Admin import Admin
@@ -13,9 +16,10 @@ ALGORITHM  = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
 
 
-async def get_current_user(
+#decode token & return current user
+def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_session)
+    db: Session = Depends(get_session)
 ) -> User:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -27,23 +31,21 @@ async def get_current_user(
     user = result.scalars().first()
     if not user:
         raise HTTPException(401, "User not found")
+
     return user
 
 
-async def require_admin(token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_session)
-) -> Admin:
-    # Step 1: verify token & get user
-    user = await get_current_user(token=token, db=db)
-    if user.role != "admin":
+# to use in routes that require specific roles
+def require_admin(current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
         raise HTTPException(403, "Admins only")
-    
+
     result = await db.execute(select(Admin).filter(Admin.userID == user.userID))
     admin = result.scalars().first()
     if not admin:
         raise HTTPException(404, "Admin record not found")
-    
-    return admin  
+
+    return admin
 
 async def require_coach(current_user: User = Depends(get_current_user)):
     if current_user.role != "coach":
