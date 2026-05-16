@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../domain/user_model.dart';
 
 class AuthRepository {
-  final String baseUrl = 'http://10.0.2.2:8000';
+  final String baseUrl = 'http://localhost:8000';
 
   Future<UserModel> signUp({
     required String fullName,
@@ -13,7 +13,7 @@ class AuthRepository {
     required String password,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/auth/register'),
+      Uri.parse('$baseUrl/auth/signup'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'full_name': fullName,
