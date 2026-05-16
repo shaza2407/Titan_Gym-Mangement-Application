@@ -29,7 +29,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       case 1:
         return _buildPlaceholderTab('Schedule');
       case 2:
-         return ClientScanScreen(token: widget.token);
+        return ClientScanScreen(token: widget.token);
       case 3:
         return ClientProfileScreen(token: widget.token);
       default:
@@ -223,52 +223,6 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                   const Color(0xFF4F46E5),
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-
-            // ── Weekly Goal ───────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Weekly Attendance Goal',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    'Keep up the great work!',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text('4 out of 5 days'),
-                      Text(
-                        '80%',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: 0.8,
-                      minHeight: 10,
-                      backgroundColor: Colors.grey[200],
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Colors.black,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
             const SizedBox(height: 16),
 
