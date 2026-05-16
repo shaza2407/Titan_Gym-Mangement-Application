@@ -12,7 +12,7 @@ from app.models.Machine import Machine
 from app.models.gymMachineInventory import GymMachineInventory
 from app.models.class_request import ClassRequest
 from app.models.class_session import ClassSession
-
+from app.models.attendance import Attendance
 
 __all__ = [User, Client, Coach, Admin,ClassSession,ClassRequest ,Gym, Machine, GymMachineInventory,
-           GymClientMembership, GymCoachMembership, MemberInvitation]
+           GymClientMembership, GymCoachMembership, MemberInvitation, Attendance]
