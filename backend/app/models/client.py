@@ -14,10 +14,8 @@ class Client(Base):
     gender       = Column(String, nullable=True)
 
     # profile page needs
-    date_of_birth         = Column(Date,    nullable=True)
-    address               = Column(String,  nullable=True)
     bio                   = Column(Text,    nullable=True)
     emergency_contact     = Column(String,  nullable=True)  
     profile_picture       = Column(String,  nullable=True)  # URL or file path
-    
+
 
