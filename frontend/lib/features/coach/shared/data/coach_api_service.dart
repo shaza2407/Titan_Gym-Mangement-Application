@@ -2,6 +2,8 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class DashboardStats {
   final int weeklyClasses;
@@ -115,7 +117,16 @@ class ClassRequestHistory {
 }
 
 class CoachApiService {
-  static const String baseUrl = "http://127.0.0.1:8000";
+  static String get baseUrl {
+  if (kIsWeb) {
+    return 'http://localhost:8000';        // Chrome / web
+  } else if (Platform.isAndroid) {
+    return 'http://10.0.2.2:8000';         // Android emulator
+  } else if (Platform.isIOS) {
+    return 'http://localhost:8000';        // iOS simulator
+  }
+  return 'http://localhost:8000';
+  }
 
   static Future<DashboardStats> fetchDashboardStats(int coachId) async{
     final res = await http.get(Uri.parse('$baseUrl/$coachId/dashboard'));

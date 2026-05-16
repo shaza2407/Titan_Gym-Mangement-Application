@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatelessWidget {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  static String get baseUrl {
+    if (kIsWeb) return 'http://localhost:8000';
+    if (Platform.isAndroid) return 'http://10.0.2.2:8000';
+    return 'http://localhost:8000';
+  }
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       backgroundColor: Color(0xFFEEF0F8),
       body: Center(
@@ -112,7 +124,7 @@ class LoginScreen extends StatelessWidget {
                       try {
                         // Step 1 — Sign in
                         final signinRes = await http.post(
-                          Uri.parse('http://localhost:8000/auth/signin'),
+                          Uri.parse("$baseUrl/auth/signin"),
                           headers: {'Content-Type': 'application/json'},
                           body: jsonEncode({
                             'email': email,
@@ -148,7 +160,7 @@ class LoginScreen extends StatelessWidget {
                         if (role == 'client') {
                           // Step 3 — Check if connected to gym
                           final meRes = await http.get(
-                            Uri.parse('http://localhost:8000/client/me'),
+                            Uri.parse('$baseUrl/client/me'),
                             headers: {
                               'Content-Type': 'application/json',
                               'Authorization': 'Bearer $token',
