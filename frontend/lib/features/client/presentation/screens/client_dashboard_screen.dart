@@ -1,5 +1,4 @@
-// lib/features/client/presentation/screens/client_dashboard_screen.dart
-
+import 'client_scan_screen.dart';
 import 'package:flutter/material.dart';
 import 'client_profile_screen.dart';
 
@@ -30,7 +29,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       case 1:
         return _buildPlaceholderTab('Schedule');
       case 2:
-        return _buildPlaceholderTab('Scan QR');
+         return ClientScanScreen(token: widget.token);
       case 3:
         return ClientProfileScreen(token: widget.token);
       default:
