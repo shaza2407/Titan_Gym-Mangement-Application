@@ -14,7 +14,7 @@ class SignupController extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
-  final List<String> roles = ['member', 'coach', 'admin'];
+  final List<String> roles = ['client', 'coach', 'admin'];
 
   void setRole(String? role) {
     if (role == null) return;
