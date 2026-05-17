@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/coach/coach_dashboard/presentation/layouts/coach_layout.dart';
 import 'package:provider/provider.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/auth/presentation/login_screen.dart';
@@ -41,7 +42,7 @@ class MyApp extends StatelessWidget {
         }
         if (settings.name == '/coach-dashboard') {
           return MaterialPageRoute(
-            builder: (_) => const CoachDashboardScreen(coachId: 2),
+            builder: (_) => const CoachMainWrapper(coachId: 2),
           );
         }
         return null;

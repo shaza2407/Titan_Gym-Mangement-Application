@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/coach/coach_profile/coach_profile_screen.dart';
 import 'package:frontend/features/coach/coach_schedule/presentation/screens/coach_schedule_screen.dart';
 
 class QuickActionsSection extends StatelessWidget {
@@ -56,7 +57,14 @@ class QuickActionsSection extends StatelessWidget {
               icon: Icons.person_outline,
               title: "My Profile",
               subtitle: "Update your coach information",
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CoachProfileScreen(),
+                  ), // Pass the actual coach ID here
+                );
+              },
             ),
           ],
         ),
