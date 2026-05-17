@@ -1,6 +1,8 @@
-import 'client_scan_screen.dart';
+// lib/features/client/presentation/screens/client_dashboard_screen.dart
+
 import 'package:flutter/material.dart';
 import 'client_profile_screen.dart';
+import 'client_scan_screen.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
@@ -12,6 +14,70 @@ class ClientDashboardScreen extends StatefulWidget {
 
 class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   int _currentIndex = 0;
+
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Confirm Logout',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to log out? You will need to sign in again to access your account.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Logout',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -141,8 +207,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.logout_outlined),
-                      onPressed: () =>
-                          Navigator.pushReplacementNamed(context, '/login'),
+                      onPressed: () => _confirmLogout(context),
                     ),
                   ],
                 ),
