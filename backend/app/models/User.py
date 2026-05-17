@@ -1,6 +1,5 @@
 # app/models/user.py
-#example only , willl be removed later
-from sqlalchemy import Column, Integer, String,DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from app.database import Base
 
 class User(Base):
@@ -13,5 +12,5 @@ class User(Base):
     role = Column(String, nullable=False)
     phone = Column(String, nullable=True)
     is_verified = Column(Boolean, default=False)
-    reset_token = Column(String, nullable=True)
+    reset_token     = Column(String, nullable=True)      # ✅ now a real column
     reset_token_exp = Column(DateTime, nullable=True)

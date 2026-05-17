@@ -33,16 +33,18 @@ class SignupController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
+
     try {
       await _repo.signUp(
         fullName:    fullNameController.text.trim(),
         email:       emailController.text.trim(),
         phoneNumber: phoneController.text.trim(),
-        role:        selectedRole!,
         password:    passwordController.text,
+        role:        selectedRole!,
+      
       );
 
-      Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context,'/verify-email',arguments: emailController.text.trim(),);
     } catch (e) {
       errorMessage = e.toString();
     } finally {
