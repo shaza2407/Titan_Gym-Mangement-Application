@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -7,6 +6,10 @@ from app.models import Client, GymClientMembership
 from app.schemas.client_profile_schema import ClientProfileUpdate, ClientProfileResponse
 from app.CRUD.client_profile import get_client_profile, update_client_profile
 from app.dependencies.auth import require_client
+from datetime import date
+from app.models.Gym import Gym
+from app.schemas.attendance_schema import DashboardStatsResponse
+from app.CRUD.attendance import get_dashboard_stats, get_membership
 
 router = APIRouter(prefix="/client", tags=["Client"])
 
@@ -68,3 +71,40 @@ async def get_me(
         "email":            current_user.email,
         "is_connected":     connected,    # frontend checks this
     }
+
+
+# GET /client/dashboard-stats
+@router.get("/dashboard-stats", response_model=DashboardStatsResponse)
+async def dashboard_stats(
+    current_user=Depends(require_client),
+    db: AsyncSession = Depends(get_session)
+):
+    client = await get_client_or_404(current_user.userID, db)
+    membership = await get_membership(client.clientID, db)
+
+    if not membership:
+        return DashboardStatsResponse(
+            total_visits=0,
+            days_this_week=0,
+            current_streak=0,
+        )
+
+    stats = await get_dashboard_stats(membership.id, db)
+    days_remaining = (membership.subscription_end - date.today()).days
+
+    # Get gym name
+    gym_result = await db.execute(
+        select(Gym).where(Gym.gymID == membership.gymID)
+    )
+    gym = gym_result.scalar_one_or_none()
+
+    return DashboardStatsResponse(
+        total_visits=stats["total_visits"],
+        days_this_week=stats["days_this_week"],
+        current_streak=stats["current_streak"],
+        subscription=membership.subscription,
+        subscription_end=str(membership.subscription_end),
+        days_remaining=days_remaining,
+        membership_status=membership.status.value,
+        gym_name=gym.gymName if gym else None,
+    )
