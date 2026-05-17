@@ -53,18 +53,20 @@ async def get_dashboard_stats(membershipID: int, db: AsyncSession) -> dict:
     )
     total_visits = total_result.scalar() or 0
 
-    # Days this week
+    # Days this week — use AT TIME ZONE to convert UTC to local
     week_result = await db.execute(
-        select(func.count(distinct(cast(Attendance.checked_in, Date)))).where(
+        select(func.count(distinct(
+            cast(func.timezone('Africa/Cairo', Attendance.checked_in), Date)
+        ))).where(
             Attendance.membershipID == membershipID,
-            cast(Attendance.checked_in, Date) >= start_of_week
+            cast(func.timezone('Africa/Cairo', Attendance.checked_in), Date) >= start_of_week
         )
     )
     days_this_week = week_result.scalar() or 0
 
-    # Current streak
+    # Streak — use local timezone
     streak_result = await db.execute(
-        select(cast(Attendance.checked_in, Date))
+        select(cast(func.timezone('Africa/Cairo', Attendance.checked_in), Date))
         .where(Attendance.membershipID == membershipID)
         .order_by(Attendance.checked_in.desc())
     )
@@ -72,13 +74,15 @@ async def get_dashboard_stats(membershipID: int, db: AsyncSession) -> dict:
     unique_dates = sorted(set(all_dates), reverse=True)
 
     streak = 0
-    check_date = today
-    for d in unique_dates:
-        if d == check_date or d == check_date - timedelta(days=1):
-            streak += 1
-            check_date = d - timedelta(days=1)
-        else:
-            break
+    if unique_dates:
+        if unique_dates[0] >= today - timedelta(days=1):
+            check_date = unique_dates[0]
+            for d in unique_dates:
+                if d == check_date:
+                    streak += 1
+                    check_date = check_date - timedelta(days=1)
+                else:
+                    break
 
     return {
         "total_visits":   total_visits,
