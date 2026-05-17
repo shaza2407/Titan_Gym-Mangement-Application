@@ -29,9 +29,15 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       case 1:
         return _buildPlaceholderTab('Schedule');
       case 2:
-        return ClientScanScreen(token: widget.token);
+        return ClientScanScreen(
+          token: widget.token,
+          onBack: () => setState(() => _currentIndex = 0),
+        );
       case 3:
-        return ClientProfileScreen(token: widget.token);
+        return ClientProfileScreen(
+          token: widget.token,
+          onBack: () => setState(() => _currentIndex = 0),
+        );
       default:
         return _buildHomeTab();
     }

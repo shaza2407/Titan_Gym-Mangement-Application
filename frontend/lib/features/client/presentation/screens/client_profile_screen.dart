@@ -1,11 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
-  const ClientProfileScreen({super.key, required this.token});
+  final VoidCallback? onBack;
+  const ClientProfileScreen({super.key, required this.token, this.onBack});
 
   @override
   State<ClientProfileScreen> createState() => _ClientProfileScreenState();
@@ -40,18 +40,27 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               elevation: 0,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  if (widget.onBack != null) {
+                    widget.onBack!();
+                  }
+                },
               ),
               title: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('My Profile',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
-                  Text('Update your personal information',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(
+                    'My Profile',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Update your personal information',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -71,11 +80,20 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     subtitle: 'Your personal details',
                     children: [
                       _buildField('Full Name', ctrl.nameController),
-                      _buildReadOnly('Email Address', ctrl.profile?.email ?? ''),
-                      _buildField('Phone Number', ctrl.phoneController,
-                          keyboardType: TextInputType.phone),
-                      _buildField('Age', ctrl.ageController,
-                          keyboardType: TextInputType.number),
+                      _buildReadOnly(
+                        'Email Address',
+                        ctrl.profile?.email ?? '',
+                      ),
+                      _buildField(
+                        'Phone Number',
+                        ctrl.phoneController,
+                        keyboardType: TextInputType.phone,
+                      ),
+                      _buildField(
+                        'Age',
+                        ctrl.ageController,
+                        keyboardType: TextInputType.number,
+                      ),
                       _buildDropdown(
                         label: 'Gender',
                         value: ctrl.selectedGender,
@@ -123,8 +141,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     subtitle: 'In case of emergency',
                     children: [
                       _buildField(
-                          'Contact Information', ctrl.emergencyContactController,
-                          hint: 'Name - Phone number'),
+                        'Contact Information',
+                        ctrl.emergencyContactController,
+                        hint: 'Name - Phone number',
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -133,8 +153,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   if (ctrl.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(ctrl.errorMessage!,
-                          style: const TextStyle(color: Colors.red)),
+                      child: Text(
+                        ctrl.errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     ),
 
                   // ── Save Button ─────────────────────────────────
@@ -145,12 +167,15 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       onPressed: ctrl.isSaving
                           ? null
                           : () async {
-                              final success =
-                                  await ctrl.saveProfile(widget.token);
+                              final success = await ctrl.saveProfile(
+                                widget.token,
+                              );
                               if (success && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Profile updated successfully'),
+                                    content: Text(
+                                      'Profile updated successfully',
+                                    ),
                                     backgroundColor: Color(0xFF4CAF50),
                                   ),
                                 );
@@ -161,17 +186,23 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                               width: 18,
                               height: 18,
                               child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2))
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
                           : const Icon(Icons.save, color: Colors.white),
                       label: Text(
                         ctrl.isSaving ? 'Saving...' : 'Save Changes',
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.white),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
@@ -207,11 +238,14 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               CircleAvatar(
                 radius: 44,
                 backgroundColor: const Color(0xFF4CAF50),
-                child: Text(initials,
-                    style: const TextStyle(
-                        fontSize: 28,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold)),
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               Positioned(
                 bottom: 0,
@@ -219,16 +253,20 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                 child: CircleAvatar(
                   radius: 14,
                   backgroundColor: Colors.black,
-                  child: const Icon(Icons.camera_alt,
-                      color: Colors.white, size: 14),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    color: Colors.white,
+                    size: 14,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(name,
-              style: const TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            name,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const Text('Client', style: TextStyle(color: Colors.grey)),
         ],
       ),
@@ -252,14 +290,23 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Icon(icon, color: iconColor, size: 20),
-            const SizedBox(width: 8),
-            Text(title,
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
                 style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold)),
-          ]),
-          Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            subtitle,
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          ),
           const SizedBox(height: 16),
           ...children,
         ],
@@ -278,7 +325,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -290,8 +340,9 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             filled: true,
             fillColor: Colors.grey[100],
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -303,7 +354,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -328,7 +382,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: value,
@@ -341,8 +398,9 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             filled: true,
             fillColor: Colors.grey[100],
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
         const SizedBox(height: 16),
