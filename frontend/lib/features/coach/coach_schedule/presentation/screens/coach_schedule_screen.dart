@@ -11,14 +11,16 @@ import '../widgets/RequestsListView.dart';
 
 class CoachScheduleScreen extends StatefulWidget {
   final int coachId;
-  const CoachScheduleScreen({super.key, required this.coachId});
+  final VoidCallback? onBack;
+
+  const CoachScheduleScreen({super.key, required this.coachId, this.onBack});
 
   @override
   State<CoachScheduleScreen> createState() => _CoachScheduleScreenState();
 }
 
 class _CoachScheduleScreenState extends State<CoachScheduleScreen>
-    with TickerProviderStateMixin {
+  with TickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -36,7 +38,13 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (widget.onBack != null) {
+              widget.onBack!();
+            } else {
+              Navigator.pop(context);
+            }
+          },
         ),
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
