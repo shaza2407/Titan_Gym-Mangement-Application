@@ -17,14 +17,10 @@ class SignupScreen extends StatelessWidget {
           child: SingleChildScrollView(
             padding: EdgeInsets.all(24),
             child: Consumer<SignupController>(
-              builder: (context, ctrl, _) => Column(
-                 // At the top of the Column, before the logo
-                
+              builder: (context, ctrl, _) => Column(                
                 crossAxisAlignment: CrossAxisAlignment.start,
-                
                 children: [
                   // Logo
-                  // At the top of the Column, before the logo
                   GestureDetector(
                     onTap: () => Navigator.pushNamed(context, '/login'),
                     child: Icon(Icons.arrow_back),
@@ -56,7 +52,7 @@ class SignupScreen extends StatelessWidget {
                     value: ctrl.selectedRole,
                     hint: Text('Select your role'),
                     items: ctrl.roles.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
-                    onChanged: (String? value) => ctrl.setRole(value),  // 👈 this line
+                    onChanged: (String? value) => ctrl.setRole(value),  
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.grey[100],

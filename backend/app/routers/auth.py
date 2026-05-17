@@ -7,10 +7,13 @@ from app.models import User, Client, Coach, Admin
 from app.schemas import SignUpRequest, SignUpResponse, SignInRequest, SignInResponse
 from app.schemas.ForgotPasswordRequest import ForgotPasswordRequest
 from app.schemas.ResetPasswordRequest import ResetPasswordRequest
+from app.schemas.ResendVerficationRequest import ResendVerificationRequest    
+from app.schemas.VerifyEmailRequest import VerifyEmailRequest
 from passlib.context import CryptContext
 from jose import jwt
 import datetime
 import bcrypt
+import random
 from app.email_utils import send_verification_email, send_reset_email
 import secrets
 
@@ -71,10 +74,9 @@ async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)
             admin = Admin(userID=user.userID)
             db.add(admin)
 
-        #generate verification token, save to user record, and send email          
-        verify_token = secrets.token_urlsafe(32)
-        user.reset_token     = verify_token
-        # user.reset_token_exp = datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        #generate verfication code and save to user      
+        verify_token = str(random.randint(100000, 999999))
+        user.reset_token = verify_token
         user.reset_token_exp = datetime.utcnow() + timedelta(hours=24)
 
         await db.commit()       #commit all changes (user + role-specific + token)
@@ -125,27 +127,49 @@ async def signin(payload: SignInRequest, db: AsyncSession = Depends(get_session)
     return SignInResponse(access_token = token,token_type = "bearer",role = role,userID= user.userID)
 
 #GET /auth/verify-email?token=***
-@router.get("/verify-email")
-async def verify_email(token: str, db: AsyncSession = Depends(get_session)):
+@router.post("/verify-email")  # changed to POST
+async def verify_email(request: VerifyEmailRequest, db: AsyncSession = Depends(get_session)):
+    result = await db.execute(select(User).where(User.email == request.email))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    result = await db.execute(select(User).where(User.reset_token == token))   
-
-    user = result.scalar_one_or_none()          #find user with matching token 
-    if not user:                                #if no user found, token is invalid 
-        raise HTTPException(status_code=400, detail="Invalid verification link")
-
-    if user.reset_token_exp < datetime.utcnow():              #verification link expires in 24 hours
-        raise HTTPException(status_code=400, detail="Verification link has expired")
-
-    if user.is_verified:                    #if already verified email
+    if user.is_verified:
         return {"message": "Email already verified"}
-
-    user.is_verified = True         #verify email 
-    user.reset_token = None         #clear token
+    if user.reset_token != request.code:
+        raise HTTPException(status_code=400, detail="Invalid verification code")
+    if user.reset_token_exp < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Verification code has expired")
+    user.is_verified = True
+    user.reset_token = None
     user.reset_token_exp = None
     await db.commit()
+
     return {"message": "Email verified successfully! You can now sign in."}
 
+#auth/resend-verification
+
+@router.post("/resend-verification")
+async def resend_verification(request: ResendVerificationRequest, db: AsyncSession = Depends(get_session)):
+    
+    result = await db.execute(select(User).where(User.email == request.email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+    if user.is_verified:
+        raise HTTPException(status_code=400, detail="Email already verified")
+
+    code = str(random.randint(100000, 999999))
+    user.reset_token = code
+    user.reset_token_exp = datetime.utcnow() + timedelta(hours=24)
+
+    await db.commit()
+
+    await send_verification_email(user.email, code)  # send code instead of link
+
+    return {"message": "Verification code resent successfully"}
 
 #POST /auth/forgot-password
 @router.post("/forgot-password")
