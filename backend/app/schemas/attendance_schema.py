@@ -23,3 +23,15 @@ class CheckinRecord(BaseModel):
 
 class CheckinHistoryResponse(BaseModel):
     checkins: list[CheckinRecord]
+
+
+class DashboardStatsResponse(BaseModel):
+    total_visits:      int
+    days_this_week:    int
+    current_streak:    int
+    subscription:      Optional[str] = None
+    subscription_end:  Optional[str] = None  # expiration check
+    days_remaining:    Optional[int] = None
+    membership_status: Optional[str] = None  # "active" | "suspended"
+    gym_name:          Optional[str] = None
+    
