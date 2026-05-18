@@ -8,8 +8,8 @@ class GymModel {
   final int adminID;
   final String gymName;
   final double subscriptionPrice;
+  final double yearlySubscriptionPrice;
   final String location;
-  final String status;
   final String qrCode;
   final String gymType;
   final String openingHours;
@@ -20,8 +20,8 @@ class GymModel {
     required this.adminID,
     required this.gymName,
     required this.subscriptionPrice,
+    required this.yearlySubscriptionPrice,
     required this.location,
-    required this.status,
     required this.qrCode,
     required this.gymType,
     required this.openingHours,
@@ -34,8 +34,8 @@ class GymModel {
       adminID:           json['adminID'],
       gymName:           json['gymName'],
       subscriptionPrice: (json['subscriptionPrice'] as num).toDouble(),
+      yearlySubscriptionPrice: (json['yearlySubscriptionPrice'] as num).toDouble(),
       location:          json['location'],
-      status:            json['status'],
       qrCode:            json['QRCode'],
       gymType:           json['gymType'],
       openingHours:      json['openingHours'],
@@ -74,8 +74,8 @@ class GymRepository {
     required String token,
     required String gymName,
     required double subscriptionPrice,
+    required double yearlyRevenue,
     required String location,
-    required String status,
     required String gymType,
     required String openingHours,
     required String closingHours,
@@ -89,8 +89,8 @@ class GymRepository {
       body: jsonEncode({
         'gymName':           gymName,
         'subscriptionPrice': subscriptionPrice,
+        'yearlySubscriptionPrice': yearlyRevenue,
         'location':          location,
-        'status':            status,
         'gymType':           gymType,
         'openingHours':      openingHours,
         'closingHours':      closingHours,
