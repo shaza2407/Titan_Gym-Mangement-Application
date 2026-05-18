@@ -10,7 +10,7 @@ class Gym(Base):
     subscriptionPrice = Column("subscriptionPrice", Double , nullable=False)
     location = Column("location", String , nullable=False)
     status = Column("status", String , nullable=False)
-    QRCode = Column("QRCode", String , nullable=False)
+    QRCode = Column("QRCode", String , nullable=True)
     gymType = Column("GYMTYPE", String , nullable=False)        #males , females, mixed
     openingHours = Column("openingHours", String , nullable=False)
     closingHours = Column("closingHours", String , nullable=False)

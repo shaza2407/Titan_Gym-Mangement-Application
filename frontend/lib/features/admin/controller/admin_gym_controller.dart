@@ -9,13 +9,11 @@ class AdminGymController extends ChangeNotifier {
   bool isCreating = false;
   String? errorMessage;
 
-  // create gym form controllers
-  final gymNameController        = TextEditingController();
-  final priceController          = TextEditingController();
-  final locationController       = TextEditingController();
-  final qrCodeController         = TextEditingController();
-  final openingHoursController   = TextEditingController();
-  final closingHoursController   = TextEditingController();
+  final gymNameController= TextEditingController();
+  final priceController= TextEditingController();
+  final locationController = TextEditingController();
+  final openingHoursController = TextEditingController();
+  final closingHoursController = TextEditingController();
 
   String selectedStatus  = 'active';
   String selectedGymType = 'mixed';
@@ -50,12 +48,11 @@ class AdminGymController extends ChangeNotifier {
         subscriptionPrice: double.parse(priceController.text.trim()),
         location:          locationController.text.trim(),
         status:            selectedStatus,
-        qrCode:            qrCodeController.text.trim(),
         gymType:           selectedGymType,
         openingHours:      openingHoursController.text.trim(),
         closingHours:      closingHoursController.text.trim(),
       );
-      gyms.add(newGym); // ✅ add to list without reloading
+      gyms.add(newGym); 
       clearForm();
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -69,7 +66,6 @@ class AdminGymController extends ChangeNotifier {
     gymNameController.clear();
     priceController.clear();
     locationController.clear();
-    qrCodeController.clear();
     openingHoursController.clear();
     closingHoursController.clear();
     selectedStatus  = 'active';
@@ -91,7 +87,6 @@ class AdminGymController extends ChangeNotifier {
     gymNameController.dispose();
     priceController.dispose();
     locationController.dispose();
-    qrCodeController.dispose();
     openingHoursController.dispose();
     closingHoursController.dispose();
     super.dispose();
