@@ -115,6 +115,11 @@ docker-compose.override.yml
 .ipynb_checkpoints/
 *.ipynb
 
+# Auto-generated Flutter files
+.dart_tool/
+frontend/.dart_tool/
+frontend/android/local.properties
+
 # ------------------------------
 # Others
 # ------------------------------
