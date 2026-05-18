@@ -107,4 +107,5 @@ async def dashboard_stats(
         days_remaining=days_remaining,
         membership_status=membership.status.value,
         gym_name=gym.gymName if gym else None,
+        name=current_user.name,
     )

@@ -247,19 +247,6 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   ),
                 ),
               ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: Colors.black,
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 14,
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 12),
