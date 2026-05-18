@@ -1,6 +1,7 @@
+# schemas/attendance_schema.py
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 
 class CheckinStatusResponse(BaseModel):
     can_checkin:       bool
@@ -13,10 +14,19 @@ class CheckinStatusResponse(BaseModel):
 class CheckinResponse(BaseModel):
     message:    str
     checked_in: str
+    # new
+    check_in_hour: Optional[int] = None
+    day_of_week: Optional[str] = None
+
 
 class CheckinRecord(BaseModel):
     id:         int
     checked_in: datetime
+    # new
+    check_in_date: Optional[date] = None
+    check_in_hour: Optional[int] = None
+    day_of_week: Optional[str] = None
+    gym_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -34,4 +44,7 @@ class DashboardStatsResponse(BaseModel):
     days_remaining:    Optional[int] = None
     membership_status: Optional[str] = None  # "active" | "suspended"
     gym_name:          Optional[str] = None
-    
+    # new
+    favorite_checkin_hour: Optional[int] = None
+    most_active_day: Optional[str] = None
+    total_gyms_visited: Optional[int] = None
