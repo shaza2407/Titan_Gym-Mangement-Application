@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatelessWidget {
   final emailController = TextEditingController();
@@ -88,10 +85,9 @@ class LoginScreen extends StatelessWidget {
                       'Password',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text(
-                      'Forgot password?',
-                      style: TextStyle(color: Color(0xFF4F46E5)),
-                    ),
+                    GestureDetector(             
+                      onTap: () => Navigator.pushNamed(context, '/forgot-password'),child: Text('Forgot password?',style: TextStyle(color: Color(0xFF4F46E5)),
+                    )),
                   ],
                 ),
                 SizedBox(height: 8),
@@ -122,7 +118,6 @@ class LoginScreen extends StatelessWidget {
                       if (email.isEmpty || password.isEmpty) return;
 
                       try {
-                        // Step 1 — Sign in
                         final signinRes = await http.post(
                           Uri.parse("$baseUrl/auth/signin"),
                           headers: {'Content-Type': 'application/json'},
@@ -148,7 +143,6 @@ class LoginScreen extends StatelessWidget {
                         final token = signinData['access_token'] as String;
                         final role = signinData['role'] as String;
 
-                        // Step 2 — Route by role
                         if (role == 'coach') {
                           Navigator.pushReplacementNamed(
                             context,
@@ -188,9 +182,7 @@ class LoginScreen extends StatelessWidget {
                           return;
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                        ScaffoldMessenger.of(context,).showSnackBar(SnackBar(content: Text('Error: $e')));
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -199,10 +191,7 @@ class LoginScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: Text(
-                      'Sign In',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                    child: Text('Sign In',style: TextStyle(fontSize: 16, color: Colors.white),),
                   ),
                 ),
                 SizedBox(height: 16),
