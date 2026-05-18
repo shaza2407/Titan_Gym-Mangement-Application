@@ -142,7 +142,11 @@ class LoginScreen extends StatelessWidget {
                         final signinData = jsonDecode(signinRes.body);
                         final token = signinData['access_token'] as String;
                         final role = signinData['role'] as String;
-
+                        if (role == 'admin') {
+                          Navigator.pushReplacementNamed(context,'/admin-dashboard', arguments: token,); 
+                          return;
+                        }
+                        
                         if (role == 'coach') {
                           Navigator.pushReplacementNamed(
                             context,
