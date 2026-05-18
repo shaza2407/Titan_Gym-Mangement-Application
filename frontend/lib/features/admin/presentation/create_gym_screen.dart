@@ -45,12 +45,9 @@ class CreateGymScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   _formField(controller.gymNameController, 'Gym Name *', hint: 'e.g., Titan Fitness Central'),
                   _formField(controller.locationController, 'Location *', hint: 'e.g., 123 Main St, Cairo'),
-                  _formField(
-                    controller.priceController,
-                    'Subscription Price *',
-                    hint: 'e.g., 199.99',
-                    keyboardType: TextInputType.number,
-                  ),
+                  _formField(controller.priceController,'Monthly Subscription Price *',hint: 'e.g., 199.99',keyboardType: TextInputType.number),
+                  _formField(controller.yearlyPriceController,'Yearly Subscription Price *',hint: 'e.g., 999.99',keyboardType: TextInputType.number),
+
 
                   const SizedBox(height: 16),
 
@@ -89,13 +86,6 @@ class CreateGymScreen extends StatelessWidget {
                   _sectionHeader(Icons.settings, 'Settings', 'Gym configuration'),
                   const SizedBox(height: 12),
 
-                  // Status dropdown
-                  _dropdownField(
-                    label: 'Status',
-                    value: controller.selectedStatus,
-                    items: controller.statusOptions,
-                    onChanged: controller.setStatus,
-                  ),
 
                   const SizedBox(height: 12),
 
