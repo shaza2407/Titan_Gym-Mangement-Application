@@ -175,36 +175,40 @@ async def resend_verification(request: ResendVerificationRequest, db: AsyncSessi
 @router.post("/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_session)):
 
-    result = await db.execute(select(User).where(User.email == payload.email.lower()))  #find user by email
+    result = await db.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()      
 
     if not user:
-        return {"message": "If that email is registered, a reset link has been sent."} #not revealing whether email exists or not for security reasons
+        raise HTTPException(status_code=404, detail="Email not found")
 
-    token = secrets.token_urlsafe(32)       #generate reset token 
-    user.reset_token = token                #save token and expiration time (30 minutes) to user
-    user.reset_token_exp = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+    code = str(random.randint(100000, 999999))  # ✅ 6 digit code
+    user.reset_token = code
+    user.reset_token_exp = datetime.utcnow() + timedelta(minutes=30)  # ✅ fix datetime
     await db.commit()
 
-    await send_reset_email(user.email, token)       #send reset email with token link
-    return {"message": "If that email is registered, a reset link has been sent."}
+        
+    await send_reset_email(user.email, code)
+    return {"message": "a reset code has been sent."}
 
 
 #POST /auth/reset-password
 @router.post("/reset-password")
 async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_session)):
 
-    result = await db.execute(select(User).where(User.reset_token == payload.token))        #find user with matching reset token
+    result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        raise HTTPException(status_code=400, detail="User not found")
 
-    if user.reset_token_exp < datetime.datetime.utcnow():
-        raise HTTPException(status_code=400, detail="Token has expired")
+    if user.reset_token != payload.code:
+        raise HTTPException(status_code=400, detail="Invalid reset code")
 
-    user.password = pwd_context.hash(payload.new_password)      #update password
-    user.reset_token = None                 #clear reset token and expiration
+    if user.reset_token_exp < datetime.utcnow():  # ✅ fix datetime
+        raise HTTPException(status_code=400, detail="Reset code has expired")
+
+    user.password = pwd_context.hash(payload.new_password)
+    user.reset_token = None
     user.reset_token_exp = None
     await db.commit()
 

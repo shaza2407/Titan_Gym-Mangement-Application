@@ -5,7 +5,7 @@ import 'features/auth/presentation/login_screen.dart';
 import 'features/client/presentation/screens/client_dashboard_screen.dart';
 import 'features/client/presentation/screens/client_profile_screen.dart';
 import 'features/auth/presentation/verify_email_page.dart';
-
+import 'features/auth/presentation/forget_password_page.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login':  (context) => LoginScreen(),
         '/signup': (context) => SignupScreen(),
+        '/forgot-password': (context) => ForgotPasswordPage(),
       },
       // Routes that need arguments use onGenerateRoute
       onGenerateRoute: (settings) {
