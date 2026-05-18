@@ -117,6 +117,7 @@ docker-compose.override.yml
 
 # Auto-generated Flutter files
 .dart_tool/
+frontend/.dart_tool
 frontend/.dart_tool/
 frontend/android/local.properties
 
