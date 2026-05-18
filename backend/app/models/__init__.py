@@ -14,5 +14,11 @@ from app.models.class_request import ClassRequest
 from app.models.class_session import ClassSession
 from app.models.attendance import Attendance
 
+from app.models.achievement import Achievement , AchievementCategory , AchievementDifficulty
+from app.models.client_achievement import ClientAchievement
+from app.models.training_plan import TrainingPlan , DayStatus , PlanStatus , WorkoutStatus
+
 __all__ = [User, Client, Coach, Admin,ClassSession,ClassRequest ,Gym, Machine, GymMachineInventory,
-           GymClientMembership, GymCoachMembership, MemberInvitation, Attendance]
+           GymClientMembership, GymCoachMembership, MemberInvitation, Attendance,
+           Achievement , AchievementCategory , AchievementDifficulty , ClientAchievement , TrainingPlan,
+           DayStatus , PlanStatus , WorkoutStatus]
