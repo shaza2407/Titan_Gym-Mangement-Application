@@ -11,6 +11,7 @@ class AdminGymController extends ChangeNotifier {
 
   final gymNameController= TextEditingController();
   final priceController= TextEditingController();
+  final yearlyPriceController= TextEditingController();
   final locationController = TextEditingController();
   final openingHoursController = TextEditingController();
   final closingHoursController = TextEditingController();
@@ -18,7 +19,6 @@ class AdminGymController extends ChangeNotifier {
   String selectedStatus  = 'active';
   String selectedGymType = 'mixed';
 
-  final List<String> statusOptions  = ['active', 'inactive', 'suspended'];
   final List<String> gymTypeOptions = ['males', 'females', 'mixed'];
 
   Future<void> loadGyms({required String token}) async {
@@ -46,8 +46,8 @@ class AdminGymController extends ChangeNotifier {
         token:             token,
         gymName:           gymNameController.text.trim(),
         subscriptionPrice: double.parse(priceController.text.trim()),
+        yearlyRevenue:     double.parse(yearlyPriceController.text.trim()),
         location:          locationController.text.trim(),
-        status:            selectedStatus,
         gymType:           selectedGymType,
         openingHours:      openingHoursController.text.trim(),
         closingHours:      closingHoursController.text.trim(),
@@ -65,17 +65,14 @@ class AdminGymController extends ChangeNotifier {
   void clearForm() {
     gymNameController.clear();
     priceController.clear();
+    yearlyPriceController.clear();
     locationController.clear();
     openingHoursController.clear();
     closingHoursController.clear();
-    selectedStatus  = 'active';
     selectedGymType = 'mixed';
   }
 
-  void setStatus(String value) {
-    selectedStatus = value;
-    notifyListeners();
-  }
+
 
   void setGymType(String value) {
     selectedGymType = value;
@@ -86,6 +83,7 @@ class AdminGymController extends ChangeNotifier {
   void dispose() {
     gymNameController.dispose();
     priceController.dispose();
+    yearlyPriceController.dispose();
     locationController.dispose();
     openingHoursController.dispose();
     closingHoursController.dispose();

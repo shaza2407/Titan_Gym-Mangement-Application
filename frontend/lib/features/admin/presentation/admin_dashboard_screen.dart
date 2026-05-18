@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../controller/admin_gym_controller.dart';
 import '../data/gym_repository.dart';
 import './create_gym_screen.dart';
-import 'dart:convert';
 
 class AdminDashboardScreen extends StatelessWidget {
   final String token;
@@ -213,20 +212,6 @@ class AdminDashboardScreen extends StatelessWidget {
                 style: const TextStyle(color: Colors.grey, fontSize: 13),
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: gym.status == 'active' ? Colors.green[50] : Colors.red[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  gym.status,
-                  style: TextStyle(
-                    color: gym.status == 'active' ? Colors.green : Colors.red,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 8),

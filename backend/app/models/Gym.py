@@ -8,8 +8,8 @@ class Gym(Base):
     gymName = Column("gymName", String , nullable=False)
     adminID = Column("adminID", Integer, ForeignKey("administrators.adminID"), nullable=False)
     subscriptionPrice = Column("subscriptionPrice", Double , nullable=False)
+    yearlySubscriptionPrice = Column("yearlyRevenue", Double , nullable=True)
     location = Column("location", String , nullable=False)
-    status = Column("status", String , nullable=False)
     QRCode = Column("QRCode", String , nullable=True)
     gymType = Column("GYMTYPE", String , nullable=False)        #males , females, mixed
     openingHours = Column("openingHours", String , nullable=False)
