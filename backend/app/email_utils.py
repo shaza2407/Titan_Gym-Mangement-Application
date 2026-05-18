@@ -12,21 +12,20 @@ conf = ConnectionConfig(
 )
 
 async def send_verification_email(email: str, token: str):
-    link = f"http://localhost:8000/auth/verify-email?token={token}"
+    link = f"{token}"
     message = MessageSchema(
         subject = "Confirm your Titan App account",
         recipients = [email],
-        body       = f"Hi! Please verify your email:\n\n{link}\n\nExpires in 24 hours.",
+        body       = f"Hi! Welcome to Titan !\n Please verify yor email using the following code:\n\n{token}\n\nExpires in 24 hours.\n do not share this code with anyone.",
         subtype    = "plain"
     )
     await FastMail(conf).send_message(message)
 
 async def send_reset_email(email: str, token: str):
-    link = f"http://localhost:8000/auth/reset-password?token={token}"
     message = MessageSchema(
-        subject    = "Titan Account — Password Reset",
+        subject    = "Titan Account — Reseting your password",
         recipients = [email],
-        body       = f"Reset your password here:\n\n{link}\n\n Link expires in 30 minutes.",
+        body       = f"Reset your password using the folloeing code:\n\n{token}\n\n it expires in 30 minutes. \n If you didn't request this, you can safely ignore this email. \n do not share this code with anyone.",
         subtype    = "plain"
     )
     await FastMail(conf).send_message(message)
