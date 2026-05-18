@@ -1,70 +1,34 @@
-# ── Auth & User ───────────────────────────────────────────────────────────────
-from app.schemas.UserRole import UserRole
+# app/schemas/__init__.py
 from app.schemas.SignUpRequest import SignUpRequest
 from app.schemas.SignUpResponse import SignUpResponse
 from app.schemas.SignInRequest import SignInRequest
 from app.schemas.SignInResponse import SignInResponse
 from app.schemas.ForgotPasswordRequest import ForgotPasswordRequest
 from app.schemas.ResetPasswordRequest import ResetPasswordRequest
+# from app.schemas.ResendVerificationRequest import ResendVerificationRequest
+# from app.schemas.VerifyEmailRequest import VerifyEmailRequest
 
-# ── Gym ───────────────────────────────────────────────────────────────────────
-from app.schemas.gym import GymBase, GymCreate, GymUpdate, GymResponse, GymWithMachines
+# from app.schemas.TrainingPlanRequest import TrainingPlanRequest
+# from app.schemas.TrainingPlanResponse import TrainingPlanResponse
+#
+# from app.schemas.UserRole import UserRole
+#
+# from app.schemas.Machine import MachineResponse , MachineUpdate , MachineCreate , MachineBase
+# from app.schemas.GymMachineInventory import InventoryResponse , InventoryCreate , InventoryBase , MachineResponse , MachineUpdate
+# from app.schemas.gym import GymResponse , GymUpdate , GymCreate , GymBase
 
-# ── Machine ───────────────────────────────────────────────────────────────────
-from app.schemas.Machine import MachineBase, MachineCreate, MachineUpdate, MachineResponse
 
-# ── Gym Machine Inventory ─────────────────────────────────────────────────────
-from app.schemas.GymMachineInventory import InventoryBase, InventoryCreate, InventoryResponse
+# from app.schemas.attendance_schema import *
+# from app.schemas.achievement_schemas import *
 
-# ── Coach ─────────────────────────────────────────────────────────────────────
-from app.schemas.coach_schemas import (
-    ClassSessionResponse,
-    DashboardStatsResponse,
-    ScheduleStatsResponse,
-    MyClassesResponse,
-    CreateClassRequestPayload,
-    ClassRequestResponse,
-    InviteCoachRequest,
-    InviteCoachResponse,
-    CoachListItem,
-    CoachListResponse,
+
+# app/schemas/__init__.py
+
+from app.schemas import (
+    SignUpRequest,
+    SignUpResponse,
+    SignInRequest,
+    SignInResponse,
+    ForgotPasswordRequest,
+    ResetPasswordRequest
 )
-
-# ── Achievements ──────────────────────────────────────────────────────────────
-from app.schemas.achievement_schemas import (
-    AchievementProgressResponse,
-    CheckInRequest,
-    CheckInResponse,
-)
-
-# ── Training Plan ─────────────────────────────────────────────────────────────
-from app.schemas.TrainingPlanRequest import TrainingPlanRequest
-from app.schemas.TrainingPlanResponse import (
-    DayPlan,
-    WeekPlan,
-    TrainingPlanResponse,
-    TrainingPlanSummary,
-)
-
-__all__ = [
-    # Auth & User
-    "UserRole",
-    "SignUpRequest", "SignUpResponse",
-    "SignInRequest", "SignInResponse",
-    "ForgotPasswordRequest", "ResetPasswordRequest",
-    # Gym
-    "GymBase", "GymCreate", "GymUpdate", "GymResponse", "GymWithMachines",
-    # Machine
-    "MachineBase", "MachineCreate", "MachineUpdate", "MachineResponse",
-    # Inventory
-    "InventoryBase", "InventoryCreate", "InventoryResponse",
-    # Coach
-    "ClassSessionResponse", "DashboardStatsResponse", "ScheduleStatsResponse",
-    "MyClassesResponse", "CreateClassRequestPayload", "ClassRequestResponse",
-    "InviteCoachRequest", "InviteCoachResponse", "CoachListItem", "CoachListResponse",
-    # Achievements
-    "AchievementProgressResponse", "CheckInRequest", "CheckInResponse",
-    # Training Plan
-    "TrainingPlanRequest", "DayPlan", "WeekPlan",
-    "TrainingPlanResponse", "TrainingPlanSummary",
-]

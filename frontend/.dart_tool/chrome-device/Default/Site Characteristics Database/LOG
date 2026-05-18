@@ -1,19 +1,2 @@
-2026/05/18-00:49:11.294 4334 Reusing MANIFEST C:\Users\user\AppData\Local\Temp\flutter_tools.e13e0431\flutter_tools_chrome_device.c6cb94fa\Default\Site Characteristics Database/MANIFEST-000001
-2026/05/18-00:49:11.317 4334 Recovering log #3
-2026/05/18-00:49:11.317 4334 Level-0 table #20: started
-2026/05/18-00:49:11.329 4334 Level-0 table #20: 10003 bytes OK
-2026/05/18-00:49:11.329 4334 Recovering log #6
-2026/05/18-00:49:11.330 4334 Level-0 table #21: started
-2026/05/18-00:49:11.337 4334 Level-0 table #21: 9434 bytes OK
-2026/05/18-00:49:11.337 4334 Recovering log #10
-2026/05/18-00:49:11.338 4334 Level-0 table #22: started
-2026/05/18-00:49:11.340 4334 Level-0 table #22: 10416 bytes OK
-2026/05/18-00:49:11.340 4334 Recovering log #17
-2026/05/18-00:49:11.341 4334 Reusing old log C:\Users\user\AppData\Local\Temp\flutter_tools.e13e0431\flutter_tools_chrome_device.c6cb94fa\Default\Site Characteristics Database/000017.log 
-2026/05/18-00:49:11.342 4334 Delete type=0 #3
-2026/05/18-00:49:11.342 4334 Delete type=2 #4
-2026/05/18-00:49:11.342 4334 Delete type=0 #6
-2026/05/18-00:49:11.342 4334 Delete type=2 #7
-2026/05/18-00:49:11.342 4334 Delete type=2 #8
-2026/05/18-00:49:11.342 4334 Delete type=0 #10
-2026/05/18-00:49:11.342 4334 Delete type=2 #12
+2026/05/18-18:36:12.256 7f5825 Creating DB /private/var/folders/b6/xq01xyd96xbb7lqzpzc_rd0c0000gn/T/flutter_tools.dmqqpe/flutter_tools_chrome_device.0gsPhk/Default/Site Characteristics Database since it was missing.
+2026/05/18-18:36:12.263 7f5825 Reusing MANIFEST /private/var/folders/b6/xq01xyd96xbb7lqzpzc_rd0c0000gn/T/flutter_tools.dmqqpe/flutter_tools_chrome_device.0gsPhk/Default/Site Characteristics Database/MANIFEST-000001

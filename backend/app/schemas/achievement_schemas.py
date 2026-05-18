@@ -23,17 +23,3 @@ class AchievementProgressResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-
-class CheckInRequest(BaseModel):
-    """Body sent when the client scans a gym QR code."""
-    gymID: int
-
-
-class CheckInResponse(BaseModel):
-    """Response after a successful attendance record is created."""
-    checkInID     : int       # maps to Attendance.id
-    gymID         : int
-    checked_in_at : datetime  # maps to Attendance.checked_in
-    message       : str
-
-    model_config = {"from_attributes": True}

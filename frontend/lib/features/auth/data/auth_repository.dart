@@ -80,4 +80,41 @@ Future<void> resendVerification({required String email}) async {
     throw Exception(body['detail'] ?? body['message']);
   }
 }
+
+Future<void> forgotPassword({required String email}) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/auth/forgot-password'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': email}),
+  );
+
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    final body = jsonDecode(response.body);
+    throw Exception(body['detail'] ?? body['message']);
+  }
+}
+
+Future<void> resetPassword({
+  required String email,
+  required String code,
+  required String newPassword,
+}) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/auth/reset-password'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'email': email,
+      'code': code,
+      'new_password': newPassword,
+    }),
+  );
+
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    return;
+  } else {
+    final body = jsonDecode(response.body);
+    throw Exception(body['detail'] ?? body['message']);
+  }
+}
+
 }

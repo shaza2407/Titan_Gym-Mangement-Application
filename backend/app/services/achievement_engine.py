@@ -19,6 +19,7 @@ from app.models.achievement import Achievement, AchievementCategory
 from app.models.attendance import Attendance
 from app.models.client_achievement import ClientAchievement
 from app.models.training_plan import TrainingPlan, PlanStatus
+# from app.models.client_class_enrollment import ClientClassEnrollment // not do yet
 
 logger = logging.getLogger(__name__)
 
@@ -142,13 +143,14 @@ class AchievementEngine:
     # ── Class achievements ────────────────────────────────────────────────────
 
     async def _update_class_enthusiast(self, client_id: int, db: AsyncSession) -> None:
-        """Total classes attended: 5 / 15 / 30 / 60 / 120"""
-        result = await db.execute(
-            select(func.count(ClientClassEnrollment.enrollmentID))
-            .where(ClientClassEnrollment.clientID == client_id)
-        )
-        count = result.scalar() or 0
-        await self._apply_progress("class_enthusiast", client_id, count, db)
+        return
+        # """Total classes attended: 5 / 15 / 30 / 60 / 120"""
+        # result = await db.execute(
+        #     select(func.count(ClientClassEnrollment.enrollmentID))
+        #     .where(ClientClassEnrollment.clientID == client_id)
+        # )
+        # count = result.scalar() or 0
+        # await self._apply_progress("class_enthusiast", client_id, count, db)
 
     # ── Training plan achievements ────────────────────────────────────────────
 

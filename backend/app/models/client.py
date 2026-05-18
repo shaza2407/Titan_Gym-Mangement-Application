@@ -17,3 +17,5 @@ class Client(Base):
     bio                   = Column(Text,    nullable=True)
     emergency_contact     = Column(String,  nullable=True)  
     profile_picture       = Column(String,  nullable=True)  # URL or file path
+
+

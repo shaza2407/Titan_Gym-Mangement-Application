@@ -10,22 +10,8 @@ from app.routers import admin_clients_management, admin_coaches_management
 from app.routers import gym
 from app.routers import client_dashboard
 from app.routers import client_attendance
-
-# Import routers from all branches
-from app.routers import (
-    auth,
-    training_plan,
-    achievements,
-    checkin,
-    coach_dashboard,
-    coach_schedule,
-    gym,
-    admin_clients_management,
-    admin_coaches_management
-)
-
-import app.models  # noqa: F401
-
+from app.routers import achievements
+from app.routers import training_plan
 app = FastAPI(title="Titan Gym Management System")
 
 app.add_middleware(
@@ -48,10 +34,6 @@ def read_root():
 # Register and log in routers
 app.include_router(auth.router)
 
-# Features (AI Training & Gamification)
-app.include_router(training_plan.router)
-app.include_router(achievements.router)
-app.include_router(checkin.router)
 #coach routers
 app.include_router(coach_dashboard.router)
 app.include_router(coach_schedule.router)
@@ -66,3 +48,9 @@ app.include_router(admin_coaches_management.router)
 #client routers
 app.include_router(client_dashboard.router)
 app.include_router(client_attendance.router)
+
+# Achievements
+app.include_router(achievements.router)
+
+#Traning Plan
+app.include_router(training_plan.router)
