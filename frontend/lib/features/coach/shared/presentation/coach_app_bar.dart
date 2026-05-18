@@ -8,36 +8,64 @@ class HeaderSection extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(70.0);
 
   // --- LOGOUT LOGIC ---
-  void _handleLogout(BuildContext context) {
+  void _confirmLogout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Log Out"),
-        content: const Text("Are you sure you want to log out of your account?"),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Confirm Logout',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to log out? You will need to sign in again to access your account.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // Close dialog
-            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // 1. Clear your saved auth tokens here (e.g., using SharedPreferences or SecureStorage)
-              // await AuthService.clearTokens();
-              
-              // 2. Navigate back to the Login Screen and clear the route history
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-              
-              Navigator.pop(context); // Placeholder: closes dialog
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Logged out successfully")),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade50,
-              elevation: 0,
-            ),
-            child: const Text("Log Out", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Logout',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
         ],
       ),
@@ -49,10 +77,11 @@ class HeaderSection extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      scrolledUnderElevation: 0, // Prevents color change on scroll in Material 3
+      scrolledUnderElevation:
+          0, // Prevents color change on scroll in Material 3
       // Adds the subtle grey border at the bottom of the app bar
       shape: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1)),
-      
+
       // Left side: The purple gym logo
       leadingWidth: 70, // Gives the logo some breathing room
       leading: Padding(
@@ -62,17 +91,25 @@ class HeaderSection extends StatelessWidget implements PreferredSizeWidget {
             color: const Color(0xFF8B5CF6), // Purple from your design
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.fitness_center, color: Colors.white, size: 24),
+          child: const Icon(
+            Icons.fitness_center,
+            color: Colors.white,
+            size: 24,
+          ),
         ),
       ),
-      
+
       // Center: Title and Subtitle
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             "Coach Dashboard",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -81,7 +118,7 @@ class HeaderSection extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-      
+
       // Right side: Notifications and Logout
       actions: [
         // Notification Icon with Badge
@@ -89,7 +126,11 @@ class HeaderSection extends StatelessWidget implements PreferredSizeWidget {
           alignment: Alignment.center,
           children: [
             IconButton(
-              icon: const Icon(Icons.notifications_none, color: Colors.black87, size: 28),
+              icon: const Icon(
+                Icons.notifications_none,
+                color: Colors.black87,
+                size: 28,
+              ),
               onPressed: () {
                 // Navigate to notifications
               },
@@ -105,17 +146,22 @@ class HeaderSection extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 child: const Text(
                   "2",
-                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, height: 1),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    height: 1,
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        
+
         // Logout Icon
         IconButton(
           icon: const Icon(Icons.logout, color: Colors.black87, size: 24),
-          onPressed: () => _handleLogout(context),
+          onPressed: () => _confirmLogout(context),
         ),
         const SizedBox(width: 8), // Right padding
       ],

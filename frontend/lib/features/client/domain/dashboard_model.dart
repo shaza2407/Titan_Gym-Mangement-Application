@@ -7,6 +7,7 @@ class DashboardStatsModel {
   final int? daysRemaining;
   final String? membershipStatus;
   final String? gymName;
+  final String? name;
 
   DashboardStatsModel({
     required this.totalVisits,
@@ -17,6 +18,7 @@ class DashboardStatsModel {
     this.daysRemaining,
     this.membershipStatus,
     this.gymName,
+    this.name,
   });
 
   factory DashboardStatsModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class DashboardStatsModel {
       daysRemaining:    json['days_remaining'],
       membershipStatus: json['membership_status'],
       gymName:          json['gym_name'],
+      name: json['name'],
     );
   }
 

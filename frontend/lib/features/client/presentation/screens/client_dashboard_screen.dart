@@ -105,7 +105,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   Widget _buildBody() {
     switch (_currentIndex) {
       case 0:
-        _ctrl.loadStats(widget.token); 
+        _ctrl.loadStats(widget.token);
         return Consumer<ClientDashboardController>(
           builder: (context, ctrl, _) => _buildHomeTab(ctrl),
         );
@@ -194,8 +194,8 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                           ),
                         ),
                         Text(
-                          stats?.gymName != null
-                              ? stats!.gymName!
+                          stats?.name != null
+                              ? 'Welcome back, ${stats!.name}!'
                               : 'Welcome back!',
                           style: const TextStyle(
                             color: Colors.grey,

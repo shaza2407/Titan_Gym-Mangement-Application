@@ -34,4 +34,5 @@ class DashboardStatsResponse(BaseModel):
     days_remaining:    Optional[int] = None
     membership_status: Optional[str] = None  # "active" | "suspended"
     gym_name:          Optional[str] = None
+    name:              Optional[str] = None   # client name
     
