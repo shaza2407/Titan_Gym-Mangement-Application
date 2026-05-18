@@ -1,85 +1,80 @@
 """
 app/models/achievement.py
 ──────────────────────────
-Tables:
-  achievements        – badge definitions (admin-managed)
-  user_achievements   – per-user progress & earned status
-  user_checkins       – gym check-in log
+Table:
+  achievements – static badge catalog (admin-managed, all 5 levels per chain)
+
+Related models (separate files):
+  client_achievement.py – per-client progress & unlock status
+  check_in.py           – gym check-in log
+
+Design:
+  • Each achievement chain (Gym Rat, Monthly Champion, …) has 5 rows:
+    bronze → silver → gold → platinum → diamond.
+  • prerequisite_key: the key of the previous level that must be unlocked
+    before this row becomes visible/active.
+  • Only one level per chain is "active" at a time for a given client.
+  • Progress carries forward across levels (Silver starts at Bronze's final value).
 """
 
 import enum
 from sqlalchemy import (
     Column, Integer, String, Boolean, Text,
-    DateTime, Date, ForeignKey, Enum as SAEnum, UniqueConstraint
+    DateTime, Enum as SAEnum,
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-# ── Enum ──────────────────────────────────────────────────────────────────────
+# ── Enums ─────────────────────────────────────────────────────────────────────
 
-class AchievementType(str, enum.Enum):
-    CHECKIN       = "CHECKIN"        # total check-ins
-    STREAK        = "STREAK"         # consecutive-day streak
-    WEEKLY        = "WEEKLY"         # check-ins within one calendar week
-    CLASS         = "CLASS"          # group classes attended
-    TRAINING_PLAN = "TRAINING_PLAN"  # training plans completed
-    EARLY_BIRD    = "EARLY_BIRD"     # check-ins before 07:00
-    MONTHLY       = "MONTHLY"        # check-ins within one calendar month
+class AchievementCategory(str, enum.Enum):
+    CHECKIN   = "CHECKIN"
+    STREAK    = "STREAK"
+    CLASS     = "CLASS"
+    MILESTONE = "MILESTONE"
+    TRAINING  = "TRAINING"
 
 
-# ── Badge definitions ─────────────────────────────────────────────────────────
+class AchievementDifficulty(str, enum.Enum):
+    BRONZE   = "BRONZE"
+    SILVER   = "SILVER"
+    GOLD     = "GOLD"
+    PLATINUM = "PLATINUM"
+    DIAMOND  = "DIAMOND"
+
+
+# ── Static achievement catalog ────────────────────────────────────────────────
 
 class Achievement(Base):
     __tablename__ = "achievements"
 
-    achievement_id   = Column(Integer, primary_key=True, index=True)
-    title            = Column(String(100), nullable=False)
-    description      = Column(Text,        nullable=True)
-    icon_url         = Column(String(500), nullable=True)
-    achievement_type = Column(SAEnum(AchievementType), nullable=False)
-    target_value     = Column(Integer,     nullable=False)   # e.g. 1, 3, 10, 20
-    reward_points    = Column(Integer,     default=0)
-    is_active        = Column(Boolean,     default=True, nullable=False)
+    achievementID    = Column("achievementID", Integer, primary_key=True, index=True)
+
+    # Identity
+    key              = Column(String(100), unique=True, nullable=False, index=True)
+    # e.g. "gym_rat_bronze", "gym_rat_silver"
+    chain_key        = Column(String(80),  nullable=False, index=True)
+    # e.g. "gym_rat"  – all 5 levels share this
+
+    name             = Column(String(120), nullable=False)
+    description      = Column(Text, nullable=True)
+    icon_emoji       = Column(String(10),  nullable=True)
+
+    # Classification
+    category         = Column(SAEnum(AchievementCategory), nullable=False)
+    difficulty       = Column(SAEnum(AchievementDifficulty), nullable=False)
+
+    # Progression
+    target           = Column(Integer, nullable=False)
+    # null for Bronze (no prerequisite), filled for Silver-Diamond
+    prerequisite_key = Column(String(100), nullable=True)
+
+    # Misc
+    unit             = Column(String(50), nullable=True)   # "visits", "days", …
+    points           = Column(Integer, default=0)
+    is_active        = Column(Boolean, default=True)
     created_at       = Column(DateTime(timezone=True), server_default=func.now())
 
-    user_achievements = relationship("UserAchievement", back_populates="achievement")
-
-
-# ── Per-user progress ─────────────────────────────────────────────────────────
-
-class UserAchievement(Base):
-    __tablename__ = "user_achievements"
-
-    __table_args__ = (
-        UniqueConstraint("userID", "achievement_id", name="uq_user_achievement"),
-    )
-
-    id             = Column(Integer, primary_key=True, index=True)
-    userID         = Column(Integer, ForeignKey("users.userID"), nullable=False)
-    achievement_id = Column(Integer, ForeignKey("achievements.achievement_id"), nullable=False)
-    progress_value = Column(Integer, default=0, nullable=False)
-    is_completed   = Column(Boolean, default=False, nullable=False)
-    completed_at   = Column(DateTime(timezone=True), nullable=True)
-    created_at     = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at     = Column(DateTime(timezone=True), onupdate=func.now())
-
-    achievement = relationship("Achievement", back_populates="user_achievements")
-
-
-# ── Check-in log ──────────────────────────────────────────────────────────────
-
-class UserCheckin(Base):
-    __tablename__ = "user_checkins"
-
-    __table_args__ = (
-        UniqueConstraint("userID", "checkin_date", name="uq_user_checkin_day"),
-    )
-
-    id           = Column(Integer, primary_key=True, index=True)
-    userID       = Column(Integer, ForeignKey("users.userID"), nullable=False)
-    gymID        = Column(Integer, ForeignKey("gyms.gymID"),   nullable=True)   # which gym
-    checkin_date = Column(Date,    nullable=False)
-    checkin_time = Column(DateTime(timezone=True), server_default=func.now())   # for Early Bird logic
-    created_at   = Column(DateTime(timezone=True), server_default=func.now())
+    client_achievements = relationship("ClientAchievement", back_populates="achievement")

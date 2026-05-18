@@ -20,8 +20,8 @@ from app.models.training_plan import TrainingPlan
 from app.models.client import Client
 from app.models.Machine import Machine
 from app.models.gymMachineInventory import GymMachineInventory
-from app.schemas.TraingPlanRequest import TrainingPlanRequest
-from app.schemas.TraingPlanResponse import TrainingPlanResponse, WeekPlan, DayPlan
+from app.schemas.TrainingPlanRequest import TrainingPlanRequest
+from app.schemas.TrainingPlanResponse import TrainingPlanResponse, WeekPlan, DayPlan
 
 logger = logging.getLogger(__name__)
 

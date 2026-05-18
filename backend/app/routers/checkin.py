@@ -1,20 +1,11 @@
-# app/routers/checkin.py
 """
-Endpoints
-─────────
-POST /checkin/         – Client scans QR code → creates a CheckIn record
-GET  /checkin/history  – Returns client's past check-ins
-
-BUG FIXES:
-1. Both routes now use require_client — previously coaches/admins could
-   POST a check-in or read someone else's history (if they somehow got
-   a client record, which is impossible but good practice regardless).
-2. Duplicate check-in guard added: prevent the same client checking in
-   twice on the same calendar day (avoids inflating streak / monthly counts).
-3. CheckInResponse schema was missing model_config — added from_attributes.
+app/routers/checkin.py
+───────────────────────
+POST /checkin/         – Client scans QR code → creates an Attendance record, fires achievements
+GET  /checkin/history  – Returns client's past attendance records
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, cast, Date
@@ -22,11 +13,15 @@ from sqlalchemy import select, func, cast, Date
 from app.database import get_session
 from app.dependencies.auth import require_client
 from app.models.client import Client
-from app.models.check_in import CheckIn
+from app.models.attendance import Attendance
 from app.models.Gym import Gym
 from app.schemas.achievement_schemas import CheckInRequest, CheckInResponse
+from app.services.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/checkin", tags=["Check-In"])
+
+# Day-of-week mapping aligned with requirements (Friday + Saturday = weekend)
+_DOW = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
 async def _get_client(current_user, db: AsyncSession) -> Client:
@@ -35,10 +30,7 @@ async def _get_client(current_user, db: AsyncSession) -> Client:
     )
     client = result.scalar_one_or_none()
     if not client:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only clients can check in.",
-        )
+        raise HTTPException(status_code=403, detail="Only clients can check in.")
     return client
 
 
@@ -46,17 +38,15 @@ async def _get_client(current_user, db: AsyncSession) -> Client:
     "/",
     response_model=CheckInResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Record a gym check-in after QR scan",
+    summary="Record a gym attendance after QR scan",
 )
 async def check_in(
     req: CheckInRequest,
-    # BUG FIX: require_client instead of bare get_current_user
     current_user = Depends(require_client),
     db: AsyncSession = Depends(get_session),
 ):
     client = await _get_client(current_user, db)
 
-    # Validate the gym exists
     gym_result = await db.execute(select(Gym).where(Gym.gymID == req.gymID))
     gym = gym_result.scalar_one_or_none()
     if not gym:
@@ -65,45 +55,57 @@ async def check_in(
     now       = datetime.now(timezone.utc)
     today_utc = now.date()
 
-    # BUG FIX: prevent duplicate check-ins on the same calendar day
-    duplicate = await db.execute(
-        select(CheckIn).where(
-            CheckIn.clientID == client.clientID,
-            CheckIn.gymID    == req.gymID,
-            func.date(CheckIn.checked_in_at) == today_utc,
+    # Prevent duplicate attendance at the same gym on the same calendar day
+    dup = await db.execute(
+        select(Attendance).where(
+            Attendance.clientID == client.clientID,
+            Attendance.gymID    == req.gymID,
+            cast(Attendance.checked_in, Date) == today_utc,
         )
     )
-    if duplicate.scalar_one_or_none():
+    if dup.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Already checked in at this gym today.",
         )
 
-    new_checkin = CheckIn(
+    # Compute pre-indexed fields for fast achievement queries
+    dow = _DOW[now.weekday()]   # weekday(): 0=Monday … 6=Sunday
+
+    new_attendance = Attendance(
         clientID      = client.clientID,
         gymID         = req.gymID,
-        checked_in_at = now,
+        checked_in    = now,
         check_in_hour = now.hour,
+        check_in_date = today_utc,
+        day_of_week   = dow,
     )
-    db.add(new_checkin)
+    db.add(new_attendance)
     await db.commit()
-    await db.refresh(new_checkin)
+    await db.refresh(new_attendance)
+
+    # ── Fire achievement engine ──────────────────────────────────────────────
+    await achievement_engine.on_checkin(client.clientID, db)
 
     message = f"Welcome to {gym.gymName}! Keep it up 💪"
     if now.hour < 7:
         message = f"Early bird! Welcome to {gym.gymName} 🌅"
+    elif now.hour >= 20:
+        message = f"Night owl mode! Welcome to {gym.gymName} 🦉"
+    elif dow in ("friday", "saturday"):
+        message = f"Weekend warrior! Welcome to {gym.gymName} ⚔️"
 
     return CheckInResponse(
-        checkInID     = new_checkin.checkInID,
-        gymID         = new_checkin.gymID,
-        checked_in_at = new_checkin.checked_in_at,
+        checkInID     = new_attendance.id,
+        gymID         = new_attendance.gymID,
+        checked_in_at = new_attendance.checked_in,
         message       = message,
     )
 
 
 @router.get(
     "/history",
-    summary="Get check-in history for the authenticated client",
+    summary="Get attendance history for the authenticated client",
 )
 async def get_checkin_history(
     current_user = Depends(require_client),
@@ -111,9 +113,9 @@ async def get_checkin_history(
 ):
     client = await _get_client(current_user, db)
     result = await db.execute(
-        select(CheckIn)
-        .where(CheckIn.clientID == client.clientID)
-        .order_by(CheckIn.checked_in_at.desc())
+        select(Attendance)
+        .where(Attendance.clientID == client.clientID)
+        .order_by(Attendance.checked_in.desc())
         .limit(100)
     )
     return result.scalars().all()

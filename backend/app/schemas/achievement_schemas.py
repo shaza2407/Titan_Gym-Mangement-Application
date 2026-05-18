@@ -30,10 +30,10 @@ class CheckInRequest(BaseModel):
 
 
 class CheckInResponse(BaseModel):
-    checkInID     : int
+    """Response after a successful attendance record is created."""
+    checkInID     : int       # maps to Attendance.id
     gymID         : int
-    checked_in_at : datetime
+    checked_in_at : datetime  # maps to Attendance.checked_in
     message       : str
 
-    # BUG FIX: missing from_attributes — ORM objects couldn't be serialized
     model_config = {"from_attributes": True}

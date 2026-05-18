@@ -1,5 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi.params import Depends
+from app.database import get_session
+from app.routers import auth
+from app.routers import coach_dashboard,coach_schedule
+from app.routers import admin_clients_management, admin_coaches_management
+from app.routers import gym
+from app.routers import client_dashboard
+from app.routers import client_attendance
 
 # Import routers from all branches
 from app.routers import (
@@ -26,6 +36,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.routers import (
+    auth
+)
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to my FastAPI backend"}
@@ -48,3 +62,7 @@ app.include_router(gym.router)
 ## GYM members management
 app.include_router(admin_clients_management.router)
 app.include_router(admin_coaches_management.router)
+
+#client routers
+app.include_router(client_dashboard.router)
+app.include_router(client_attendance.router)

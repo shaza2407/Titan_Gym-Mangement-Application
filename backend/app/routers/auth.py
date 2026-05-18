@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -7,23 +6,26 @@ from app.models import User, Client, Coach, Admin
 from app.schemas import SignUpRequest, SignUpResponse, SignInRequest, SignInResponse
 from app.schemas.ForgotPasswordRequest import ForgotPasswordRequest
 from app.schemas.ResetPasswordRequest import ResetPasswordRequest
+from app.schemas.ResendVerficationRequest import ResendVerificationRequest
+from app.schemas.VerifyEmailRequest import VerifyEmailRequest
 from passlib.context import CryptContext
 from jose import jwt
 import datetime
 import bcrypt
+import random
 from app.email_utils import send_verification_email, send_reset_email
 import secrets
 
 from datetime import datetime, date, timedelta
 from app.models import GymClientMembership, GymCoachMembership
 
-router = APIRouter(prefix="/auth", tags=["Auth"])           #path prefix for all routes in this file, and tag for docs
+router = APIRouter(prefix="/auth", tags=["Auth"])  # path prefix for all routes in this file, and tag for docs
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "your-secret-key"      #will be used in production, should be env var
-ALGORITHM  = "HS256"                #JWT signing algorithm, usually HS256 or RS256
+SECRET_KEY = "your-secret-key"  # will be used in production, should be env var
+ALGORITHM = "HS256"  # JWT signing algorithm, usually HS256 or RS256
 
 
-#Helper function to detect user role based on their ID
+# Helper function to detect user role based on their ID
 async def detect_role(userID: int, db: AsyncSession) -> str:
     result = await db.execute(select(Client).filter(Client.userID == userID))
     if result.scalar_one_or_none():
@@ -36,9 +38,10 @@ async def detect_role(userID: int, db: AsyncSession) -> str:
         return "admin"
     raise HTTPException(400, "User has no assigned role")
 
-#POST /auth/signup/
+
+# POST /auth/signup/
 @router.post("/signup", response_model=SignUpResponse)
-async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)):  
+async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)):
     # Check if email exists
     result = await db.execute(select(User).where(User.email == payload.email.lower()))
     existing_user = result.scalar_one_or_none()
@@ -53,10 +56,10 @@ async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)
             password=hashed_password,
             role=payload.role.value,
             phone=payload.phone,
-            is_verified=False         #set to False until they verify their email
+            is_verified=False  # set to False until they verify their email
         )
         db.add(user)
-        await db.flush()  
+        await db.flush()
         if payload.role.value == "client":
             client = Client(
                 userID=user.userID
@@ -71,19 +74,18 @@ async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)
             admin = Admin(userID=user.userID)
             db.add(admin)
 
-        #generate verification token, save to user record, and send email          
-        verify_token = secrets.token_urlsafe(32)
-        user.reset_token     = verify_token
-        # user.reset_token_exp = datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        # generate verfication code and save to user
+        verify_token = str(random.randint(100000, 999999))
+        user.reset_token = verify_token
         user.reset_token_exp = datetime.utcnow() + timedelta(hours=24)
 
-        await db.commit()       #commit all changes (user + role-specific + token)
+        await db.commit()  # commit all changes (user + role-specific + token)
         await db.refresh(user)
 
-        #send verification email              
+        # send verification email
         await send_verification_email(user.email, verify_token)
     except Exception:
-        await db.rollback()     
+        await db.rollback()
         raise
 
     return SignUpResponse(
@@ -94,7 +96,8 @@ async def signup(payload: SignUpRequest, db: AsyncSession = Depends(get_session)
         role=user.role
     )
 
-#POST /auth/signin
+
+# POST /auth/signin
 @router.post("/signin", response_model=SignInResponse)
 async def signin(payload: SignInRequest, db: AsyncSession = Depends(get_session)):  # ← add async
 
@@ -108,79 +111,104 @@ async def signin(payload: SignInRequest, db: AsyncSession = Depends(get_session)
 
     if not user.is_verified:
         raise HTTPException(403, "Please verify your email before signing in")
-    
-    #Detect role
+
+    # Detect role
     role = await detect_role(user.userID, db)
-    #create JWT token
+    # create JWT token
     token = jwt.encode(
         {
-            "sub"  : str(user.userID),
-            "role" : role,
+            "sub": str(user.userID),
+            "role": role,
             # "exp"  : datetime.datetime.utcnow() + datetime.timedelta(hours=24)
             "exp": datetime.utcnow() + timedelta(hours=24)
         },
         SECRET_KEY,
         algorithm=ALGORITHM
     )
-    return SignInResponse(access_token = token,token_type = "bearer",role = role,userID= user.userID)
+    return SignInResponse(access_token=token, token_type="bearer", role=role, userID=user.userID)
 
-#GET /auth/verify-email?token=***
-@router.get("/verify-email")
-async def verify_email(token: str, db: AsyncSession = Depends(get_session)):
 
-    result = await db.execute(select(User).where(User.reset_token == token))   
+# GET /auth/verify-email?token=***
+@router.post("/verify-email")  # changed to POST
+async def verify_email(request: VerifyEmailRequest, db: AsyncSession = Depends(get_session)):
+    result = await db.execute(select(User).where(User.email == request.email))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    user = result.scalar_one_or_none()          #find user with matching token 
-    if not user:                                #if no user found, token is invalid 
-        raise HTTPException(status_code=400, detail="Invalid verification link")
-
-    if user.reset_token_exp < datetime.utcnow():              #verification link expires in 24 hours
-        raise HTTPException(status_code=400, detail="Verification link has expired")
-
-    if user.is_verified:                    #if already verified email
+    if user.is_verified:
         return {"message": "Email already verified"}
-
-    user.is_verified = True         #verify email 
-    user.reset_token = None         #clear token
+    if user.reset_token != request.code:
+        raise HTTPException(status_code=400, detail="Invalid verification code")
+    if user.reset_token_exp < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Verification code has expired")
+    user.is_verified = True
+    user.reset_token = None
     user.reset_token_exp = None
     await db.commit()
+
     return {"message": "Email verified successfully! You can now sign in."}
 
 
-#POST /auth/forgot-password
-@router.post("/forgot-password")
-async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_session)):
+# auth/resend-verification
 
-    result = await db.execute(select(User).where(User.email == payload.email.lower()))  #find user by email
-    user = result.scalar_one_or_none()      
-
-    if not user:
-        return {"message": "If that email is registered, a reset link has been sent."} #not revealing whether email exists or not for security reasons
-
-    token = secrets.token_urlsafe(32)       #generate reset token 
-    user.reset_token = token                #save token and expiration time (30 minutes) to user
-    user.reset_token_exp = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
-    await db.commit()
-
-    await send_reset_email(user.email, token)       #send reset email with token link
-    return {"message": "If that email is registered, a reset link has been sent."}
-
-
-#POST /auth/reset-password
-@router.post("/reset-password")
-async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_session)):
-
-    result = await db.execute(select(User).where(User.reset_token == payload.token))        #find user with matching reset token
+@router.post("/resend-verification")
+async def resend_verification(request: ResendVerificationRequest, db: AsyncSession = Depends(get_session)):
+    result = await db.execute(select(User).where(User.email == request.email))
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        raise HTTPException(status_code=404, detail="Email not found")
 
-    if user.reset_token_exp < datetime.datetime.utcnow():
-        raise HTTPException(status_code=400, detail="Token has expired")
+    if user.is_verified:
+        raise HTTPException(status_code=400, detail="Email already verified")
 
-    user.password = pwd_context.hash(payload.new_password)      #update password
-    user.reset_token = None                 #clear reset token and expiration
+    code = str(random.randint(100000, 999999))
+    user.reset_token = code
+    user.reset_token_exp = datetime.utcnow() + timedelta(hours=24)
+
+    await db.commit()
+
+    await send_verification_email(user.email, code)  # send code instead of link
+
+    return {"message": "Verification code resent successfully"}
+
+
+# POST /auth/forgot-password
+@router.post("/forgot-password")
+async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_session)):
+    result = await db.execute(select(User).where(User.email == payload.email.lower()))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+    code = str(random.randint(100000, 999999))  # ✅ 6 digit code
+    user.reset_token = code
+    user.reset_token_exp = datetime.utcnow() + timedelta(minutes=30)  # ✅ fix datetime
+    await db.commit()
+
+    await send_reset_email(user.email, code)
+    return {"message": "a reset code has been sent."}
+
+
+# POST /auth/reset-password
+@router.post("/reset-password")
+async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_session)):
+    result = await db.execute(select(User).where(User.email == payload.email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    if user.reset_token != payload.code:
+        raise HTTPException(status_code=400, detail="Invalid reset code")
+
+    if user.reset_token_exp < datetime.utcnow():  # ✅ fix datetime
+        raise HTTPException(status_code=400, detail="Reset code has expired")
+
+    user.password = pwd_context.hash(payload.new_password)
+    user.reset_token = None
     user.reset_token_exp = None
     await db.commit()
 

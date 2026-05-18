@@ -1,6 +1,12 @@
 """
 app/seed_achievements.py
-Updated with achievement types and tracking configuration
+─────────────────────────
+Seeds the achievements table with all 10 chains × 5 levels = 50 rows.
+
+Run once:
+    python -m app.seed_achievements
+
+Or call seed_achievements() from an alembic migration's upgrade().
 """
 
 import asyncio
@@ -8,265 +14,164 @@ from sqlalchemy import select
 from app.database import get_session
 from app.models.achievement import Achievement, AchievementCategory, AchievementDifficulty
 
-ACHIEVEMENTS = [
-    # ============ CHECK-IN ACHIEVEMENTS ============
-    {
-        "achievementID": 1,
-        "key": "monthly_champion",
-        "name": "Monthly Champion",
-        "description": "Check in 20 times in a month",
-        "icon_emoji": "🏆",
-        "category": AchievementCategory.CHECKIN,
-        "difficulty": AchievementDifficulty.GOLD,
-        "target": 20,
-        "unit": "visits",
-        "points": 100,
-        "tracking_type": "counter",
-        "tracking_config": {"time_window": "monthly", "reset_frequency": "monthly"}
-    },
-    {
-        "achievementID": 2,
-        "key": "early_bird",
-        "name": "Early Bird",
-        "description": "Check in before 7 AM ten times",
-        "icon_emoji": "🌅",
-        "category": AchievementCategory.CHECKIN,
-        "difficulty": AchievementDifficulty.SILVER,
-        "target": 10,
-        "unit": "mornings",
-        "points": 75,
-        "tracking_type": "counter",
-        "tracking_config": {"time_filter": "hour < 7"}
-    },
-    {
-        "achievementID": 3,
-        "key": "night_owl",
-        "name": "Night Owl",
-        "description": "Check in after 8 PM ten times",
-        "icon_emoji": "🦉",
-        "category": AchievementCategory.CHECKIN,
-        "difficulty": AchievementDifficulty.SILVER,
-        "target": 10,
-        "unit": "nights",
-        "points": 75,
-        "tracking_type": "counter",
-        "tracking_config": {"time_filter": "hour >= 20"}
-    },
-    {
-        "achievementID": 4,
-        "key": "weekend_warrior",
-        "name": "Weekend Warrior",
-        "description": "Check in on weekends 15 times",
-        "icon_emoji": "⚔️",
-        "category": AchievementCategory.CHECKIN,
-        "difficulty": AchievementDifficulty.SILVER,
-        "target": 15,
-        "unit": "weekends",
-        "points": 80,
-        "tracking_type": "counter",
-        "tracking_config": {"days_of_week": ["saturday", "sunday"]}
-    },
-    {
-        "achievementID": 5,
-        "key": "gym_rat",
-        "name": "Gym Rat",
-        "description": "Total 100 check-ins overall",
-        "icon_emoji": "🐀",
-        "category": AchievementCategory.MILESTONE,
-        "difficulty": AchievementDifficulty.GOLD,
-        "target": 100,
-        "unit": "visits",
-        "points": 150,
-        "tracking_type": "counter",
-        "tracking_config": {"time_window": "all_time"}
-    },
-    {
-        "achievementID": 6,
-        "key": "explorer",
-        "name": "Explorer",
-        "description": "Visit 3 different gym locations",
-        "icon_emoji": "🗺️",
-        "category": AchievementCategory.EXPLORATION,
-        "difficulty": AchievementDifficulty.BRONZE,
-        "target": 3,
-        "unit": "locations",
-        "points": 50,
-        "tracking_type": "unique",
-        "tracking_config": {"field": "gymID"}
-    },
 
-    # ============ STREAK ACHIEVEMENTS ============
-    {
-        "achievementID": 7,
-        "key": "consistency_king",
-        "name": "Consistency King",
-        "description": "Maintain a 30-day check-in streak",
-        "icon_emoji": "👑",
-        "category": AchievementCategory.STREAK,
-        "difficulty": AchievementDifficulty.GOLD,
-        "target": 30,
-        "unit": "days",
-        "points": 200,
-        "tracking_type": "streak",
-        "tracking_config": {"streak_type": "consecutive_days"}
-    },
-    {
-        "achievementID": 8,
-        "key": "dedication",
-        "name": "Dedication",
-        "description": "Complete a 90-day check-in streak",
-        "icon_emoji": "💪",
-        "category": AchievementCategory.STREAK,
-        "difficulty": AchievementDifficulty.PLATINUM,
-        "target": 90,
-        "unit": "days",
-        "points": 500,
-        "tracking_type": "streak",
-        "tracking_config": {"streak_type": "consecutive_days"},
-        "prerequisite_key": "consistency_king"
-    },
-    {
-        "achievementID": 9,
-        "key": "super_streak",
-        "name": "Super Streak",
-        "description": "Complete a 365-day check-in streak (full year!)",
-        "icon_emoji": "🔥",
-        "category": AchievementCategory.STREAK,
-        "difficulty": AchievementDifficulty.DIAMOND,
-        "target": 365,
-        "unit": "days",
-        "points": 1000,
-        "tracking_type": "streak",
-        "tracking_config": {"streak_type": "consecutive_days"},
-        "prerequisite_key": "dedication",
-        "is_hidden": True,
-        "reveal_at_percentage": 50
-    },
-    {
-        "achievementID": 10,
-        "key": "perfect_week",
-        "name": "Perfect Week",
-        "description": "Check in 5 days in a single week",
-        "icon_emoji": "💯",
-        "category": AchievementCategory.CHECKIN,
-        "difficulty": AchievementDifficulty.SILVER,
-        "target": 1,
-        "unit": "weeks",
-        "points": 100,
-        "tracking_type": "composite",
-        "tracking_config": {"time_window": "weekly", "required_days": 5}
-    },
+def _chain(
+    chain_key: str,
+    name_base: str,
+    description: str,
+    icon: str,
+    category: AchievementCategory,
+    targets: list[int],
+    unit: str,
+    points_per_level: list[int],
+) -> list[dict]:
+    """Build 5 level rows for one chain."""
+    levels = [
+        AchievementDifficulty.BRONZE,
+        AchievementDifficulty.SILVER,
+        AchievementDifficulty.GOLD,
+        AchievementDifficulty.PLATINUM,
+        AchievementDifficulty.DIAMOND,
+    ]
+    rows = []
+    for i, (diff, target, pts) in enumerate(zip(levels, targets, points_per_level)):
+        key      = f"{chain_key}_{diff.value.lower()}"
+        prereq   = f"{chain_key}_{levels[i-1].value.lower()}" if i > 0 else None
+        rows.append({
+            "key"             : key,
+            "chain_key"       : chain_key,
+            "name"            : f"{name_base} — {diff.value.capitalize()}",
+            "description"     : description,
+            "icon_emoji"      : icon,
+            "category"        : category,
+            "difficulty"      : diff,
+            "target"          : target,
+            "prerequisite_key": prereq,
+            "unit"            : unit,
+            "points"          : pts,
+            "is_active"       : True,
+        })
+    return rows
 
-    # ============ CLASS ACHIEVEMENTS ============
-    {
-        "achievementID": 11,
-        "key": "class_enthusiast",
-        "name": "Class Enthusiast",
-        "description": "Attend 10 different classes",
-        "icon_emoji": "⭐",
-        "category": AchievementCategory.CLASS,
-        "difficulty": AchievementDifficulty.GOLD,
-        "target": 10,
-        "unit": "classes",
-        "points": 120,
-        "tracking_type": "unique",
-        "tracking_config": {"field": "class_title"}
-    },
-    {
-        "achievementID": 12,
-        "key": "social_butterfly",
-        "name": "Social Butterfly",
-        "description": "Participate in 5 group classes",
-        "icon_emoji": "🦋",
-        "category": AchievementCategory.SOCIAL,
-        "difficulty": AchievementDifficulty.BRONZE,
-        "target": 5,
-        "unit": "classes",
-        "points": 80,
-        "tracking_type": "counter",
-        "tracking_config": {"class_type": "group"}
-    },
 
-    # ============ TRAINING PLAN ACHIEVEMENTS ============
-    {
-        "achievementID": 13,
-        "key": "goal_crusher",
-        "name": "Goal Crusher",
-        "description": "Complete 3 training plans",
-        "icon_emoji": "⚡",
-        "category": AchievementCategory.TRAINING,
-        "difficulty": AchievementDifficulty.GOLD,
-        "target": 3,
-        "unit": "plans",
-        "points": 150,
-        "tracking_type": "counter",
-        "tracking_config": {"status": "completed"}
-    },
-    {
-        "achievementID": 14,
-        "key": "master_trainer",
-        "name": "Master Trainer",
-        "description": "Complete 5 different training plan types",
-        "icon_emoji": "🎓",
-        "category": AchievementCategory.TRAINING,
-        "difficulty": AchievementDifficulty.PLATINUM,
-        "target": 5,
-        "unit": "plan types",
-        "points": 300,
-        "tracking_type": "unique",
-        "tracking_config": {"field": "goal"},
-        "prerequisite_key": "goal_crusher"
-    },
-    {
-        "achievementID": 15,
-        "key": "perfect_plan",
-        "name": "Perfect Plan",
-        "description": "Complete a training plan with 100% attendance",
-        "icon_emoji": "📋",
-        "category": AchievementCategory.TRAINING,
-        "difficulty": AchievementDifficulty.GOLD,
-        "target": 1,
-        "unit": "plans",
-        "points": 200,
-        "tracking_type": "composite",
-        "tracking_config": {"completion_percentage": 100}
-    },
+ACHIEVEMENTS: list[dict] = []
 
-    # ============ HIDDEN/CHALLENGE ACHIEVEMENTS ============
-    {
-        "achievementID": 16,
-        "key": "secret_workout",
-        "name": "Secret Workout",
-        "description": "???",  # Hidden until unlocked
-        "icon_emoji": "🔒",
-        "category": AchievementCategory.MILESTONE,
-        "difficulty": AchievementDifficulty.DIAMOND,
-        "target": 1,
-        "unit": "secret",
-        "points": 500,
-        "tracking_type": "counter",
-        "tracking_config": {"special_condition": "workout_at_midnight"},
-        "is_hidden": True,
-        "reveal_at_percentage": 0
-    }
-]
+# 1) Gym Rat – total check-ins
+ACHIEVEMENTS += _chain(
+    "gym_rat", "Gym Rat",
+    "Total gym check-ins",
+    "🐀", AchievementCategory.CHECKIN,
+    targets=[10, 25, 50, 100, 250],
+    unit="visits",
+    points_per_level=[30, 60, 100, 200, 500],
+)
+
+# 2) Monthly Champion – visits this calendar month
+ACHIEVEMENTS += _chain(
+    "monthly_champion", "Monthly Champion",
+    "Gym visits within the current month",
+    "🏆", AchievementCategory.CHECKIN,
+    targets=[5, 10, 20, 35, 50],
+    unit="visits",
+    points_per_level=[25, 50, 100, 175, 300],
+)
+
+# 3) Early Bird – check-ins before 07:00
+ACHIEVEMENTS += _chain(
+    "early_bird", "Early Bird",
+    "Check-ins before 7 AM",
+    "🌅", AchievementCategory.CHECKIN,
+    targets=[5, 15, 30, 60, 100],
+    unit="mornings",
+    points_per_level=[25, 60, 100, 200, 400],
+)
+
+# 4) Night Owl – check-ins at or after 20:00
+ACHIEVEMENTS += _chain(
+    "night_owl", "Night Owl",
+    "Check-ins after 8 PM",
+    "🦉", AchievementCategory.CHECKIN,
+    targets=[5, 15, 30, 60, 100],
+    unit="nights",
+    points_per_level=[25, 60, 100, 200, 400],
+)
+
+# 5) Weekend Warrior – check-ins on Friday or Saturday
+ACHIEVEMENTS += _chain(
+    "weekend_warrior", "Weekend Warrior",
+    "Check-ins on Fridays or Saturdays",
+    "⚔️", AchievementCategory.CHECKIN,
+    targets=[5, 15, 30, 60, 100],
+    unit="weekends",
+    points_per_level=[25, 60, 100, 200, 400],
+)
+
+# 6) Consistency – consecutive-day streak
+ACHIEVEMENTS += _chain(
+    "consistency", "Consistency",
+    "Consecutive check-in day streak",
+    "🔥", AchievementCategory.STREAK,
+    targets=[3, 7, 30, 90, 365],
+    unit="days",
+    points_per_level=[20, 50, 200, 500, 2000],
+)
+
+# 7) Perfect Week – weeks with 5+ distinct check-in days
+ACHIEVEMENTS += _chain(
+    "perfect_week", "Perfect Week",
+    "Check in on 5 different days in a single week",
+    "📅", AchievementCategory.CHECKIN,
+    targets=[1, 3, 10, 25, 50],
+    unit="perfect weeks",
+    points_per_level=[30, 80, 200, 400, 800],
+)
+
+# 8) Class Enthusiast – total classes attended
+ACHIEVEMENTS += _chain(
+    "class_enthusiast", "Class Enthusiast",
+    "Total group classes attended",
+    "🧘", AchievementCategory.CLASS,
+    targets=[5, 15, 30, 60, 120],
+    unit="classes",
+    points_per_level=[25, 60, 120, 250, 500],
+)
+
+# 9) Training Plan Completion – completed plans
+ACHIEVEMENTS += _chain(
+    "training_plan_completion", "Training Plan Completion",
+    "Completed AI training plans",
+    "📋", AchievementCategory.TRAINING,
+    targets=[1, 3, 5, 10, 20],
+    unit="plans",
+    points_per_level=[50, 120, 200, 400, 800],
+)
+
+# 10) Badge Collector – total unlocked badges
+ACHIEVEMENTS += _chain(
+    "badge_collector", "Badge Collector",
+    "Total achievement badges unlocked",
+    "🎖️", AchievementCategory.MILESTONE,
+    targets=[5, 15, 30, 50, 100],
+    unit="badges",
+    points_per_level=[30, 80, 150, 300, 600],
+)
 
 
 async def seed_achievements():
     async for db in get_session():
         for data in ACHIEVEMENTS:
-            existing = await db.execute(
+            # Skip if key already exists
+            res = await db.execute(
                 select(Achievement).where(Achievement.key == data["key"])
             )
-            if existing.scalar_one_or_none() is None:
-                achievement = Achievement(**data)
-                db.add(achievement)
-                print(f"✅ Added achievement: {data['name']} ({data['category']} - {data['difficulty']})")
-            else:
-                print(f"⏭️ Achievement already exists: {data['name']}")
+            if res.scalar_one_or_none():
+                continue
+
+            ach = Achievement(**data)
+            db.add(ach)
 
         await db.commit()
-        print(f"\n✨ Achievement seed complete! Total: {len(ACHIEVEMENTS)} achievements")
+        print(f"✅  Seeded {len(ACHIEVEMENTS)} achievement levels.")
 
 
 if __name__ == "__main__":

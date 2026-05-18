@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from app.schemas.GymMachineInventory import InventoryResponse
 
 
 class GymBase(BaseModel):
@@ -36,6 +37,4 @@ class GymResponse(GymBase):
         from_attributes = True
 
 class GymWithMachines(GymResponse):
-    """Extended response that nests the gym's machine inventory."""
-    from app.schemas.GymMachineInventory import InventoryResponse
     machines: list[InventoryResponse] = []

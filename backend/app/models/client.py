@@ -1,6 +1,6 @@
 
 from app.database import Base
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Date, Integer, String, ForeignKey, Text
 
 # extends from user table
 # Stores the client's profile data. Created once at signup. Never changes when they join/leave gyms.
@@ -13,3 +13,7 @@ class Client(Base):
     age          = Column(Integer, nullable=True)
     gender       = Column(String, nullable=True)
 
+    # profile page needs
+    bio                   = Column(Text,    nullable=True)
+    emergency_contact     = Column(String,  nullable=True)  
+    profile_picture       = Column(String,  nullable=True)  # URL or file path

@@ -1,75 +1,71 @@
 # app/models/__init__.py
+# ──────────────────────────────────────────────────────────────────────────────
+# NOTE: gym_machine.py is intentionally excluded — its Gym & GymMachine
+# classes conflicted with Gym.py and gymMachineInventory.py which the project
+# already uses.  Equipment look-up now relies on:
+#   • Machine             (app/models/Machine.py)
+#   • GymMachineInventory (app/models/gymMachineInventory.py)
+# ──────────────────────────────────────────────────────────────────────────────
 
-# Core Models
+# Core
 from app.models.User import User
 from app.models.client import Client
 from app.models.coach import Coach
 from app.models.Admin import Admin
 from app.models.Gym import Gym
-# Membership Models
+
+# Membership
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.gym_coachs_membership import GymCoachMembership
 from app.models.member_invitation import MemberInvitation
 
-# Gym & Classes
+# Equipment (gymMachineInventory uses Machine + Gym — do NOT import gym_machine.py)
 from app.models.Machine import Machine
 from app.models.gymMachineInventory import GymMachineInventory
+
+# Classes
 from app.models.class_request import ClassRequest
 from app.models.class_session import ClassSession
-from app.models.client_class_enrollment import ClientClassEnrollment
+from app.models.attendance import Attendance
 
-# Training Plans
-from app.models.training_plan import TrainingPlan, PlanStatus
-from app.models.training_plan_tracking import (
+# Training Plans (versioned)
+from app.models.training_plan import (
+    TrainingPlan,
+    PlanStatus,
     TrainingPlanTracking,
     TrainingPlanWeekProgress,
     WorkoutStatus,
     DayStatus,
 )
 
-# Achievements & Check-ins
+# Achievements
 from app.models.achievement import (
     Achievement,
     AchievementCategory,
     AchievementDifficulty,
 )
-
 from app.models.client_achievement import ClientAchievement
-from app.models.check_in import CheckIn
 
 
 __all__ = [
     # Core
-    "User",
-    "Client",
-    "Coach",
-    "Admin",
-    "Gym",
+    "User", "Client", "Coach", "Admin", "Gym",
 
     # Membership
-    "GymClientMembership",
-    "GymCoachMembership",
-    "MemberInvitation",
+    "GymClientMembership", "GymCoachMembership", "MemberInvitation",
 
-    # Gym & Classes
-    "Machine",
-    "GymMachineInventory",
-    "ClassRequest",
-    "ClassSession",
-    "ClientClassEnrollment",
+    # Equipment
+    "Machine", "GymMachineInventory",
+
+    # Classes
+    "ClassRequest", "ClassSession", "Attendance",
 
     # Training Plans
-    "TrainingPlan",
-    "PlanStatus",
-    "TrainingPlanTracking",
-    "TrainingPlanWeekProgress",
-    "WorkoutStatus",
-    "DayStatus",
+    "TrainingPlan", "PlanStatus",
+    "TrainingPlanTracking", "TrainingPlanWeekProgress",
+    "WorkoutStatus", "DayStatus",
 
     # Achievements
-    "Achievement",
-    "AchievementCategory",
-    "AchievementDifficulty",
+    "Achievement", "AchievementCategory", "AchievementDifficulty",
     "ClientAchievement",
-    "CheckIn",
 ]
