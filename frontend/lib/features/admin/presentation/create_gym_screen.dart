@@ -51,32 +51,37 @@ class CreateGymScreen extends StatelessWidget {
                     hint: 'e.g., 199.99',
                     keyboardType: TextInputType.number,
                   ),
-                  _formField(controller.qrCodeController, 'QR Code *', hint: 'e.g., QR-GYM-001'),
 
                   const SizedBox(height: 16),
 
-                  // Schedule Section
+                  // operating hours Section
                   _sectionHeader(Icons.access_time, 'Schedule', 'Set operating hours'),
                   const SizedBox(height: 12),
                   Row(
-                    children: [
-                      Expanded(
-                        child: _formField(
-                          controller.openingHoursController,
-                          'Opening Hours *',
-                          hint: '06:00',
+                  children: [
+                    Expanded(
+                    child: GestureDetector(
+                        onTap: () => _pickTime(context, controller.openingHoursController),
+                        child: AbsorbPointer(  // prevent manual editing
+                          child: _formField(
+                            controller.openingHoursController,'Opening Hours *',hint: '06:00',
+                            suffixIcon: const Icon(Icons.access_time, color: Color(0xFF4F46E5)),
+                          ),
                         ),
+                       ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _formField(
-                          controller.closingHoursController,
-                          'Closing Hours *',
-                          hint: '23:00',
-                        ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                  child: GestureDetector(
+                    onTap: () => _pickTime(context, controller.closingHoursController),
+                    child: AbsorbPointer(
+                      child: _formField(controller.closingHoursController,'Closing Hours *',hint: '23:00',suffixIcon: const Icon(Icons.access_time, color: Color(0xFF4F46E5)),
                       ),
-                    ],
+                    ),
                   ),
+                ),
+                ],
+                ),
 
                   const SizedBox(height: 16),
 
@@ -180,6 +185,7 @@ class CreateGymScreen extends StatelessWidget {
     String label, {
     String? hint,
     TextInputType keyboardType = TextInputType.text,
+    Widget? suffixIcon,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -191,6 +197,7 @@ class CreateGymScreen extends StatelessWidget {
           hintText: hint,
           filled: true,
           fillColor: Colors.white,
+          suffixIcon: suffixIcon,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -222,5 +229,25 @@ class CreateGymScreen extends StatelessWidget {
         onChanged: (v) => onChanged(v!),
       ),
     );
+  }
+}
+
+
+Future<void> _pickTime(BuildContext context, TextEditingController controller) async {
+  final TimeOfDay? picked = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay.now(),
+    builder: (context, child) {
+      return MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+        child: child!,
+      );
+    },
+  );
+
+  if (picked != null) {
+    final hours   = picked.hour.toString().padLeft(2, '0');
+    final minutes = picked.minute.toString().padLeft(2, '0');
+    controller.text = '$hours:$minutes'; // e.g. 06:00
   }
 }

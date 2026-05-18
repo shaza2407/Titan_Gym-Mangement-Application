@@ -2,7 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
-
+import qrcode
+import base64
+from io import BytesIO
 from app.models.Gym import Gym
 from app.schemas.gym import GymCreate, GymUpdate
 
@@ -23,14 +25,17 @@ async def get_all_gyms_by_admin(db: AsyncSession, admin_id: int, skip: int = 0, 
 async def create_gym(db: AsyncSession, gym_data: GymCreate, admin_id: int) -> Gym:
     data = gym_data.model_dump()
     data["adminID"] = admin_id
+    data["QRCode"] = ""  
     new_gym = Gym(**data)
     try:
         db.add(new_gym)
+        await db.flush()  
+        new_gym.QRCode = generate_qr_code(new_gym.gymID, new_gym.gymName)
         await db.commit()
         await db.refresh(new_gym)
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Could not create gym. Check all fields are valid.")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Could not create gym.")
     return new_gym
 
 
@@ -54,3 +59,12 @@ async def delete_gym(db: AsyncSession, gym_id: int, admin_id: int) -> dict:
     await db.delete(gym)
     await db.commit()
     return {"detail": f"Gym with ID {gym_id} deleted successfully."}
+
+
+def generate_qr_code(gym_id: int, gym_name: str) -> str:
+    qr_data = f"TITAN-GYM-{gym_id}-{gym_name.upper().replace(' ', '-')}"
+    qr = qrcode.make(qr_data)
+    buffer = BytesIO()
+    qr.save(buffer, format='PNG')
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return qr_base64
