@@ -46,12 +46,12 @@ class ClientDetailScreen extends StatelessWidget {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Member Details',
+            Text('Client Details',
                 style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 16)),
-            Text('View member information',
+            Text('View client information',
                 style: TextStyle(color: Colors.grey, fontSize: 12)),
           ],
         ),
@@ -94,7 +94,7 @@ class ClientDetailScreen extends StatelessWidget {
                 Text(member.name,
                     style: const TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 18)),
-                Text('Member ID: #${member.id}',
+                Text('Client ID: #${member.id}',
                     style: const TextStyle(
                         color: Color(0xFF6C63FF), fontSize: 13)),
                 const Divider(height: 28),

@@ -79,10 +79,10 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Member Management',
+            Text('Client Management',
                 style:
                     TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
-            Text('View and manage gym members',
+            Text('View and manage gym clients',
                 style: TextStyle(color: Colors.grey, fontSize: 12)),
           ],
         ),
@@ -103,7 +103,6 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                   builder: (_) => InviteMemberScreen(
                     gymId: widget.gymId,
                     token: widget.token,
-                    inviteAs: 'client',
                   ),
                 ),
               );
@@ -133,7 +132,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                 // Stats Row
                 Row(
                   children: [
-                    _StatCard(label: 'Total Members', value: '${data.total}',
+                    _StatCard(label: 'Total Clients', value: '${data.total}',
                         icon: Icons.people_outline),
                     const SizedBox(width: 8),
                     _StatCard(label: 'Active', value: '${data.active}',
@@ -151,7 +150,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                   controller: _searchController,
                   onChanged: (v) => setState(() => _searchQuery = v),
                   decoration: InputDecoration(
-                    hintText: 'Search members...',
+                    hintText: 'Search clients...',
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     filled: true,
                     fillColor: Colors.white,
@@ -175,7 +174,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.all(32),
-                      child: Text('No members found',
+                      child: Text('No clients found',
                           style: TextStyle(color: Colors.grey)),
                     ),
                   )
@@ -409,7 +408,7 @@ class _ClientCard extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
             ),
             const SizedBox(height: 4),
-            Text('Waiting for member to accept invitation',
+            Text('Waiting for client to accept invitation',
                 style: TextStyle(color: Colors.grey[500], fontSize: 12)),
             const SizedBox(height: 12),
           ],
