@@ -30,7 +30,7 @@ class ForgotPasswordController extends ChangeNotifier {
     try {
       await _repo.forgotPassword(email: emailController.text.trim());
       sentEmail = emailController.text.trim();
-      codeSent = true;  // ✅ show code + new password fields
+      codeSent = true; 
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
