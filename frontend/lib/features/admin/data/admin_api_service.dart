@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-const String _baseUrl = "http://10.0.2.2:8000";
+import 'package:frontend/features/shared/api_constants.dart';
 
 // 1- Client Models
 
@@ -123,7 +122,7 @@ class AdminApiService {
 
   static Future<ClientListResponse> fetchClients(int gymId, String token) async {
     final res = await http.get(
-      Uri.parse('$_baseUrl/admin/gyms/$gymId/clients'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -137,11 +136,12 @@ class AdminApiService {
 
   static Future<void> inviteClient(int gymId, String email, String token) async {
     final res = await http.post(
-      Uri.parse('$_baseUrl/admin/gyms/$gymId/clients/invite'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/invite'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
+      body: jsonEncode({'email': email}),
     );
     if (res.statusCode != 200 && res.statusCode != 201) {
       final detail = jsonDecode(res.body)['detail'] ?? 'Unknown error';
@@ -151,7 +151,7 @@ class AdminApiService {
 
   static Future<void> suspendClient(int gymId, int ClientId, String token) async {
     final res = await http.post(
-      Uri.parse('$_baseUrl/admin/gyms/$gymId/clients/$ClientId/suspend'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$ClientId/suspend'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -167,7 +167,7 @@ class AdminApiService {
   // Coaches
   static Future<CoachListResponse> fetchCoaches(int gymId, String token) async {
     final res = await http.get(
-      Uri.parse('$_baseUrl/admin/gyms/$gymId/coaches'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/coaches'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -181,7 +181,7 @@ class AdminApiService {
 
   static Future<void> inviteCoach(int gymId, String email, String token) async {
     final res = await http.post(
-      Uri.parse('$_baseUrl/admin/gyms/$gymId/coaches/invite'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/coaches/invite'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -196,7 +196,7 @@ class AdminApiService {
 
   static Future<void> suspendCoach(int gymId, int coachId, String token) async {
     final res = await http.post(
-      Uri.parse('$_baseUrl/admin/gyms/$gymId/coaches/$coachId/suspend'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/coaches/$coachId/suspend'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
