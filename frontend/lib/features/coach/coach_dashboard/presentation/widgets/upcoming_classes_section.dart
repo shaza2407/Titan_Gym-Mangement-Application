@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/coach/shared/data/coach_api_service.dart';
 
 class UpcomingClassesSection extends StatelessWidget {
-  final int coachId;
-  const UpcomingClassesSection({super.key, required this.coachId});
+  final String token;
+  const UpcomingClassesSection({super.key, required this.token});
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<ClassSessionModel>>(
-      future: CoachApiService.fetchDashboardUpcomingClasses(coachId),
+      future: CoachApiService.fetchDashboardUpcomingClasses(token),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

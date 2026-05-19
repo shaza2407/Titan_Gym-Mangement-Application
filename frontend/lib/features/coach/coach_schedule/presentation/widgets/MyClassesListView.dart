@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/coach/shared/data/coach_api_service.dart';
 
 class MyClassesListView extends StatelessWidget {
-  final int coachId;
-  const MyClassesListView({super.key, required this.coachId});
+  final String token;
+  const MyClassesListView({super.key, required this.token});
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<MyClassOffering>>(
-      future: CoachApiService.fetchMyClasses(coachId),
+      future: CoachApiService.fetchMyClasses(token),
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {

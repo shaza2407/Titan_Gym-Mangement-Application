@@ -3,8 +3,8 @@ import 'package:frontend/features/coach/shared/data/coach_api_service.dart';
 
 
 class RequestsListView extends StatelessWidget {
-  final int coachId;
-  const RequestsListView({super.key, required this.coachId});
+  final String token;
+  const RequestsListView({super.key, required this.token});
 
   // --- Quick Date Formatters to match Figma ---
   String _formatProposedTime(String dateStr, String timeStr) {
@@ -41,7 +41,7 @@ class RequestsListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<ClassRequestHistory>>(
-      future: CoachApiService.fetchRequestHistory(coachId),
+      future: CoachApiService.fetchRequestHistory(token),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

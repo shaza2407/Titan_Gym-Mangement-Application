@@ -1,48 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/shared/logout_button.dart';
 
 class HeaderSection extends StatelessWidget implements PreferredSizeWidget {
   const HeaderSection({super.key});
 
   @override
-  // Makes the AppBar slightly taller to comfortably fit the title and subtitle
   Size get preferredSize => const Size.fromHeight(70.0);
-
-  // --- LOGOUT LOGIC ---
-  void _handleLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Log Out"),
-        content: const Text("Are you sure you want to log out of your account?"),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), // Close dialog
-            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // 1. Clear your saved auth tokens here (e.g., using SharedPreferences or SecureStorage)
-              // await AuthService.clearTokens();
-              
-              // 2. Navigate back to the Login Screen and clear the route history
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-              
-              Navigator.pop(context); // Placeholder: closes dialog
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Logged out successfully")),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade50,
-              elevation: 0,
-            ),
-            child: const Text("Log Out", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,11 +76,8 @@ class HeaderSection extends StatelessWidget implements PreferredSizeWidget {
         ),
         
         // Logout Icon
-        IconButton(
-          icon: const Icon(Icons.logout, color: Colors.black87, size: 24),
-          onPressed: () => _handleLogout(context),
-        ),
-        const SizedBox(width: 8), // Right padding
+        IconButton(icon: const Icon(Icons.logout, color: Colors.black),onPressed: () => showLogoutDialog(context)),
+        const SizedBox(width: 8),
       ],
     );
   }
