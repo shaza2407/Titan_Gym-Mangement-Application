@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -9,6 +8,7 @@ from app.schemas.ForgotPasswordRequest import ForgotPasswordRequest
 from app.schemas.ResetPasswordRequest import ResetPasswordRequest
 from app.schemas.ResendVerficationRequest import ResendVerificationRequest    
 from app.schemas.VerifyEmailRequest import VerifyEmailRequest
+from app.models.member_invitation import MemberInvitation, InvitationStatus
 from passlib.context import CryptContext
 from jose import jwt
 import datetime
@@ -181,9 +181,9 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
     if not user:
         raise HTTPException(status_code=404, detail="Email not found")
 
-    code = str(random.randint(100000, 999999))  # ✅ 6 digit code
+    code = str(random.randint(100000, 999999)) 
     user.reset_token = code
-    user.reset_token_exp = datetime.utcnow() + timedelta(minutes=30)  # ✅ fix datetime
+    user.reset_token_exp = datetime.utcnow() + timedelta(minutes=30)  
     await db.commit()
 
         
@@ -204,7 +204,7 @@ async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depen
     if user.reset_token != payload.code:
         raise HTTPException(status_code=400, detail="Invalid reset code")
 
-    if user.reset_token_exp < datetime.utcnow():  # ✅ fix datetime
+    if user.reset_token_exp < datetime.utcnow():  
         raise HTTPException(status_code=400, detail="Reset code has expired")
 
     user.password = pwd_context.hash(payload.new_password)

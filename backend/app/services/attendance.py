@@ -1,11 +1,13 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, cast, Date, distinct, and_
-from datetime import datetime, timezone, date, timedelta
-from app.models.attendance import Attendance
-from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
+# app/CRUD/attendance.py
 
-# Day-of-week mapping ( monday is always index 0 )
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, cast, Date, distinct
+from datetime import datetime, date, timedelta
+from app.models.attendance import Attendance
+from app.models.gym_clients_membership import GymClientMembership
+
 _DOW = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
 
 async def get_membership(clientID: int, db: AsyncSession) -> GymClientMembership:
     result = await db.execute(
@@ -19,27 +21,18 @@ async def already_checked_in_today(membershipID: int, db: AsyncSession) -> bool:
     result = await db.execute(
         select(Attendance).where(
             Attendance.membershipID == membershipID,
-            Attendance.check_in_date == today  # Use pre-indexed field
+            cast(Attendance.checked_in, Date) == today
         )
     )
     return result.scalar_one_or_none() is not None
 
 
-async def record_checkin(membershipID: int, clientID: int, gymID: int, db: AsyncSession) -> Attendance:
-    """Record check-in with all pre-indexed fields populated"""
-    now = datetime.now(timezone.utc)
-    today_utc = now.date()
-    dow = _DOW[now.weekday()]
-    check_in_hour = now.hour
-
+async def record_checkin(membershipID: int, db: AsyncSession) -> Attendance:
+    now = datetime.now()  # local time
     attendance = Attendance(
         membershipID=membershipID,
-        clientID=clientID,
-        gymID=gymID,
         checked_in=now,
-        check_in_hour=check_in_hour,
-        check_in_date=today_utc,
-        day_of_week=dow,
+        day_of_week=_DOW[now.weekday()],
     )
     db.add(attendance)
     await db.commit()
@@ -69,21 +62,21 @@ async def get_dashboard_stats(membershipID: int, db: AsyncSession) -> dict:
     )
     total_visits = total_result.scalar() or 0
 
-    # Days this week — use pre-indexed check_in_date
+    # Days this week
     week_result = await db.execute(
-        select(func.count(distinct(Attendance.check_in_date))).where(
+        select(func.count(distinct(cast(Attendance.checked_in, Date)))).where(
             Attendance.membershipID == membershipID,
-            Attendance.check_in_date >= start_of_week
+            cast(Attendance.checked_in, Date) >= start_of_week
         )
     )
     days_this_week = week_result.scalar() or 0
 
-    # Streak calculation using pre-indexed dates
+    # Streak
     streak_result = await db.execute(
-        select(Attendance.check_in_date)
+        select(cast(Attendance.checked_in, Date))
         .where(Attendance.membershipID == membershipID)
         .distinct()
-        .order_by(Attendance.check_in_date.desc())
+        .order_by(cast(Attendance.checked_in, Date).desc())
     )
     unique_dates = [row[0] for row in streak_result.fetchall()]
 
