@@ -104,7 +104,6 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
                   builder: (_) => InviteMemberScreen(
                     gymId: widget.gymId,
                     token: widget.token,
-                    inviteAs: 'coach',
                   ),
                 ),
               );

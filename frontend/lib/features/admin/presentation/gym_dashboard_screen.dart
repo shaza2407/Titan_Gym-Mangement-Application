@@ -211,8 +211,8 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
     (
       Icons.people_outline,
       const Color(0xFF0F6E56),
-      'Member Management',
-      'View and manage gym members',
+      'Client Management',
+      'View and manage gym clients',
       () {
         Navigator.push(
           context,
@@ -254,7 +254,6 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
             builder: (_) => InviteMemberScreen(
               gymId: widget.gym.gymID,
               token: widget.token,
-              inviteAs: 'client',
             ),
           ),
         );
