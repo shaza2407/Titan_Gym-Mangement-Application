@@ -6,6 +6,7 @@ import '../../shared/logout_button.dart';
 import 'client_management_screen.dart';
 import 'coach_management_screen.dart';
 import 'invite_member_screen.dart';
+import '../../shared/admin_bottom_bar.dart';
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
@@ -39,12 +40,16 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
       builder: (context, controller, _) {
         return Scaffold(
           backgroundColor: const Color(0xFFEEF0F8),
+          bottomNavigationBar: AdminBottomBar(
+            currentIndex: 0,
+            token: widget.token,
+            gymId: widget.gym.gymID,
+          ),
           body: SafeArea(
             child: Column(
               children: [
                 _buildHeader(context),
                 Expanded(child: _buildBody(controller)),
-                _buildBottomNav(),
               ],
             ),
           ),
@@ -334,40 +339,6 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
               ),
               if (!isLast) const Divider(height: 0, thickness: 0.5, indent: 64),
             ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    const items = [
-      (Icons.dashboard,      'Dashboard'),
-      (Icons.people_outline, 'Members'),
-      (Icons.calendar_today, 'Schedule'),
-      (Icons.person_outline, 'Profile'),
-    ];
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: items.asMap().entries.map((entry) {
-          final active = entry.key == 0;
-          final item   = entry.value;
-          return Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(item.$1, color: active ? const Color(0xFF4F46E5) : Colors.grey, size: 24),
-                const SizedBox(height: 3),
-                Text(item.$2,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: active ? const Color(0xFF4F46E5) : Colors.grey,
-                      fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-                    )),
-              ],
-            ),
           );
         }).toList(),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/admin_api_service.dart';
+import '../../shared/admin_bottom_bar.dart';
 
 class InviteMemberScreen extends StatefulWidget {
   final int gymId;
@@ -61,6 +62,10 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
+      bottomNavigationBar: AdminBottomBar(currentIndex: 5,
+          token: widget.token,
+          gymId: widget.gymId
+      ),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -148,7 +153,7 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                             child: Row(children: [
                               Icon(Icons.person_outline, size: 18),
                               SizedBox(width: 8),
-                              Text('Client (Member)'),
+                              Text('Client'),
                             ]),
                           ),
                           DropdownMenuItem(
