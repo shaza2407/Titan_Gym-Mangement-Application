@@ -10,12 +10,12 @@ class Client(Base):
     clientID     = Column("clientID", Integer, primary_key=True , index=True)
     userID       = Column("userID", Integer, ForeignKey("users.userID"), nullable=False)  # ← matches
     fitness_goal = Column(String, nullable=True)
-    age          = Column(Integer, nullable=True)
+    date_of_birth     = Column(Date, nullable=True)   
     gender       = Column(String, nullable=True)
 
     # profile page needs
     bio                   = Column(Text,    nullable=True)
     emergency_contact     = Column(String,  nullable=True)  
-    profile_picture       = Column(String,  nullable=True)  # URL or file path
+
 
 
