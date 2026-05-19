@@ -1,8 +1,7 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:frontend/features/coach/shared/data/coach_api_service.dart';
 import 'package:http/http.dart' as http;
+import '../../../../common/api_constants.dart';
 
 class RequestClassScreen extends StatefulWidget {
   final int coachId;
@@ -75,8 +74,7 @@ class _RequestClassScreenState extends State<RequestClassScreen> {
     });
 
     try {
-      final url = Uri.parse(
-        '${CoachApiService.baseUrl}/${widget.coachId}/class_request/',
+      final url = Uri.parse('${ApiConstants.baseUrl}/${widget.coachId}/class_request/',
       );
 
       final response = await http.post(
