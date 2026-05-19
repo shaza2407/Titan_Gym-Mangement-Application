@@ -3,13 +3,12 @@ import '../data/admin_api_service.dart';
 
 class InviteMemberScreen extends StatefulWidget {
   final int gymId;
-  final String token, inviteAs; // 'client' or 'coach'
+  final String token;
 
   const InviteMemberScreen({
     super.key,
     required this.gymId,
     required this.token,
-    required this.inviteAs,
   });
 
   @override
@@ -20,8 +19,9 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
   final TextEditingController _emailController = TextEditingController();
   bool _loading = false;
   String? _error;
+  String _inviteAs = 'client';
 
-  bool get _isCoach => widget.inviteAs == 'coach';
+  bool get _isCoach => _inviteAs == 'coach';
 
   Future<void> _send() async {
     final email = _emailController.text.trim();
@@ -129,37 +129,42 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                   const SizedBox(height: 24),
 
                   const Text('Invite as *',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 13)),
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                   const SizedBox(height: 8),
                   Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _isCoach
-                              ? Icons.sports_gymnastics
-                              : Icons.person_outline,
-                          color: accentColor,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _isCoach ? 'Coach' : 'Client',
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ],
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _inviteAs,
+                        isExpanded: true,
+                        onChanged: (v) => setState(() => _inviteAs = v!),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'client',
+                            child: Row(children: [
+                              Icon(Icons.person_outline, size: 18),
+                              SizedBox(width: 8),
+                              Text('Client (Member)'),
+                            ]),
+                          ),
+                          DropdownMenuItem(
+                            value: 'coach',
+                            child: Row(children: [
+                              Icon(Icons.sports_gymnastics, size: 18),
+                              SizedBox(width: 8),
+                              Text('Coach (Instructor)'),
+                            ]),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                  ),                  const SizedBox(height: 16),
 
-                  // ── Email Field ───────────────────────────────────────
+                  // Email Field
                   const Text('Email Address *',
                       style: TextStyle(
                           fontWeight: FontWeight.w600, fontSize: 13)),
