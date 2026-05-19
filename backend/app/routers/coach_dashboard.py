@@ -1,5 +1,4 @@
 from datetime import date,datetime, timedelta
-
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from app.models.class_session import ClassSession
@@ -10,9 +9,6 @@ from app.database import get_session
 from app.models.coach import Coach
 
 router = APIRouter()
-
-
-
 
 @router.get("/{coach_id}/dashboard/upcoming-classes", response_model=list[ClassSessionResponse])
 async def get_dashboard_upcoming_classes(coach_id: int, limit: int=3, db: AsyncSession = Depends(get_session)):
