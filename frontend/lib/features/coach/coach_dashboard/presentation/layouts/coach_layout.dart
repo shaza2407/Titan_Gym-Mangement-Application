@@ -1,5 +1,3 @@
-// The wrapper
-
 import 'package:flutter/material.dart';
 import 'package:frontend/features/coach/coach_dashboard/presentation/screens/coach_dashboard_screen.dart';
 import 'package:frontend/features/coach/coach_profile/coach_profile_screen.dart';

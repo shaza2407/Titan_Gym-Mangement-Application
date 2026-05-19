@@ -1,9 +1,6 @@
-// hold data classes and functions that talk to backend
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'dart:io';
-import 'package:flutter/foundation.dart';
+import '../../../common/api_constants.dart';
 
 class DashboardStats {
   final int weeklyClasses;
@@ -14,7 +11,6 @@ class DashboardStats {
   DashboardStats({
     required this.weeklyClasses,
     required this.totalClients,
-    // required this.activeGyms,
     required this.pendingRequests,
   });
 
@@ -22,7 +18,6 @@ class DashboardStats {
     return DashboardStats(
       weeklyClasses: json['weekly_classes'] ?? 0,
       totalClients: json['total_students'] ?? 0,
-      // activeGyms: json['active_gyms'] ?? 0,
       pendingRequests: json['pending_requests'] ?? 0,
     );
   }
@@ -117,19 +112,10 @@ class ClassRequestHistory {
 }
 
 class CoachApiService {
-  static String get baseUrl {
-  if (kIsWeb) {
-    return 'http://localhost:8000';        // Chrome / web
-  } else if (Platform.isAndroid) {
-    return 'http://10.0.2.2:8000';         // Android emulator
-  } else if (Platform.isIOS) {
-    return 'http://localhost:8000';        // iOS simulator
-  }
-  return 'http://localhost:8000';
-  }
+
 
   static Future<DashboardStats> fetchDashboardStats(int coachId) async{
-    final res = await http.get(Uri.parse('$baseUrl/$coachId/dashboard'));
+    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/dashboard'));
     if(res.statusCode == 200){
       return DashboardStats.fromJson(jsonDecode(res.body));
     }
@@ -138,7 +124,7 @@ class CoachApiService {
   }
 
   static Future<DashboardStats> fetchScheduleStats(int coachId) async {
-    final res = await http.get(Uri.parse('$baseUrl/$coachId/schedule/stats'));
+    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/schedule/stats'));
     if(res.statusCode == 200){
       return DashboardStats.fromJson(jsonDecode(res.body));
     }
@@ -147,14 +133,14 @@ class CoachApiService {
   }
 
   static Future<List<ClassSessionModel>> fetchDashboardUpcomingClasses(int coachId) async {
-    final res = await http.get(Uri.parse('$baseUrl/$coachId/dashboard/upcoming-classes?limit=3'));
+    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/dashboard/upcoming-classes?limit=3'));
     if(res.statusCode == 200){
       return (jsonDecode(res.body) as List).map((j)=> ClassSessionModel.fromJson(j)).toList();
     }
     throw Exception("Failed to load upcoming classes");
   }
   static Future<List<ClassSessionModel>> fetchWeeklySchedule(int coachId) async {
-    final res = await http.get(Uri.parse('$baseUrl/$coachId/schedule/this-week'));
+    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/schedule/this-week'));
     if(res.statusCode == 200){
       return (jsonDecode(res.body) as List).map((j)=> ClassSessionModel.fromJson(j)).toList();
     }
@@ -162,7 +148,7 @@ class CoachApiService {
   }
 
   static Future<List<ClassRequestHistory>> fetchRequestHistory(int coachId) async {
-    final res = await http.get(Uri.parse('$baseUrl/$coachId/class-requests'));
+    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/class-requests'));
     if(res.statusCode == 200){
       List<dynamic> data = jsonDecode(res.body);
       return data.map((json) => ClassRequestHistory.fromJson(json)).toList();    
@@ -171,7 +157,7 @@ class CoachApiService {
   }
 
   static Future<List<MyClassOffering>> fetchMyClasses(int coachId) async {
-    final res = await http.get(Uri.parse('$baseUrl/$coachId/classes'));
+    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/classes'));
     if(res.statusCode == 200){
       List<dynamic> data = jsonDecode(res.body);
       return data.map((json) => MyClassOffering.fromJson(json)).toList();
