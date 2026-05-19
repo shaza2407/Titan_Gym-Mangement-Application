@@ -1,20 +1,3 @@
-"""
-app/routers/training_plan.py
-─────────────────────────────
-Endpoints
-─────────
-POST   /training-plans/generate           – AI generates a new plan
-GET    /training-plans/                   – List active plans for the client
-GET    /training-plans/{id}               – Full plan detail
-GET    /training-plans/{id}/versions      – All versions of a plan chain
-PATCH  /training-plans/{id}               – Edit (creates new version, never overwrites)
-POST   /training-plans/{id}/duplicate     – Clone plan
-POST   /training-plans/{id}/complete-day  – Mark a day's workout done
-PATCH  /training-plans/{id}/complete      – Mark entire plan completed
-DELETE /training-plans/{id}               – Soft-delete (set is_active = False)
-GET    /training-plans/{id}/pdf           – Download plan as PDF
-"""
-
 import json
 from datetime import date, datetime, timezone
 from typing import Optional, List
