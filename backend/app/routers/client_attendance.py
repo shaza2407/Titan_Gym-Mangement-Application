@@ -98,13 +98,11 @@ async def checkin(
     # Record check-in with all fields populated
     attendance = await record_checkin(
         membershipID=membership.id,
-        clientID=client.clientID,
-        gymID=membership.gymID,
         db=db
     )
 
     # ── Fire achievement engine ──────────────────────────────────────────────
-    await achievement_engine.on_checkin(client.clientID, db)
+    await achievement_engine.on_checkin(membership.clientID, db)
 
     # Custom welcome message based on check-in time
     now = datetime.now(timezone.utc)
@@ -121,8 +119,6 @@ async def checkin(
     return CheckinResponse(
         message=message,
         checked_in=str(attendance.checked_in),
-        # new
-        check_in_hour = attendance.check_in_hour,
         day_of_week = attendance.day_of_week
     )
 
@@ -145,18 +141,11 @@ async def get_checkins(
     # Format response with additional pre-indexed fields
     checkins_list = []
     for record in records:
-        gym = await db.execute(
-            select(Gym).where(Gym.gymID == record.gymID)
-        )
-        gym_name = gym.scalar_one_or_none()
         checkins_list.append(
             CheckinRecord(
                 id=record.id,
                 checked_in=record.checked_in,
-                check_in_date=record.check_in_date,
-                check_in_hour=record.check_in_hour,
                 day_of_week=record.day_of_week,
-                gym_name=gym_name.gymName if gym_name else None
             )
         )
 
