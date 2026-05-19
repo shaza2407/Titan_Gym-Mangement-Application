@@ -39,12 +39,10 @@ async def require_admin(token: str = Depends(oauth2_scheme),
     user = await get_current_user(token=token, db=db)
     if user.role != "admin":
         raise HTTPException(403, "Admins only")
-    
     result = await db.execute(select(Admin).filter(Admin.userID == user.userID))
     admin = result.scalars().first()
     if not admin:
         raise HTTPException(404, "Admin record not found")
-    
     return admin  
 
 async def require_coach(

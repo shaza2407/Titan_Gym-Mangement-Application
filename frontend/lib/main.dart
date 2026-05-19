@@ -8,6 +8,11 @@ import 'features/auth/presentation/verify_email_page.dart';
 import 'features/auth/presentation/forget_password_page.dart';
 import 'features/admin/presentation/admin_dashboard_screen.dart';
 import 'features/shared/api_constants.dart';
+// import 'features/admin/presentation/client_management_screen.dart';
+// import 'features/admin/presentation/coach_management_screen.dart';
+// import 'features/admin/presentation/client_detail_screen.dart';
+// import 'features/admin/presentation/coach_detail_screen.dart';
+// import 'features/admin/presentation/invite_member_screen.dart';
 
 
 void main() async{
