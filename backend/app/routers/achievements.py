@@ -1,12 +1,3 @@
-"""
-app/routers/achievements.py
-─────────────────────────────
-Endpoints
-─────────
-GET  /achievements/            – Active achievements + progress for current client
-POST /achievements/recalculate – Force full recalculation (debug / admin)
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
