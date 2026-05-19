@@ -10,17 +10,25 @@ import '../widgets/MyClassesListView.dart';
 import '../widgets/RequestsListView.dart';
 
 class CoachScheduleScreen extends StatefulWidget {
-  final int coachId;
+  final String token;
   final VoidCallback? onBack;
+  final VoidCallback? onStatsRefreshNeeded;
+  final int refreshCounter;
 
-  const CoachScheduleScreen({super.key, required this.coachId, this.onBack});
+  const CoachScheduleScreen({
+    super.key,
+    required this.token,
+    this.onBack,
+    this.onStatsRefreshNeeded,
+    this.refreshCounter = 0,
+  });
 
   @override
   State<CoachScheduleScreen> createState() => _CoachScheduleScreenState();
 }
 
 class _CoachScheduleScreenState extends State<CoachScheduleScreen>
-  with TickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -72,47 +80,52 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen>
             child: Column(
               children: [
                 FutureBuilder<DashboardStats>(
-                  future: CoachApiService.fetchScheduleStats(widget.coachId),
-                  initialData: DashboardStats(weeklyClasses: 0, totalClients: 0, pendingRequests: 0),
+                  key: ValueKey<int>(widget.refreshCounter),
+                  future: CoachApiService.fetchScheduleStats(widget.token),
+                  initialData: DashboardStats(
+                    weeklyClasses: 0,
+                    totalClients: 0,
+                    pendingRequests: 0,
+                  ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
                     }
-                  final stats =
-                  snapshot.data ??
-                  DashboardStats(
-                    weeklyClasses: 0,
-                    totalClients: 0,
-                    pendingRequests: 0,
-                  );
-                  return StatsSection(
-                    stats: [
-                      StatItemData(
-                        icon: const Icon(
-                          Icons.calendar_month,
-                          color: Colors.purple,
+                    final stats =
+                        snapshot.data ??
+                        DashboardStats(
+                          weeklyClasses: 0,
+                          totalClients: 0,
+                          pendingRequests: 0,
+                        );
+                    return StatsSection(
+                      stats: [
+                        StatItemData(
+                          icon: const Icon(
+                            Icons.calendar_month,
+                            color: Colors.purple,
+                          ),
+                          label: "Weekly Classes",
+                          number: stats.weeklyClasses,
                         ),
-                        label: "Weekly Classes",
-                        number: stats.weeklyClasses,
-                      ),
-                      StatItemData(
-                        icon: const Icon(
-                          Icons.people_alt_outlined,
-                          color: Colors.blue,
+                        StatItemData(
+                          icon: const Icon(
+                            Icons.people_alt_outlined,
+                            color: Colors.blue,
+                          ),
+                          label: "Total Clients",
+                          number: stats.totalClients,
                         ),
-                        label: "Total Clients",
-                        number: stats.totalClients,
-                      ),
-                      StatItemData(
-                        icon: const Icon(
-                          Icons.access_time,
-                          color: Colors.orange,
+                        StatItemData(
+                          icon: const Icon(
+                            Icons.access_time,
+                            color: Colors.orange,
+                          ),
+                          label: "Pending Requests",
+                          number: stats.pendingRequests,
                         ),
-                        label: "Pending Requests",
-                        number: stats.pendingRequests,
-                      ),
-                    ],
-                  );
+                      ],
+                    );
                   },
                 ),
                 const SizedBox(height: 16),
@@ -124,8 +137,10 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen>
                         context: context,
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
-                        builder: (context) =>
-                            RequestClassScreen(coachId: widget.coachId),
+                        builder: (context) => RequestClassScreen(
+                          token: widget.token,
+                          onSuccess: widget.onStatsRefreshNeeded,
+                        ),
                       );
                     },
                     icon: const Icon(Icons.add, color: Colors.white),
@@ -189,12 +204,14 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen>
 
   Widget _buildScheduleTab() {
     return FutureBuilder<List<ClassSessionModel>>(
-      future: CoachApiService.fetchWeeklySchedule(widget.coachId),
+      future: CoachApiService.fetchWeeklySchedule(widget.token),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        if (!snapshot.hasData || snapshot.data!.isEmpty)
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text("No classes scheduled this week."));
+        }
 
         final classes = snapshot.data!;
         Map<String, List<ClassSessionModel>> groupedClasses = {};
@@ -222,11 +239,11 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen>
 
   // --- TAB 2: MY CLASSES ---
   Widget _buildMyClassesTab() {
-    return MyClassesListView(coachId: widget.coachId);
+    return MyClassesListView(token: widget.token);
   }
 
   // --- TAB 3: REQUESTS ---
   Widget _buildRequestsTab() {
-    return RequestsListView(coachId: widget.coachId);
+    return RequestsListView(token: widget.token);
   }
 }

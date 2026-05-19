@@ -19,12 +19,12 @@ class BottomNavBar extends StatelessWidget {
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: onTap,
-        type: BottomNavigationBarType.fixed, // Required when you have 4 or more items
+        type: BottomNavigationBarType.fixed, 
         backgroundColor: Colors.white,
         elevation: 0,
         
         // Colors
-        selectedItemColor: const Color(0xFF6366F1), // Deep purple/indigo from design
+        selectedItemColor: const Color(0xFF6366F1), 
         unselectedItemColor: Colors.grey.shade600,
         
         // Typography

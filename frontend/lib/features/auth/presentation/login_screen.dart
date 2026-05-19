@@ -145,6 +145,7 @@ class LoginScreen extends StatelessWidget {
                           Navigator.pushReplacementNamed(
                             context,
                             '/coach-dashboard',
+                            arguments: token,
                           );
                           return;
                         }
