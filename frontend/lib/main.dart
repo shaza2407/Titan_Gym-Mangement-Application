@@ -7,8 +7,12 @@ import 'features/client/presentation/screens/client_profile_screen.dart';
 import 'features/auth/presentation/verify_email_page.dart';
 import 'features/auth/presentation/forget_password_page.dart';
 import 'features/admin/presentation/admin_dashboard_screen.dart';
+import 'features/shared/api_constants.dart';
 
-void main() {
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiConstants.initialize();
   runApp(const MyApp());
 }
 
