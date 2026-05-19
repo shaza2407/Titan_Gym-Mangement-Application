@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../domain/dashboard_model.dart';
-import '../../common/api_constants.dart';
+import '../../shared/api_constants.dart';
 
 class DashboardRepository {
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
-import '../../../common/logout_button.dart';
+import '../../../shared/logout_button.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
