@@ -1,21 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../domain/user_model.dart';
+import '../../common/api_constants.dart';
 
 class AuthRepository {
-
-  static String get baseUrl {
-      if (kIsWeb) {
-        return 'http://localhost:8000';        // Chrome / web
-      } else if (Platform.isAndroid) {
-        return 'http://10.0.2.2:8000';         // Android emulator
-      } else if (Platform.isIOS) {
-        return 'http://localhost:8000';        // iOS simulator
-      }
-      return 'http://localhost:8000';
-    }
 
 
   Future<UserModel> signUp({
@@ -26,7 +14,7 @@ class AuthRepository {
     required String password,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/auth/signup'),
+      Uri.parse('${ApiConstants.baseUrl}/auth/signup'),
       headers: {'Content-Type': 'application/json'},
       //like schema
       body: jsonEncode({
@@ -52,7 +40,7 @@ Future<void> verifyEmail({
   required String code,
 }) async {
   final response = await http.post(
-    Uri.parse('$baseUrl/auth/verify-email'),
+    Uri.parse('${ApiConstants.baseUrl}/auth/verify-email'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'email': email,
@@ -70,7 +58,7 @@ Future<void> verifyEmail({
 
 Future<void> resendVerification({required String email}) async {
   final response = await http.post(
-    Uri.parse('$baseUrl/auth/resend-verification'),
+    Uri.parse('${ApiConstants.baseUrl}/auth/resend-verification'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'email': email}),
   );
@@ -83,7 +71,7 @@ Future<void> resendVerification({required String email}) async {
 
 Future<void> forgotPassword({required String email}) async {
   final response = await http.post(
-    Uri.parse('$baseUrl/auth/forgot-password'),
+    Uri.parse('${ApiConstants.baseUrl}/auth/forgot-password'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'email': email}),
   );
@@ -100,7 +88,7 @@ Future<void> resetPassword({
   required String newPassword,
 }) async {
   final response = await http.post(
-    Uri.parse('$baseUrl/auth/reset-password'),
+    Uri.parse('${ApiConstants.baseUrl}/auth/reset-password'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'email': email,

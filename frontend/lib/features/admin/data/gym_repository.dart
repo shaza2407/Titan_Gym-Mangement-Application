@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'dart:io';
+import '../../common/api_constants.dart';
 
 class GymModel {
   final int gymID;
@@ -74,11 +73,7 @@ class GymDashboardStats {
 }
 
 class GymRepository {
-  static String get baseUrl {
-    if (kIsWeb) return 'http://localhost:8000';
-    if (Platform.isAndroid) return 'http://10.0.2.2:8000';
-    return 'http://localhost:8000';
-  }
+
 
   Map<String, String> _headers(String token) => {
     'Content-Type': 'application/json',
@@ -88,7 +83,7 @@ class GymRepository {
   // GET /gyms/
   Future<List<GymModel>> getGyms({required String token}) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/gyms/'),
+      Uri.parse('${ApiConstants.baseUrl}/gyms/'),
       headers: _headers(token),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -105,7 +100,7 @@ class GymRepository {
     required int gymId,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/gyms/$gymId/dashboard'),
+      Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId/dashboard'),
       headers: _headers(token),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -127,7 +122,7 @@ class GymRepository {
     required String closingHours,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/gyms/'),
+      Uri.parse('${ApiConstants.baseUrl}/gyms/'),
       headers: _headers(token),
       body: jsonEncode({
         'gymName':                   gymName,
