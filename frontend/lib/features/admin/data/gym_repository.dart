@@ -115,7 +115,7 @@ class GymRepository {
     required String token,
     required String gymName,
     required double subscriptionPrice,
-    required double yearlyRevenue,
+    required double yearlySubscriptionPrice,
     required String location,
     required String gymType,
     required String openingHours,
@@ -127,7 +127,7 @@ class GymRepository {
       body: jsonEncode({
         'gymName':                   gymName,
         'subscriptionPrice':         subscriptionPrice,
-        'yearlySubscriptionPrice':   yearlyRevenue,
+        'yearlySubscriptionPrice':   yearlySubscriptionPrice,
         'location':                  location,
         'gymType':                   gymType,
         'openingHours':              openingHours,
