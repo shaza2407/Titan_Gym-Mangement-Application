@@ -19,14 +19,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade():
     op.alter_column(
-        'gyms',        
-        'yearlyRevenue',          
-        new_column_name='yearlySubscriptionPrice'  
+        'gyms',
+        'yearlyRevenue',              # old name in DB
+        new_column_name='yearlySubscriptionPrice'  # new name
     )
 
 def downgrade():
     op.alter_column(
         'gyms',
-        'yearlyRevenue',
-        new_column_name='yearlySubscriptionPrice'
+        'yearlyRevenue',              # old name in DB
+        new_column_name='yearlySubscriptionPrice'  # new name
     )
