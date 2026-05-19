@@ -39,10 +39,16 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
-              leading: IconButton(icon: const Icon(Icons.logout, color: Colors.black),onPressed: () => showLogoutDialog(context)),
-              title: 
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  if (widget.onBack != null) {
+                    widget.onBack!();
+                  }
+                },
+              ),
+              title: const Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     'My Profile',
@@ -58,6 +64,14 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   ),
                 ],
               ),
+              centerTitle: true,
+              // Logout button on RIGHT
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.black),
+                  onPressed: () => showLogoutDialog(context),
+                ),
+              ],
             ),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -239,19 +253,6 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     fontSize: 28,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: Colors.black,
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 14,
                   ),
                 ),
               ),
