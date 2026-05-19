@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../shared/logout_button.dart';
 import 'client_profile_screen.dart';
 import 'client_scan_screen.dart';
 import '../controllers/client_dashboard_controller.dart';
@@ -26,76 +27,102 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     _ctrl.loadStats(widget.token);
   }
 
-  void _confirmLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Confirm Logout',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Are you sure you want to log out? You will need to sign in again to access your account.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          Column(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    Navigator.pushReplacementNamed(context, '/login');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text(
-                    'Logout',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.black, fontSize: 16),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _ctrl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
+        appBar: _currentIndex == 0
+            ? AppBar(
+                backgroundColor: Colors.white,
+                elevation: 0,
+                automaticallyImplyLeading: false,
+
+                title: Consumer<ClientDashboardController>(
+                  builder: (context, ctrl, _) {
+                    final stats = ctrl.stats;
+
+                    return Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: const Color(0xFF4F46E5),
+                          child: const Icon(
+                            Icons.fitness_center,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'My Dashboard',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            Text(
+                              stats?.gymName ?? 'Welcome back!',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+                actions: [
+                  Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.black,
+                        ),
+                        onPressed: () {},
+                      ),
+
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Text(
+                            '3',
+                            style: TextStyle(color: Colors.white, fontSize: 10),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  IconButton(
+                    icon: const Icon(
+                      Icons.logout_outlined,
+                      color: Colors.black,
+                    ),
+                    onPressed: () => showLogoutDialog(context),
+                  ),
+                ],
+              )
+            : null,
+
         body: _buildBody(),
         bottomNavigationBar: _buildBottomNav(),
       ),
@@ -105,7 +132,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   Widget _buildBody() {
     switch (_currentIndex) {
       case 0:
-        _ctrl.loadStats(widget.token); 
+        _ctrl.loadStats(widget.token);
         return Consumer<ClientDashboardController>(
           builder: (context, ctrl, _) => _buildHomeTab(ctrl),
         );
@@ -167,83 +194,6 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── App Bar ───────────────────────────────────────────
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: const Color(0xFF4F46E5),
-                      child: const Icon(
-                        Icons.fitness_center,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'My Dashboard',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          stats?.gymName != null
-                              ? stats!.gymName!
-                              : 'Welcome back!',
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Stack(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.notifications_outlined),
-                          onPressed: () {},
-                        ),
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Text(
-                              '3',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.logout_outlined),
-                      onPressed: () => _confirmLogout(context),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
             // ── Subscription Card ─────────────────────────────────
             if (stats != null) _buildSubscriptionCard(stats),
             const SizedBox(height: 12),
