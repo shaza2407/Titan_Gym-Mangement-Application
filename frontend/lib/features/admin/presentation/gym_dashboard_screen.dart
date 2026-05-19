@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import '../controller/admin_gym_controller.dart';
 import '../data/gym_repository.dart';
 import '../../shared/logout_button.dart';
-
+import 'client_management_screen.dart';
+import 'coach_management_screen.dart';
+import 'invite_member_screen.dart';
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
@@ -192,28 +194,113 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
 
   Widget _buildQuickActions() {
     final actions = [
-      (Icons.campaign_outlined,   const Color(0xFF4F46E5), 'Announcements',       'Create and manage gym announcements'),
-      (Icons.calendar_today,      const Color(0xFF185FA5), 'Schedule Management', 'Manage classes and timetables'),
-      (Icons.people_outline,      const Color(0xFF0F6E56), 'Member Management',   'View and manage gym members'),
-      (Icons.fitness_center,      const Color(0xFF7A3FA5), 'Coach Management',    'View and manage gym coaches'),
-      (Icons.person_add_outlined, const Color(0xFF4F46E5), 'Add New Member',      'Enroll a new member to the gym'),
-      (Icons.analytics_outlined,  const Color(0xFFBA7517), 'Analytics Dashboard', 'View revenue and performance metrics'),
-      (Icons.tune,                const Color(0xFF185FA5), 'Gym Settings',        "Update this gym's information"),
-      (Icons.qr_code_scanner,     const Color(0xFFD85A30), 'Attendance Tracking', 'View attendance records and QR codes'),
-      (Icons.local_offer_outlined,const Color(0xFF1D9E75), 'Retention Offers',    'Create retention offers and predictions'),
-    ];
+    (
+      Icons.campaign_outlined,
+      const Color(0xFF4F46E5),
+      'Announcements',
+      'Create and manage gym announcements',
+      null,
+    ),
+    (
+      Icons.calendar_today,
+      const Color(0xFF185FA5),
+      'Schedule Management',
+      'Manage classes and timetables',
+      null,
+    ),
+    (
+      Icons.people_outline,
+      const Color(0xFF0F6E56),
+      'Member Management',
+      'View and manage gym members',
+      () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ClientManagementScreen(
+              token: widget.token,
+              gymId: widget.gym.gymID,
+            ),
+          ),
+        );
+      },
+    ),
+    (
+      Icons.fitness_center,
+      const Color(0xFF7A3FA5),
+      'Coach Management',
+      'View and manage gym coaches',
+      () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CoachManagementScreen(
+              token: widget.token,
+              gymId: widget.gym.gymID,
+            ),
+          ),
+        );
+      },
+    ),
+    (
+      Icons.person_add_outlined,
+      const Color(0xFF4F46E5),
+      'Add New Member',
+      'Enroll a new member to the gym',
+      () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => InviteMemberScreen(
+              gymId: widget.gym.gymID,
+              token: widget.token,
+              inviteAs: 'client',
+            ),
+          ),
+        );
+      },
+    ),
+    (
+      Icons.analytics_outlined,
+      const Color(0xFFBA7517),
+      'Analytics Dashboard',
+      'View revenue and performance metrics',
+      null,
+    ),
+    (
+      Icons.tune,
+      const Color(0xFF185FA5),
+      'Gym Settings',
+      "Update this gym's information",
+      null,
+    ),
+    (
+      Icons.qr_code_scanner,
+      const Color(0xFFD85A30),
+      'Attendance Tracking',
+      'View attendance records and QR codes',
+      null,
+    ),
+    (
+      Icons.local_offer_outlined,
+      const Color(0xFF1D9E75),
+      'Retention Offers',
+      'Create retention offers and predictions',
+      null,
+    ),
+  ];
 
     return Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: actions.asMap().entries.map((entry) {
           final i      = entry.key;
-          final action = entry.value;
+          final action = actions[i];
           final isLast = i == actions.length - 1;
           return Column(
             children: [
               InkWell(
-                onTap: () {},
+                onTap: action.$5,
                 borderRadius: i == 0
                     ? const BorderRadius.vertical(top: Radius.circular(16))
                     : isLast
