@@ -13,7 +13,7 @@ from app.schemas.attendance_schema import (
     CheckinRecord,
     CheckinHistoryResponse
 )
-from app.CRUD.attendance import (
+from app.services.attendance import (
     get_membership,
     already_checked_in_today,
     record_checkin,

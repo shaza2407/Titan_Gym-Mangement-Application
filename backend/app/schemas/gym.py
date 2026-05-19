@@ -33,3 +33,14 @@ class GymResponse(GymBase):
 
     class Config:
         from_attributes = True
+
+class GymDashboardStats(BaseModel):
+    gymID: int
+    gymName: str
+    totalMembers: int
+    activeSubscriptions: int
+    todayAttendance: int
+    monthlyRevenue: float
+
+    class Config:
+        from_attributes = True

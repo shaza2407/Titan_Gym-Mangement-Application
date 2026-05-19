@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-
 from app.database import get_session
 from app.schemas.gym import GymCreate, GymUpdate, GymResponse
-from app.CRUD import gym as gym_crud
+from app.services import gym as gym_crud
 from app.models import User , Admin
 from app.dependencies.auth import require_admin
+from app.schemas.gym import GymCreate, GymUpdate, GymResponse, GymDashboardStats
 
 router = APIRouter(
     prefix="/gyms",
@@ -16,6 +16,11 @@ router = APIRouter(
 @router.get("/", response_model=list[GymResponse], status_code=status.HTTP_200_OK)
 async def list_my_gyms(skip: int = 0, limit: int = 100, db: Session = Depends(get_session), current_admin: Admin = Depends(require_admin)):
     return await gym_crud.get_all_gyms_by_admin(db, admin_id=current_admin.adminID, skip=skip, limit=limit)
+
+
+@router.get("/{gym_id}/dashboard", response_model=GymDashboardStats, status_code=status.HTTP_200_OK)
+async def get_gym_dashboard(gym_id: int, db: Session = Depends(get_session), current_admin: Admin = Depends(require_admin)):
+    return await gym_crud.get_dashboard_stats(db, gym_id=gym_id, admin_id=current_admin.adminID)
 
 
 @router.get("/{gym_id}", response_model=GymResponse, status_code=status.HTTP_200_OK)
