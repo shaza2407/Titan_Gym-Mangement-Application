@@ -4,12 +4,12 @@ from sqlalchemy import select
 from app.database import get_session
 from app.models import Client, GymClientMembership
 from app.schemas.client_profile_schema import ClientProfileUpdate, ClientProfileResponse
-from app.CRUD.client_profile import get_client_profile, update_client_profile
+from app.services.client_profile import get_client_profile, update_client_profile
 from app.dependencies.auth import require_client
 from datetime import date
 from app.models.Gym import Gym
 from app.schemas.attendance_schema import DashboardStatsResponse
-from app.CRUD.attendance import get_dashboard_stats, get_membership
+from app.services.attendance import get_dashboard_stats, get_membership
 
 router = APIRouter(prefix="/client", tags=["Client"])
 
