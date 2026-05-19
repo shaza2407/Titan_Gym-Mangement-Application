@@ -7,13 +7,17 @@ import 'features/client/presentation/screens/client_profile_screen.dart';
 import 'features/auth/presentation/verify_email_page.dart';
 import 'features/auth/presentation/forget_password_page.dart';
 import 'features/admin/presentation/admin_dashboard_screen.dart';
-import 'features/admin/presentation/client_management_screen.dart';
-import 'features/admin/presentation/coach_management_screen.dart';
+import 'features/shared/api_constants.dart';
+// import 'features/admin/presentation/client_management_screen.dart';
+// import 'features/admin/presentation/coach_management_screen.dart';
 // import 'features/admin/presentation/client_detail_screen.dart';
 // import 'features/admin/presentation/coach_detail_screen.dart';
-import 'features/admin/presentation/invite_member_screen.dart';
+// import 'features/admin/presentation/invite_member_screen.dart';
 
-void main() {
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiConstants.initialize();
   runApp(const MyApp());
 }
 
@@ -60,29 +64,9 @@ class MyApp extends StatelessWidget {
           final token = settings.arguments as String;
           return MaterialPageRoute(builder: (_) => AdminDashboardScreen(token: token),);
         }
-
-        if (settings.name == '/admin-clients') {
-          final args = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (_) => ClientManagementScreen(
-                gymId: args['gymId'] as int,
-                token: args['token'] as String,
-            ),
-          );
-        }
-
-        if (settings.name == '/admin-coaches') {
-          final args = settings.arguments as Map<String, dynamic>;
-          return MaterialPageRoute(
-            builder: (_) => CoachManagementScreen(
-                gymId: args['gymId'] as int,
-                token: args['token'] as String,
-            ),
-          );
-        }
   
-        return null;
-      },
+  return null;
+},
       home: LoginScreen(),
     );
   }

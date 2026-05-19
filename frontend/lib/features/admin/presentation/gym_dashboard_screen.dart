@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/admin_gym_controller.dart';
 import '../data/gym_repository.dart';
-import '../../common/logout_button.dart';
+import '../../shared/logout_button.dart';
 
 
 class GymDashboardScreen extends StatefulWidget {

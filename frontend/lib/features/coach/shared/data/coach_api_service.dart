@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../../common/api_constants.dart';
+import '../../../shared/api_constants.dart';
 
 class DashboardStats {
   final int weeklyClasses;

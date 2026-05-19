@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:frontend/features/coach/coach_profile/coach_profile_model.dart';
-import '../../common/api_constants.dart';
+import '../../shared/api_constants.dart';
 
 class CoachRepository {
 
