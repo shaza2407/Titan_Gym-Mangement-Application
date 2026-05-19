@@ -5,11 +5,13 @@ from typing import Optional
 
 class ClassSessionResponse(BaseModel):
     id: int
-    class_id: int
+    title: str
+    date: date
+    start_time: time
     coach_id: int
-    # start_time: datetime
-    # end_time: datetime
-    # status: RequestStatus
+    current_clients: int
+    max_clients: int
+    is_approved_request: bool = False
 
     class Config:
         orm_mode = True

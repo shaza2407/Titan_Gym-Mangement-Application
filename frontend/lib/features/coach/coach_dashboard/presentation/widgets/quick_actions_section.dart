@@ -3,7 +3,9 @@ import 'package:frontend/features/coach/coach_profile/coach_profile_screen.dart'
 import 'package:frontend/features/coach/coach_schedule/presentation/screens/coach_schedule_screen.dart';
 
 class QuickActionsSection extends StatelessWidget {
-  const QuickActionsSection({super.key});
+  const QuickActionsSection({super.key, required this.token});
+
+  final String token;
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +40,8 @@ class QuickActionsSection extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CoachScheduleScreen(
-                      coachId: 2,
+                    builder: (context) => CoachScheduleScreen(
+                      token: token,
                     ), // Pass the actual coach ID here
                   ),
                 );
@@ -61,7 +63,7 @@ class QuickActionsSection extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CoachProfileScreen(),
+                    builder: (context) => CoachProfileScreen(token: token),
                   ), // Pass the actual coach ID here
                 );
               },

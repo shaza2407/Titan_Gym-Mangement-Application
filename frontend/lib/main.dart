@@ -46,8 +46,9 @@ class MyApp extends StatelessWidget {
           );
         }
         if (settings.name == '/coach-dashboard') {
+          final token = settings.arguments as String;
           return MaterialPageRoute(
-            builder: (_) => const CoachMainWrapper(coachId: 2),
+            builder: (_) => CoachMainWrapper(token:token),
           );
         }
         if (settings.name == '/verify-email') {

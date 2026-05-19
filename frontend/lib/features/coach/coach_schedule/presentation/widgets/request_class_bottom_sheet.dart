@@ -4,8 +4,9 @@ import 'package:http/http.dart' as http;
 import '../../../../shared/api_constants.dart';
 
 class RequestClassScreen extends StatefulWidget {
-  final int coachId;
-  const RequestClassScreen({super.key, required this.coachId});
+  final String token;
+  final VoidCallback? onSuccess;
+  const RequestClassScreen({super.key, required this.token, this.onSuccess});
 
   @override
   State<RequestClassScreen> createState() => _RequestClassScreenState();
@@ -74,14 +75,13 @@ class _RequestClassScreenState extends State<RequestClassScreen> {
     });
 
     try {
-      final url = Uri.parse('${ApiConstants.baseUrl}/${widget.coachId}/class_request/',
-      );
+      final url = Uri.parse('${ApiConstants.baseUrl}/coach/class-requests');
 
       final response = await http.post(
         url,
         headers: {
-          'content-type': 'application/json',
-          // 'Authorization' : 'Bearer <token>'
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${widget.token}',
         },
         body: jsonEncode({
           "class_name": className,
@@ -100,6 +100,8 @@ class _RequestClassScreenState extends State<RequestClassScreen> {
         if (mounted) {
           Navigator.pop(context); // Close the sheet on success
         }
+        // Trigger stats refresh in parent
+        widget.onSuccess?.call();
         _showMessage("Class request submitted successfully!");
       } else {
         final body = response.body.trim();

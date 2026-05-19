@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import '../coach_profile/coach_profile_controller.dart';
 
 class CoachProfileScreen extends StatefulWidget {
-  // final String token;
+  final String token;
   final VoidCallback? onBack;
-  const CoachProfileScreen({super.key, this.onBack});
+  const CoachProfileScreen({super.key, this.onBack, required this.token});
 
   @override
   State<CoachProfileScreen> createState() => _CoachProfileScreenState();
