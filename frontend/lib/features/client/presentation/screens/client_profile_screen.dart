@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
+import '../../../common/logout_button.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
@@ -38,16 +39,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {
-                  if (widget.onBack != null) {
-                    widget.onBack!();
-                  }
-                },
-              ),
-              title: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              leading: IconButton(icon: const Icon(Icons.logout, color: Colors.black),onPressed: () => showLogoutDialog(context)),
+              title: 
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     'My Profile',
