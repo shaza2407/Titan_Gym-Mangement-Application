@@ -17,7 +17,7 @@ class DashboardStats {
   factory DashboardStats.fromJson(Map<String, dynamic> json) {
     return DashboardStats(
       weeklyClasses: json['weekly_classes'] ?? 0,
-      totalClients: json['total_students'] ?? 0,
+      totalClients: json['total_clients'] ?? 0,
       pendingRequests: json['pending_requests'] ?? 0,
     );
   }
@@ -114,8 +114,14 @@ class ClassRequestHistory {
 class CoachApiService {
 
 
-  static Future<DashboardStats> fetchDashboardStats(int coachId) async{
-    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/dashboard'));
+  static Future<DashboardStats> fetchDashboardStats(String token) async{
+    final res = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/coach/dashboard'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
     if(res.statusCode == 200){
       return DashboardStats.fromJson(jsonDecode(res.body));
     }
@@ -123,8 +129,14 @@ class CoachApiService {
 
   }
 
-  static Future<DashboardStats> fetchScheduleStats(int coachId) async {
-    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/schedule/stats'));
+  static Future<DashboardStats> fetchScheduleStats(String token) async {
+    final res = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/coach/schedule/stats'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
     if(res.statusCode == 200){
       return DashboardStats.fromJson(jsonDecode(res.body));
     }
@@ -132,23 +144,41 @@ class CoachApiService {
 
   }
 
-  static Future<List<ClassSessionModel>> fetchDashboardUpcomingClasses(int coachId) async {
-    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/dashboard/upcoming-classes?limit=3'));
+  static Future<List<ClassSessionModel>> fetchDashboardUpcomingClasses(String token) async {
+    final res = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/coach/dashboard/upcoming-classes?limit=3'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
     if(res.statusCode == 200){
       return (jsonDecode(res.body) as List).map((j)=> ClassSessionModel.fromJson(j)).toList();
     }
     throw Exception("Failed to load upcoming classes");
   }
-  static Future<List<ClassSessionModel>> fetchWeeklySchedule(int coachId) async {
-    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/schedule/this-week'));
+  static Future<List<ClassSessionModel>> fetchWeeklySchedule(String token) async {
+    final res = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/coach/schedule/this-week'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
     if(res.statusCode == 200){
       return (jsonDecode(res.body) as List).map((j)=> ClassSessionModel.fromJson(j)).toList();
     }
     throw Exception("Failed to load weekly schedule");
   }
 
-  static Future<List<ClassRequestHistory>> fetchRequestHistory(int coachId) async {
-    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/class-requests'));
+  static Future<List<ClassRequestHistory>> fetchRequestHistory(String token) async {
+    final res = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/coach/class-requests'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
     if(res.statusCode == 200){
       List<dynamic> data = jsonDecode(res.body);
       return data.map((json) => ClassRequestHistory.fromJson(json)).toList();    
@@ -156,8 +186,14 @@ class CoachApiService {
     throw Exception("Failed to load request history");
   }
 
-  static Future<List<MyClassOffering>> fetchMyClasses(int coachId) async {
-    final res = await http.get(Uri.parse('${ApiConstants.baseUrl}/$coachId/classes'));
+  static Future<List<MyClassOffering>> fetchMyClasses(String token) async {
+    final res = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/coach/classes'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
     if(res.statusCode == 200){
       List<dynamic> data = jsonDecode(res.body);
       return data.map((json) => MyClassOffering.fromJson(json)).toList();

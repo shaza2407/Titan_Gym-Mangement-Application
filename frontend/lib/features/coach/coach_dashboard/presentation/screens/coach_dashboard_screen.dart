@@ -6,8 +6,8 @@ import 'package:frontend/features/coach/coach_dashboard/presentation/widgets/qui
 import 'package:frontend/features/coach/shared/data/coach_api_service.dart';
 
 class CoachDashboardScreen extends StatelessWidget {
-  final int coachId;
-  const CoachDashboardScreen({super.key, required this.coachId});
+  final String token;
+  const CoachDashboardScreen({super.key, required this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class CoachDashboardScreen extends StatelessWidget {
               const SizedBox(height: 16), 
 
               FutureBuilder<DashboardStats>(
-                future: CoachApiService.fetchDashboardStats(coachId),
+                future: CoachApiService.fetchDashboardStats(token),
                 initialData: DashboardStats(
                   weeklyClasses: 0,
                   totalClients: 0,
@@ -53,9 +53,9 @@ class CoachDashboardScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 32),
-              UpcomingClassesSection(coachId: coachId),
+              UpcomingClassesSection(token: token),
               const SizedBox(height: 32),
-              const QuickActionsSection(),
+              QuickActionsSection( token: token),
               const SizedBox(height: 32),
             ],
           ),
