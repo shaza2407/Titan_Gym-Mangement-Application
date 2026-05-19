@@ -69,7 +69,7 @@ class AdminGymController extends ChangeNotifier {
         token:             token,
         gymName:           gymNameController.text.trim(),
         subscriptionPrice: double.parse(priceController.text.trim()),
-        yearlyRevenue:     double.parse(yearlyPriceController.text.trim()),
+        yearlySubscriptionPrice:     double.parse(yearlyPriceController.text.trim()),
         location:          locationController.text.trim(),
         gymType:           selectedGymType,
         openingHours:      openingHoursController.text.trim(),
