@@ -98,11 +98,9 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                         ctrl.phoneController,
                         keyboardType: TextInputType.phone,
                       ),
-                      _buildField(
-                        'Age',
-                        ctrl.ageController,
-                        keyboardType: TextInputType.number,
-                      ),
+                      _buildDatePicker(ctrl),
+                      if (ctrl.profile?.age != null)
+                        _buildReadOnly('Age', '${ctrl.profile!.age} years old'),
                       _buildDropdown(
                         label: 'Gender',
                         value: ctrl.selectedGender,
@@ -242,21 +240,17 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       ),
       child: Column(
         children: [
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: 44,
-                backgroundColor: const Color(0xFF4CAF50),
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          CircleAvatar(
+            radius: 44,
+            backgroundColor: const Color(0xFF4CAF50),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                fontSize: 28,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-            ],
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -338,6 +332,59 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildDatePicker(ClientProfileController ctrl) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Date of Birth',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: ctrl.dateOfBirth != null
+                  ? DateTime.parse(ctrl.dateOfBirth!)
+                  : DateTime(1990),
+              firstDate: DateTime(1940),
+              lastDate: DateTime.now(),
+            );
+            if (picked != null) {
+              ctrl.setDateOfBirth(
+                '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}',
+              );
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  ctrl.dateOfBirth ?? 'Select date of birth',
+                  style: TextStyle(
+                    color: ctrl.dateOfBirth != null
+                        ? Colors.black
+                        : Colors.grey,
+                  ),
+                ),
+                const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+              ],
             ),
           ),
         ),
