@@ -17,8 +17,9 @@ from app.models.attendance import Attendance
 from app.models.achievement import Achievement , AchievementCategory , AchievementDifficulty
 from app.models.client_achievement import ClientAchievement
 from app.models.training_plan import TrainingPlan , DayStatus , PlanStatus , WorkoutStatus
+from app.models.class_enrollment import ClassEnrollment
 
 __all__ = [User, Client, Coach, Admin,ClassSession,ClassRequest ,Gym, Machine, GymMachineInventory,
            GymClientMembership, GymCoachMembership, MemberInvitation, Attendance,
            Achievement , AchievementCategory , AchievementDifficulty , ClientAchievement , TrainingPlan,
-           DayStatus , PlanStatus , WorkoutStatus]
+           DayStatus , PlanStatus , WorkoutStatus, ClassEnrollment]
