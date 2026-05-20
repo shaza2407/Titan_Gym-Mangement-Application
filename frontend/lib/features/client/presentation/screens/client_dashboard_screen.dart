@@ -7,6 +7,7 @@ import 'client_profile_screen.dart';
 import 'client_scan_screen.dart';
 import '../controllers/client_dashboard_controller.dart';
 import '../../domain/dashboard_model.dart';
+import 'client_schedule_screen.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
@@ -137,7 +138,10 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
           builder: (context, ctrl, _) => _buildHomeTab(ctrl),
         );
       case 1:
-        return _buildPlaceholderTab('Schedule');
+        return ClientScheduleScreen(
+          token: widget.token,
+          onBack: () => setState(() => _currentIndex = 0),
+        );
       case 2:
         return ClientScanScreen(
           token: widget.token,
@@ -561,12 +565,4 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     );
   }
 
-  Widget _buildPlaceholderTab(String name) {
-    return Center(
-      child: Text(
-        name,
-        style: const TextStyle(fontSize: 24, color: Colors.grey),
-      ),
-    );
-  }
 }

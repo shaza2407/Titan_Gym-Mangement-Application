@@ -94,7 +94,33 @@ async def get_all_classes(gymID: int, db: AsyncSession) -> list:
     return classes
 
 
-async def create_class(gymID: int, payload: CreateClassRequest, db: AsyncSession) -> ClassSession:
+async def create_class(gymID: int, payload: CreateClassRequest, db: AsyncSession) -> ClassSession | None:
+    
+    # Check for coach time conflict
+    if payload.is_recurring and payload.day_of_week:
+        conflict = await db.execute(
+            select(ClassSession).where(
+                ClassSession.coach_id == payload.coach_id,
+                ClassSession.day_of_week == payload.day_of_week,
+                ClassSession.start_time == payload.start_time,
+                ClassSession.is_recurring == True,
+            )
+        )
+        if conflict.scalar_one_or_none():
+            return None  # conflict found
+
+    elif not payload.is_recurring and payload.date:
+        conflict = await db.execute(
+            select(ClassSession).where(
+                ClassSession.coach_id == payload.coach_id,
+                ClassSession.date == payload.date,
+                ClassSession.start_time == payload.start_time,
+                ClassSession.is_recurring == False,
+            )
+        )
+        if conflict.scalar_one_or_none():
+            return None  # conflict found
+
     session = ClassSession(
         title=payload.title,
         coach_id=payload.coach_id,
@@ -148,7 +174,6 @@ async def get_pending_requests(gymID: int, db: AsyncSession) -> list:
             "coach_name":         coach_name,
             "gymID":              r.gymID,
             "class_name":         r.class_name,
-            "gym_location":       r.gym_location,
             "is_recurring":       r.is_recurring,
             "day_of_week":        r.day_of_week,
             "requested_date":     r.requested_date,
@@ -210,7 +235,8 @@ async def reject_request(request_id: int, gymID: int, db: AsyncSession) -> bool:
     await db.commit()
     return True
 
-    # ── Edit Class ────────────────────────────────────────────────────────────────
+
+# ── Edit Class ────────────────────────────────────────────────────────────────
 async def edit_class(
     session_id: int,
     gymID: int,
