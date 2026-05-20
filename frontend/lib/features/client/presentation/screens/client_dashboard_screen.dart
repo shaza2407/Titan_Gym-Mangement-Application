@@ -565,12 +565,4 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     );
   }
 
-  Widget _buildPlaceholderTab(String name) {
-    return Center(
-      child: Text(
-        name,
-        style: const TextStyle(fontSize: 24, color: Colors.grey),
-      ),
-    );
-  }
 }
