@@ -1,3 +1,5 @@
+// lib/features/client/presentation/controllers/client_profile_controller.dart
+
 import 'package:flutter/material.dart';
 import '../../data/client_repository.dart';
 import '../../domain/client_profile_model.dart';
@@ -7,27 +9,22 @@ class ClientProfileController extends ChangeNotifier {
 
   ClientProfileModel? profile;
   bool isLoading = false;
-  bool isSaving = false;
+  bool isSaving  = false;
   String? errorMessage;
 
-  // Controllers for editable fields
-  final nameController = TextEditingController();
-  final phoneController = TextEditingController();
-  final ageController = TextEditingController();
-  final bioController = TextEditingController();
+  final nameController             = TextEditingController();
+  final phoneController            = TextEditingController();
+  final bioController              = TextEditingController();
   final emergencyContactController = TextEditingController();
 
   String? selectedGender;
   String? selectedFitnessGoal;
+  String? dateOfBirth;  // ← replaces ageController
 
-  final List<String> genders = ['male', 'female', 'other'];
+  final List<String> genders      = ['male', 'female', 'other'];
   final List<String> fitnessGoals = [
-    'weight_loss',
-    'muscle_gain',
-    'endurance',
-    'flexibility',
-    'general_fitness',
-    'long_dist_running',
+    'weight_loss', 'muscle_gain', 'endurance',
+    'flexibility', 'general_fitness', 'long_dist_running'
   ];
 
   Future<void> loadProfile(String token) async {
@@ -37,16 +34,15 @@ class ClientProfileController extends ChangeNotifier {
 
     try {
       profile = await _repo.getProfile(token);
-      // Fill controllers with existing data
-      nameController.text = profile!.name;
-      phoneController.text = profile!.phone ?? '';
-      ageController.text = profile!.age?.toString() ?? '';
-      bioController.text = profile!.bio ?? '';
+      nameController.text             = profile!.name;
+      phoneController.text            = profile!.phone ?? '';
+      bioController.text              = profile!.bio ?? '';
       emergencyContactController.text = profile!.emergencyContact ?? '';
-      selectedGender = profile!.gender;
-      selectedFitnessGoal = fitnessGoals.contains(profile!.fitnessGoal)
+      selectedGender                  = profile!.gender;
+      selectedFitnessGoal             = fitnessGoals.contains(profile!.fitnessGoal)
           ? profile!.fitnessGoal
           : null;
+      dateOfBirth                     = profile!.dateOfBirth;
     } catch (e) {
       errorMessage = e.toString();
     } finally {
@@ -62,13 +58,13 @@ class ClientProfileController extends ChangeNotifier {
 
     try {
       profile = await _repo.updateProfile(token, {
-        'name': nameController.text.trim(),
-        'phone': phoneController.text.trim(),
-        'age': int.tryParse(ageController.text.trim()),
-        'bio': bioController.text.trim(),
+        'name':              nameController.text.trim(),
+        'phone':             phoneController.text.trim(),
+        'bio':               bioController.text.trim(),
         'emergency_contact': emergencyContactController.text.trim(),
-        'gender': selectedGender,
-        'fitness_goal': selectedFitnessGoal,
+        'gender':            selectedGender,
+        'fitness_goal':      selectedFitnessGoal,
+        'date_of_birth':     dateOfBirth,
       });
       return true;
     } catch (e) {
@@ -87,6 +83,11 @@ class ClientProfileController extends ChangeNotifier {
 
   void setFitnessGoal(String? value) {
     selectedFitnessGoal = value;
+    notifyListeners();
+  }
+
+  void setDateOfBirth(String? value) {
+    dateOfBirth = value;
     notifyListeners();
   }
 }
