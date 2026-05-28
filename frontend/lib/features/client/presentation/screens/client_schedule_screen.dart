@@ -51,13 +51,18 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
               title: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('My Schedule',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
-                  Text('View and manage your classes',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(
+                    'My Schedule',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'View and manage your classes',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -75,12 +80,10 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
 
                   // ── Tab Content ───────────────────────────────────
                   if (ctrl.selectedTab == 0) _buildMyClasses(ctrl),
-                  if (ctrl.selectedTab == 1) _buildUpcoming(ctrl),
-                  if (ctrl.selectedTab == 2) _buildBrowse(ctrl),
+                  if (ctrl.selectedTab == 1) _buildBrowse(ctrl),
 
                   // ── Weekly Schedule ───────────────────────────────
-                  if (ctrl.selectedTab == 0 || ctrl.selectedTab == 1)
-                    _buildWeekly(ctrl),
+                  _buildWeekly(ctrl),
                 ],
               ),
             ),
@@ -92,36 +95,52 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   Widget _buildStats(ClientScheduleController ctrl) {
-    return Row(children: [
-      _buildStatCard(Icons.calendar_today_outlined,
-          '${ctrl.stats?.enrolled ?? 0}', 'Enrolled',
-          const Color(0xFF4CAF50)),
-      const SizedBox(width: 12),
-      _buildStatCard(Icons.access_time_outlined,
-          '${ctrl.stats?.upcoming ?? 0}', 'Upcoming',
-          const Color(0xFF4F46E5)),
-      const SizedBox(width: 12),
-      _buildStatCard(Icons.people_outline,
-          '${ctrl.stats?.minutesWeek ?? 0}', 'Min/Week',
-          const Color(0xFFFF9800)),
-    ]);
+    return Row(
+      children: [
+        _buildStatCard(
+          Icons.calendar_today_outlined,
+          '${ctrl.stats?.enrolled ?? 0}',
+          'Enrolled',
+          const Color(0xFF4CAF50),
+        ),
+        const SizedBox(width: 12),
+        _buildStatCard(
+          Icons.check_circle_outline,
+          '${ctrl.stats?.classesThisMonth ?? 0}',
+          'Classes\nThis Month',
+          const Color(0xFF4F46E5),
+        ),
+      ],
+    );
   }
 
-  Widget _buildStatCard(IconData icon, String value, String label, Color color) {
+  Widget _buildStatCard(
+    IconData icon,
+    String value,
+    String label,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(16)),
-        child: Column(children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.bold)),
-          Text(label,
-              style: const TextStyle(color: Colors.grey, fontSize: 11)),
-        ]),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.grey, fontSize: 11),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -134,11 +153,12 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(children: [
-        _buildTab(ctrl, 0, 'My Classes'),
-        _buildTab(ctrl, 1, 'Upcoming'),
-        _buildTab(ctrl, 2, 'Browse'),
-      ]),
+      child: Row(
+        children: [
+          _buildTab(ctrl, 0, 'My Classes'),
+          _buildTab(ctrl, 1, 'Browse'),
+        ],
+      ),
     );
   }
 
@@ -153,14 +173,15 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
             color: selected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontWeight: selected
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                  fontSize: 13,
-                  color: selected ? Colors.black : Colors.grey)),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 13,
+              color: selected ? Colors.black : Colors.grey,
+            ),
+          ),
         ),
       ),
     );
@@ -172,9 +193,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
       return _buildEmpty('No classes enrolled yet', 'Browse classes to enroll');
     }
     return Column(
-      children: ctrl.myClasses
-          .map((c) => _buildMyClassCard(ctrl, c))
-          .toList(),
+      children: ctrl.myClasses.map((c) => _buildMyClassCard(ctrl, c)).toList(),
     );
   }
 
@@ -183,313 +202,369 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(c.title,
-            style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold)),
-        Text(c.coachName ?? '',
-            style: const TextStyle(color: Colors.grey, fontSize: 13)),
-        const SizedBox(height: 10),
-        Wrap(spacing: 8, children: [
-          _buildChip(c.dayOfWeek ?? c.date ?? ''),
-          _buildChip(_formatTime(c.startTime)),
-          _buildChip('${c.duration} min'),
-        ]),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () async {
-              final confirm = await _showConfirm(
-                  'Unenroll', 'Are you sure you want to unenroll from ${c.title}?');
-              if (confirm == true) {
-                final success = await ctrl.unenroll(widget.token, c.id);
-                if (success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Unenrolled successfully')),
-                  );
-                }
-              }
-            },
-            icon: const Icon(Icons.close, size: 16, color: Colors.red),
-            label: const Text('Unenroll',
-                style: TextStyle(color: Colors.red)),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.red),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            c.title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-        ),
-      ]),
-    );
-  }
-
-  // ── Upcoming ──────────────────────────────────────────────────────────────
-  Widget _buildUpcoming(ClientScheduleController ctrl) {
-    if (ctrl.upcomingClasses.isEmpty) {
-      return _buildEmpty('No upcoming classes', 'Enroll in classes to see them here');
-    }
-    return Column(
-      children: ctrl.upcomingClasses
-          .map((c) => _buildUpcomingCard(c))
-          .toList(),
-    );
-  }
-
-  Widget _buildUpcomingCard(ClassModel c) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Row(children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
-            borderRadius: BorderRadius.circular(12),
+          Text(
+            c.coachName ?? '',
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
           ),
-          child: const Icon(Icons.calendar_month,
-              color: Color(0xFF4CAF50)),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            children: [
+              _buildChip(_capitalizeDay(c.dayOfWeek) ?? c.date ?? ''),
+              _buildChip(_formatTime(c.startTime)),
+              _buildChip('${c.duration} min'),
+            ],
+          ),
+          if (c.nextDate != null) ...[
+            const SizedBox(height: 6),
+            Row(
               children: [
-                Text(c.title,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(c.coachName ?? '',
-                    style: const TextStyle(
-                        color: Colors.grey, fontSize: 12)),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 14,
+                  color: Colors.grey,
+                ),
+                const SizedBox(width: 4),
                 Text(
-                  '${c.nextDate ?? c.date ?? ''} • ${_formatTime(c.startTime)}',
+                  'Next: ${c.nextDate}',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
-              ]),
-        ),
-        Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: const Color(0xFF4CAF50),
-            borderRadius: BorderRadius.circular(10),
+              ],
+            ),
+          ],
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final confirm = await _showConfirm(
+                  'Unenroll',
+                  'Are you sure you want to unenroll from ${c.title}?',
+                );
+                if (confirm == true) {
+                  final success = await ctrl.unenroll(widget.token, c.id);
+                  if (success && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Unenrolled successfully')),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.close, size: 16, color: Colors.red),
+              label: const Text(
+                'Unenroll',
+                style: TextStyle(color: Colors.red),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.red),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
           ),
-          child: Text('${c.duration} min',
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold)),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
   // ── Browse ────────────────────────────────────────────────────────────────
   Widget _buildBrowse(ClientScheduleController ctrl) {
-    return Column(children: [
-      // Day filter
-      SizedBox(
-        height: 40,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: ctrl.days.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (_, i) {
-            final day = ctrl.days[i];
-            final selected = (ctrl.selectedDay ?? 'All') == day;
-            return GestureDetector(
-              onTap: () => ctrl.filterByDay(widget.token, day),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: selected ? Colors.black : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color: selected
-                          ? Colors.black
-                          : Colors.grey.shade300),
-                ),
-                child: Text(
-                  day == 'All'
-                      ? 'All Days'
-                      : day[0].toUpperCase() + day.substring(1, 3),
-                  style: TextStyle(
+    return Column(
+      children: [
+        // Day filter
+        SizedBox(
+          height: 40,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: ctrl.days.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) {
+              final day = ctrl.days[i];
+              final selected = (ctrl.selectedDay ?? 'All') == day;
+              return GestureDetector(
+                onTap: () => ctrl.filterByDay(widget.token, day),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected ? Colors.black : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: selected ? Colors.black : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: Text(
+                    day == 'All'
+                        ? 'All Days'
+                        : day[0].toUpperCase() + day.substring(1, 3),
+                    style: TextStyle(
                       color: selected ? Colors.white : Colors.black,
                       fontSize: 13,
                       fontWeight: selected
                           ? FontWeight.bold
-                          : FontWeight.normal),
+                          : FontWeight.normal,
+                    ),
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
-      ),
-      const SizedBox(height: 16),
+        const SizedBox(height: 16),
 
-      if (ctrl.isBrowseLoading)
-        const Center(child: CircularProgressIndicator())
-      else if (ctrl.browseClasses.isEmpty)
-        _buildEmpty('No classes available', 'Try a different day')
-      else
-        ...ctrl.browseClasses.map((c) => _buildBrowseCard(ctrl, c)),
-    ]);
+        if (ctrl.isBrowseLoading)
+          const Center(child: CircularProgressIndicator())
+        else if (ctrl.browseClasses.isEmpty)
+          _buildEmpty('No classes available', 'Try a different day')
+        else
+          ...ctrl.browseClasses.map((c) => _buildBrowseCard(ctrl, c)),
+      ],
+    );
   }
 
   Widget _buildBrowseCard(ClientScheduleController ctrl, ClassModel c) {
     final capacityColor = c.isFull
         ? Colors.red
         : c.currentClients / c.maxClients > 0.8
-            ? Colors.orange
-            : const Color(0xFF4CAF50);
+        ? Colors.orange
+        : const Color(0xFF4CAF50);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Expanded(
-            child: Text(c.title,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold)),
-          ),
-          if (c.isEnrolled)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4F46E5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 12),
-                SizedBox(width: 4),
-                Text('Enrolled',
-                    style:
-                        TextStyle(color: Colors.white, fontSize: 11)),
-              ]),
-            ),
-          const SizedBox(width: 8),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: capacityColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(children: [
-              Icon(Icons.people, color: capacityColor, size: 14),
-              const SizedBox(width: 4),
-              Text('${c.currentClients}/${c.maxClients}',
-                  style: TextStyle(
-                      color: capacityColor, fontSize: 12)),
-            ]),
-          ),
-        ]),
-        const SizedBox(height: 6),
-        Text(
-          '${_capitalizeDay(c.dayOfWeek)}  •  ${_formatTime(c.startTime)} (${c.duration} min)',
-          style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 13),
-        ),
-        Text('Coach: ${c.coachName ?? ''}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: c.isFull && !c.isEnrolled
-              ? ElevatedButton(
-                  onPressed: null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  c.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-                  child: const Text('Full',
-                      style: TextStyle(color: Colors.white)),
-                )
-              : c.isEnrolled
-                  ? OutlinedButton(
-                      onPressed: () async {
-                        final confirm = await _showConfirm('Unenroll',
-                            'Unenroll from ${c.title}?');
-                        if (confirm == true) {
-                          await ctrl.unenroll(widget.token, c.id);
-                        }
-                      },
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              if (c.isEnrolled)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4F46E5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.white, size: 12),
+                      SizedBox(width: 4),
+                      Text(
+                        'Enrolled',
+                        style: TextStyle(color: Colors.white, fontSize: 11),
                       ),
-                      child: const Text('Unenroll'),
-                    )
-                  : ElevatedButton(
-                      onPressed: () async {
-                        final success =
-                            await ctrl.enroll(widget.token, c.id);
-                        if (success && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Enrolled in ${c.title}!'),
-                              backgroundColor: const Color(0xFF4CAF50),
-                            ),
-                          );
-                        } else if (!success && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  ctrl.errorMessage ?? 'Enroll failed'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: const Text('Enroll',
-                          style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: capacityColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.people, color: capacityColor, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${c.currentClients}/${c.maxClients}',
+                      style: TextStyle(color: capacityColor, fontSize: 12),
                     ),
-        ),
-      ]),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 14,
+                color: Color(0xFF4F46E5),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _capitalizeDay(c.dayOfWeek) ?? '',
+                style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 13),
+              ),
+              const SizedBox(width: 12),
+              const Icon(Icons.access_time, size: 14, color: Color(0xFF4F46E5)),
+              const SizedBox(width: 4),
+              Text(
+                '${_formatTime(c.startTime)} (${c.duration} min)',
+                style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.person_outline, size: 14, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                'Coach: ${c.coachName ?? ''}',
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ],
+          ),
+          if (c.nextDate != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.event_outlined, size: 14, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(
+                  'Next: ${c.nextDate}',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: c.isFull && !c.isEnrolled
+                ? ElevatedButton(
+                    onPressed: null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Full',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                : c.isEnrolled
+                ? OutlinedButton(
+                    onPressed: () async {
+                      final confirm = await _showConfirm(
+                        'Unenroll',
+                        'Unenroll from ${c.title}?',
+                      );
+                      if (confirm == true) {
+                        await ctrl.unenroll(widget.token, c.id);
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('Unenroll'),
+                  )
+                : ElevatedButton(
+                    onPressed: () async {
+                      final success = await ctrl.enroll(widget.token, c.id);
+                      if (success && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Enrolled in ${c.title}!'),
+                            backgroundColor: const Color(0xFF4CAF50),
+                          ),
+                        );
+                      } else if (!success && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(ctrl.errorMessage ?? 'Enroll failed'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Enroll',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
   // ── Weekly Schedule ───────────────────────────────────────────────────────
   Widget _buildWeekly(ClientScheduleController ctrl) {
-    if (ctrl.weekly.isEmpty) return const SizedBox();
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const SizedBox(height: 16),
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16)),
-        child: Column(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('This Week\'s Schedule',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold)),
-              const Text('Your weekly class calendar',
-                  style: TextStyle(color: Colors.grey, fontSize: 13)),
+              const Text(
+                'This Week\'s Schedule',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const Text(
+                'Your class calendar for the next 7 days',
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
               const SizedBox(height: 16),
-              ...ctrl.weekly.map((day) => _buildWeekDay(day)),
-            ]),
-      ),
-    ]);
+              if (ctrl.isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (ctrl.weekly.isEmpty)
+                const Center(
+                  child: Text(
+                    'No classes this week',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
+              else
+                ...ctrl.weekly.map((day) => _buildWeekDay(day)),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildWeekDay(WeeklyDayModel day) {
-    final shortDay = day.day.substring(0, 3).toUpperCase();
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -497,27 +572,35 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         border: Border.all(color: Colors.grey.shade200),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Row(children: [
-        SizedBox(
-          width: 36,
-          child: Text(shortDay,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
-        Expanded(
-          child: day.classes.isEmpty
-              ? const Text('No classes',
-                  style: TextStyle(color: Colors.grey, fontSize: 13))
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: day.classes
-                      .map((c) => Text(
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              day.label,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
+          Expanded(
+            child: day.classes.isEmpty
+                ? const Text(
+                    'No classes',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: day.classes
+                        .map(
+                          (c) => Text(
                             '${_formatTime(c.startTime)} - ${c.title}',
                             style: const TextStyle(fontSize: 13),
-                          ))
-                      .toList(),
-                ),
-        ),
-      ]),
+                          ),
+                        )
+                        .toList(),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -530,8 +613,10 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Text(label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+      ),
     );
   }
 
@@ -540,17 +625,27 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Column(children: [
-        const Icon(Icons.calendar_today_outlined,
-            size: 48, color: Colors.grey),
-        const SizedBox(height: 12),
-        Text(title,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(subtitle,
-            style: const TextStyle(color: Colors.grey, fontSize: 13)),
-      ]),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.calendar_today_outlined,
+            size: 48,
+            color: Colors.grey,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          Text(
+            subtitle,
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 
@@ -558,41 +653,48 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: Text(message, textAlign: TextAlign.center),
         actions: [
-          Column(children: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+          Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    title,
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
-                child: Text(title,
-                    style: const TextStyle(color: Colors.white)),
               ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text('Cancel'),
                 ),
-                child: const Text('Cancel'),
               ),
-            ),
-            const SizedBox(height: 8),
-          ]),
+              const SizedBox(height: 8),
+            ],
+          ),
         ],
       ),
     );
@@ -603,12 +705,16 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
     final hour = int.parse(parts[0]);
     final min = parts[1];
     final period = hour < 12 ? 'AM' : 'PM';
-    final h = hour > 12 ? hour - 12 : hour == 0 ? 12 : hour;
+    final h = hour > 12
+        ? hour - 12
+        : hour == 0
+        ? 12
+        : hour;
     return '${h.toString().padLeft(2, '0')}:$min $period';
   }
 
-  String _capitalizeDay(String? day) {
-    if (day == null || day.isEmpty) return '';
+  String? _capitalizeDay(String? day) {
+    if (day == null || day.isEmpty) return null;
     return day[0].toUpperCase() + day.substring(1);
   }
 }
