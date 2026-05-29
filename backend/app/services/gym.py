@@ -95,7 +95,7 @@ async def get_dashboard_stats(db: AsyncSession, gym_id: int, admin_id: int) -> d
     active_subscriptions = active.scalar() or 0
 
     # Today's attendance
-    today_start = datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
+    today_start = datetime(today.year, today.month, today.day)
     attendance = await db.execute(
         select(func.count(Attendance.id))
         .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
