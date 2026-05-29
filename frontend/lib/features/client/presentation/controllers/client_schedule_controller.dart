@@ -8,34 +8,32 @@ class ClientScheduleController extends ChangeNotifier {
   final ScheduleRepository _repo = ScheduleRepository();
 
   ScheduleStatsModel? stats;
-  List<ClassModel> myClasses      = [];
-  List<ClassModel> upcomingClasses = [];
-  List<ClassModel> browseClasses  = [];
-  List<WeeklyDayModel> weekly     = [];
+  List<ClassModel> myClasses    = [];
+  List<ClassModel> browseClasses = [];
+  List<WeeklyDayModel> weekly   = [];
 
   bool isLoading       = false;
   bool isBrowseLoading = false;
   String? errorMessage;
 
-  int selectedTab    = 0; // 0=MyClasses, 1=Upcoming, 2=Browse
-  String? selectedDay;    // for browse filter
+  int selectedTab  = 0;  // 0=MyClasses, 1=Browse
+  String? selectedDay;
 
   final List<String> days = [
     'All', 'monday', 'tuesday', 'wednesday',
-    'thursday', 'friday', 'saturday', 'sunday'
+    'thursday', 'friday', 'saturday', 'sunday',
   ];
 
   Future<void> loadAll(String token) async {
-    isLoading = true;
+    isLoading    = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      stats          = await _repo.getStats(token);
-      myClasses      = await _repo.getMyClasses(token);
-      upcomingClasses = await _repo.getUpcoming(token);
-      browseClasses  = await _repo.browseClasses(token);
-      weekly         = await _repo.getWeekly(token);
+      stats         = await _repo.getStats(token);
+      myClasses     = await _repo.getMyClasses(token);
+      browseClasses = await _repo.browseClasses(token);
+      weekly        = await _repo.getWeekly(token);
     } catch (e) {
       errorMessage = e.toString();
     } finally {
@@ -45,8 +43,8 @@ class ClientScheduleController extends ChangeNotifier {
   }
 
   Future<void> filterByDay(String token, String? day) async {
-    selectedDay      = day;
-    isBrowseLoading  = true;
+    selectedDay     = day;
+    isBrowseLoading = true;
     notifyListeners();
 
     try {
@@ -65,7 +63,7 @@ class ClientScheduleController extends ChangeNotifier {
   Future<bool> enroll(String token, int sessionId) async {
     try {
       await _repo.enroll(token, sessionId);
-      await loadAll(token); // refresh
+      await loadAll(token);
       return true;
     } catch (e) {
       errorMessage = e.toString();
@@ -77,7 +75,7 @@ class ClientScheduleController extends ChangeNotifier {
   Future<bool> unenroll(String token, int sessionId) async {
     try {
       await _repo.unenroll(token, sessionId);
-      await loadAll(token); // refresh
+      await loadAll(token);
       return true;
     } catch (e) {
       errorMessage = e.toString();
