@@ -119,6 +119,11 @@ docker-compose.override.yml
 .dart_tool/
 frontend/.dart_tool/
 frontend/android/local.properties
+
+# Gradle build cache - never commit these
+build/
+local.properties
+EOF
 .gradle/
 **/.gradle/
 
