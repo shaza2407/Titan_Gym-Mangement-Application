@@ -41,8 +41,10 @@ async def get_admin_schedule_stats(gymID: int, db: AsyncSession) -> dict:
 
     # Total enrolled
     total_enrolled = await db.scalar(
-        select(func.sum(ClassSession.current_clients)).where(ClassSession.gymID == gymID)
-    ) or 0
+    select(func.count(ClassEnrollment.id)).join(
+        ClassSession, ClassSession.id == ClassEnrollment.session_id
+    ).where(ClassSession.gymID == gymID)
+) or 0
 
     # Total coaches with classes
     total_coaches = await db.scalar(
@@ -95,43 +97,51 @@ async def get_all_classes(gymID: int, db: AsyncSession) -> list:
 
 
 async def create_class(gymID: int, payload: CreateClassRequest, db: AsyncSession) -> ClassSession | None:
-    
+    day_names = ["monday", "tuesday", "wednesday", "thursday",
+                 "friday", "saturday", "sunday"]
+
+    day_of_week = payload.day_of_week
+    class_date  = payload.date
+
+    # For one-time: compute day_of_week from date
+    if not payload.is_recurring and payload.date:
+        day_of_week = day_names[payload.date.weekday()]
+
     # Check for coach time conflict
-    if payload.is_recurring and payload.day_of_week:
+    if payload.is_recurring and day_of_week:
         conflict = await db.execute(
             select(ClassSession).where(
                 ClassSession.coach_id == payload.coach_id,
-                ClassSession.day_of_week == payload.day_of_week,
+                ClassSession.day_of_week == day_of_week,
                 ClassSession.start_time == payload.start_time,
                 ClassSession.is_recurring == True,
             )
         )
         if conflict.scalar_one_or_none():
-            return None  # conflict found
+            return None
 
-    elif not payload.is_recurring and payload.date:
+    elif not payload.is_recurring and class_date:
         conflict = await db.execute(
             select(ClassSession).where(
                 ClassSession.coach_id == payload.coach_id,
-                ClassSession.date == payload.date,
+                ClassSession.date == class_date,
                 ClassSession.start_time == payload.start_time,
                 ClassSession.is_recurring == False,
             )
         )
         if conflict.scalar_one_or_none():
-            return None  # conflict found
+            return None
 
     session = ClassSession(
         title=payload.title,
         coach_id=payload.coach_id,
         gymID=gymID,
-        day_of_week=payload.day_of_week,
-        date=payload.date,
+        day_of_week=day_of_week,  # auto-computed for one-time
+        date=class_date,
         start_time=payload.start_time,
         duration=payload.duration,
         is_recurring=payload.is_recurring,
         max_clients=payload.max_clients,
-        current_clients=0,
     )
     db.add(session)
     await db.commit()
@@ -201,16 +211,15 @@ async def approve_request(request_id: int, gymID: int, db: AsyncSession) -> bool
 
     # Create class session from request
     session = ClassSession(
-        title=req.class_name,
-        coach_id=req.coach_id,
-        gymID=gymID,
-        day_of_week=req.day_of_week,
-        date=req.requested_date,
-        start_time=req.requested_time,
-        duration=req.duration,
-        is_recurring=req.is_recurring,
-        max_clients=req.max_capacity,
-        current_clients=0,
+    title=req.class_name,
+    coach_id=req.coach_id,
+    gymID=gymID,
+    day_of_week=req.day_of_week,
+    date=req.requested_date,
+    start_time=req.requested_time,
+    duration=req.duration,
+    is_recurring=req.is_recurring,
+    max_clients=req.max_capacity,
     )
     db.add(session)
 
@@ -243,6 +252,9 @@ async def edit_class(
     payload: EditClassRequest,
     db: AsyncSession
 ) -> ClassSession | None:
+    day_names = ["monday", "tuesday", "wednesday", "thursday",
+                 "friday", "saturday", "sunday"]
+
     result = await db.execute(
         select(ClassSession).where(
             ClassSession.id == session_id,
@@ -257,10 +269,6 @@ async def edit_class(
         session.title = payload.title
     if payload.coach_id is not None:
         session.coach_id = payload.coach_id
-    if payload.day_of_week is not None:
-        session.day_of_week = payload.day_of_week
-    if payload.date is not None:
-        session.date = payload.date
     if payload.start_time is not None:
         session.start_time = payload.start_time
     if payload.duration is not None:
@@ -270,18 +278,32 @@ async def edit_class(
     if payload.max_clients is not None:
         session.max_clients = payload.max_clients
 
+    # ── Handle day_of_week / date together ──────────────
+    if payload.is_recurring == False or (
+            payload.is_recurring is None and not session.is_recurring):
+        # One-time class — date drives day_of_week
+        if payload.date is not None:
+            session.date = payload.date
+            session.day_of_week = day_names[payload.date.weekday()]  # ← auto-compute
+    else:
+        # Recurring class — day_of_week only
+        if payload.day_of_week is not None:
+            session.day_of_week = payload.day_of_week
+            session.date = None  # clear date for recurring
+
     await db.commit()
     await db.refresh(session)
     return session
+
 
 # ── View Members ──────────────────────────────────────────────────────────────
 
 async def get_class_members(
     session_id: int,
     gymID: int,
-    db: AsyncSession
+    db: AsyncSession,
+    class_date: date | None = None,  # ← add this
 ) -> list:
-    # Verify class belongs to this gym
     result = await db.execute(
         select(ClassSession).where(
             ClassSession.id == session_id,
@@ -292,19 +314,19 @@ async def get_class_members(
     if not session:
         return []
 
-    # Get enrolled clients
-    from app.models.class_enrollment import ClassEnrollment
     from app.models.client import Client
 
-    enrollments = await db.execute(
-        select(ClassEnrollment, User, Client).join(
-            Client, Client.clientID == ClassEnrollment.clientID
-        ).join(
-            User, User.userID == Client.userID
-        ).where(
-            ClassEnrollment.session_id == session_id
-        )
-    )
+    query = select(ClassEnrollment, User, Client).join(
+        Client, Client.clientID == ClassEnrollment.clientID
+    ).join(
+        User, User.userID == Client.userID
+    ).where(ClassEnrollment.session_id == session_id)
+
+    # Filter by date if provided
+    if class_date:
+        query = query.where(ClassEnrollment.class_date == class_date)
+
+    enrollments = await db.execute(query)
     rows = enrollments.all()
 
     members = []
@@ -314,6 +336,7 @@ async def get_class_members(
             "name":        user.name,
             "email":       user.email,
             "phone":       user.phone,
+            "class_date":  str(enrollment.class_date),
             "enrolled_at": enrollment.enrolled_at,
         })
     return members

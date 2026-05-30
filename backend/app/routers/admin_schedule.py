@@ -1,5 +1,6 @@
 # app/routers/admin_schedule.py
 
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -110,12 +111,13 @@ async def remove_class(
 @router.get("/classes/{session_id}/members")
 async def class_members(
     session_id: int,
+    class_date: date | None = None,  # ← optional query param
     gym_id: int = Query(...),
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session)
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
-    members = await get_class_members(session_id, gymID, db)
+    members = await get_class_members(session_id, gymID, db, class_date)
     return {"members": members}
 
 
