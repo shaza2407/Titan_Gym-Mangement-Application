@@ -51,8 +51,8 @@ class ClassRequestResponse(BaseModel):
 class CreateClassRequest(BaseModel):
     title:        str
     coach_id:     int
-    day_of_week:  Optional[str] = None   # for recurring
-    date:         Optional[DateType] = None  # for one-time
+    day_of_week:  Optional[str]      = None  # for recurring only
+    date:         Optional[DateType] = None  # for one-time only
     start_time:   time
     duration:     int = 45
     max_clients:  int

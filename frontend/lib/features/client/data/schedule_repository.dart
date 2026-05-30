@@ -53,10 +53,7 @@ class ScheduleRepository {
     final url = day != null
         ? '$baseUrl/client/schedule/browse?day=$day'
         : '$baseUrl/client/schedule/browse';
-    final res = await http.get(
-      Uri.parse(url),
-      headers: _headers(token),
-    );
+    final res = await http.get(Uri.parse(url), headers: _headers(token));
     if (res.statusCode == 200) {
       return (jsonDecode(res.body) as List)
           .map((e) => ClassModel.fromJson(e))
@@ -78,25 +75,29 @@ class ScheduleRepository {
     throw Exception('Failed to load weekly');
   }
 
-  Future<String> enroll(String token, int sessionId) async {
-    final res = await http.post(
-      Uri.parse('$baseUrl/client/schedule/enroll/$sessionId'),
-      headers: _headers(token),
-    );
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body)['message'];
-    }
-    throw Exception(jsonDecode(res.body)['detail'] ?? 'Enroll failed');
-  }
-
-  Future<String> unenroll(String token, int sessionId) async {
+  Future<String> unenroll(String token, int sessionId, String classDate) async {
     final res = await http.delete(
-      Uri.parse('$baseUrl/client/schedule/unenroll/$sessionId'),
+      Uri.parse(
+        '$baseUrl/client/schedule/unenroll/$sessionId?class_date=$classDate',
+      ),
       headers: _headers(token),
     );
     if (res.statusCode == 200) {
       return jsonDecode(res.body)['message'];
     }
     throw Exception(jsonDecode(res.body)['detail'] ?? 'Unenroll failed');
+  }
+
+  Future<String> enroll(String token, int sessionId, String classDate) async {
+    final res = await http.post(
+      Uri.parse(
+        '$baseUrl/client/schedule/enroll/$sessionId?class_date=$classDate',
+      ),
+      headers: _headers(token),
+    );
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body)['message'];
+    }
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Enroll failed');
   }
 }
