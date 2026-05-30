@@ -107,7 +107,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         _buildStatCard(
           Icons.check_circle_outline,
           '${ctrl.stats?.classesThisMonth ?? 0}',
-          'Classes\nThis Month',
+          'Past Classes\nThis Month',
           const Color(0xFF4F46E5),
         ),
       ],
@@ -252,7 +252,11 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                   'Are you sure you want to unenroll from ${c.title}?',
                 );
                 if (confirm == true) {
-                  final success = await ctrl.unenroll(widget.token, c.id);
+                  final success = await ctrl.unenroll(
+                    widget.token,
+                    c.id,
+                    c.nextDate ?? '',
+                  );
                   if (success && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Unenrolled successfully')),
@@ -476,7 +480,11 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                         'Unenroll from ${c.title}?',
                       );
                       if (confirm == true) {
-                        await ctrl.unenroll(widget.token, c.id);
+                        await ctrl.unenroll(
+                          widget.token,
+                          c.id,
+                          c.nextDate ?? '',
+                        );
                       }
                     },
                     style: OutlinedButton.styleFrom(
@@ -488,7 +496,11 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                   )
                 : ElevatedButton(
                     onPressed: () async {
-                      final success = await ctrl.enroll(widget.token, c.id);
+                      final success = await ctrl.enroll(
+                        widget.token,
+                        c.id,
+                        c.nextDate ?? '',
+                      );
                       if (success && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -657,44 +669,53 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         title: Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
         ),
-        content: Text(message, textAlign: TextAlign.center),
+        content: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.grey, fontSize: 15),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
-          Column(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: Text(
-                    title,
-                    style: const TextStyle(color: Colors.white),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
-                  child: const Text('Cancel'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 28,
+                    vertical: 14,
+                  ),
+                ),
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
             ],
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );
