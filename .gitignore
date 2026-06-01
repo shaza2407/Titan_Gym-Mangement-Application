@@ -115,12 +115,16 @@ docker-compose.override.yml
 .ipynb_checkpoints/
 *.ipynb
 
-# Auto-generated Flutter files
+# ------------------------------
+# Flutter / Dart
+# ------------------------------
 .dart_tool/
 frontend/.dart_tool/
 frontend/android/local.properties
 
-# Gradle build cache - never commit these
+#--------------------------------
+# Gradle 
+#--------------------------------
 build/
 local.properties
 EOF
