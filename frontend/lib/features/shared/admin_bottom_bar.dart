@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../admin/presentation/client_management_screen.dart';
-// import '../admin/presentation/coach_management_screen.dart';
+import '../admin/presentation/admin_profile.dart';
+
 
 
 class AdminBottomBar extends StatelessWidget {
@@ -72,7 +73,8 @@ class AdminBottomBar extends StatelessWidget {
         // TODO: Schedule screen
         break;
       case 3:
-        // TODO: Profile screen
+        Navigator.push(context, MaterialPageRoute(
+        builder: (_) => AdminProfileScreen(gymId: gymId, token: token)));
         break;
     }
   }

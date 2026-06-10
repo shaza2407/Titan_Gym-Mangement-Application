@@ -197,9 +197,16 @@ async def suspend_client(
 
 @router.get("/total-members")
 async def get_total_members(db: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user),):
+    # Get adminID from Admin table
+    admin_result = await db.execute(select(Admin).where(Admin.userID == current_user.userID))
+    admin = admin_result.scalars().first()
+
+    if not admin:
+        raise HTTPException(status_code=403, detail="User is not an admin")
+    # Count members using adminID
     result = await db.execute(
         select(func.count(GymClientMembership.id))
         .join(Gym, GymClientMembership.gymID == Gym.gymID)
-        .where(Gym.adminID == current_user.adminID)
+        .where(Gym.adminID == admin.adminID)
     )
     return {"total": result.scalar()}
