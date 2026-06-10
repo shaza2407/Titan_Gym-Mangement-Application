@@ -97,7 +97,113 @@ class CreateGymScreen extends StatelessWidget {
                     onChanged: controller.setGymType,
                   ),
 
-                  const SizedBox(height: 24),
+                const SizedBox(height: 24),
+
+                _sectionHeader(Icons.fitness_center, 'Gym Machines', 'Add available equipment'),
+                const SizedBox(height: 12),
+
+                // Machine cards
+                ...List.generate(controller.machines.length, (index) {
+                final machine = controller.machines[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Machine ${index + 1}',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: () => controller.removeMachine(index),
+            ),
+          ],
+        ),
+
+        // Machine Name
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: TextField(
+            decoration: InputDecoration(
+              labelText: 'Machine Name *',
+              hintText: 'e.g., Treadmill',
+              filled: true,
+              fillColor: const Color(0xFFEEF0F8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            onChanged: (val) => controller.updateMachineName(index, val),
+          ),
+        ),
+
+        // Machine Type dropdown
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEEF0F8),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: DropdownButtonFormField<String>(
+            value: machine.machineType,
+            decoration: const InputDecoration(
+              labelText: 'Machine Type',
+              border: InputBorder.none,
+            ),
+            items: controller.machineTypeOptions
+                .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                .toList(),
+            onChanged: (val) => controller.updateMachineType(index, val!),
+          ),
+        ),
+
+        // Quantity stepper
+        Row(
+          children: [
+            const Text('Quantity:',
+                style: TextStyle(fontWeight: FontWeight.w500)),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.remove_circle_outline),
+              onPressed: machine.quantity > 1
+                  ? () => controller.updateMachineQuantity(index, machine.quantity - 1)
+                  : null,
+            ),
+            Text('${machine.quantity}',
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold)),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline,
+                  color: Color(0xFF4F46E5)),
+              onPressed: () =>
+                  controller.updateMachineQuantity(index, machine.quantity + 1),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}),
+
+// Add machine button
+TextButton.icon(
+  onPressed: controller.addMachine,
+  icon: const Icon(Icons.add, color: Color(0xFF4F46E5)),
+  label: const Text('Add Machine',
+      style: TextStyle(color: Color(0xFF4F46E5))),
+),
+const SizedBox(height: 16),
+
 
                   // error message
                   if (controller.errorMessage != null)
@@ -118,7 +224,7 @@ class CreateGymScreen extends StatelessWidget {
                           : () async {
                               await controller.createGym(token: token);
                               if (controller.errorMessage == null) {
-                                Navigator.pop(context); // ✅ go back on success
+                                Navigator.pop(context); 
                               }
                             },
                       style: ElevatedButton.styleFrom(
