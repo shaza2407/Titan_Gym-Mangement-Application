@@ -15,6 +15,30 @@ ALGORITHM  = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
 
 
+# async def get_current_user(
+#     token: str = Depends(oauth2_scheme),
+#     db: AsyncSession = Depends(get_session)
+# ) -> Admin:
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         userID = int(payload.get("sub"))
+#     except (JWTError, TypeError):
+#         raise HTTPException(401, "Invalid or expired token")
+
+#     # First get the User
+#     result = await db.execute(select(User).filter(User.userID == userID))
+#     user = result.scalars().first()
+#     if not user:
+#         raise HTTPException(401, "User not found")
+
+#     # Then get the linked Admin
+#     result = await db.execute(select(Admin).filter(Admin.userID == user.userID))
+#     admin = result.scalars().first()
+#     if not admin:
+#         raise HTTPException(403, "User is not an admin")
+
+#     return admin  # ✅ now has .adminID
+
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_session)
@@ -35,7 +59,6 @@ async def get_current_user(
 async def require_admin(token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_session)
 ) -> Admin:
-    # Step 1: verify token & get user
     user = await get_current_user(token=token, db=db)
     if user.role != "admin":
         raise HTTPException(403, "Admins only")
