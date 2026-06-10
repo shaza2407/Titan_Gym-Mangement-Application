@@ -16,3 +16,4 @@ class Gym(Base):
     closingHours = Column("closingHours", String , nullable=False)
 
     machine_inventory = relationship("GymMachineInventory", back_populates="gym", cascade="all, delete-orphan")
+    memberships = relationship("GymClientMembership", backref="gym") 

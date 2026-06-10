@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select , func
 import secrets
 from datetime import datetime, timedelta, date
 
 from app.database import get_session
-from app.models.User import User
+from app.dependencies.auth import get_current_user
+from app.models import User , Admin
 from app.models.client import Client
 from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
@@ -20,10 +21,10 @@ from app.dependencies.gym_member_managment import get_admin_gym
 
 
 
-router = APIRouter(prefix="/admin/gyms/{gym_id}/clients", tags=["Admin - Client Management"])
+router = APIRouter(prefix="/admin/gyms", tags=["Admin - Client Management"])
 
 # GET /admin/gyms/{gym_id}/clients
-@router.get("", response_model=ClientListResponse)
+@router.get("/{gym_id}/clients", response_model=ClientListResponse)
 async def list_clients(status_filter: str | None = None,
                        search: str | None = None,
                        db: AsyncSession = Depends(get_session),
@@ -111,7 +112,7 @@ async def list_clients(status_filter: str | None = None,
 
 
 # POST /admin/gyms/{gym_id}/clients/invite
-@router.post("/invite", response_model=InviteClientResponse, status_code=201)
+@router.post("/{gym_id}/clients/invite", response_model=InviteClientResponse, status_code=201)
 async def invite_member(body: InviteClientRequest,
                         db: AsyncSession = Depends(get_session),
                         gym: Gym = Depends(get_admin_gym),
@@ -171,7 +172,7 @@ async def invite_member(body: InviteClientRequest,
     return InviteClientResponse(message="Invitation sent successfully.", email=body.email)
 
 ## POST /admin/gyms/{gym_id}/clients/{member_id}/suspend
-@router.post("/{member_id}/suspend")
+@router.post("/{gym_id}/clients/{member_id}/suspend")
 async def suspend_client(
     member_id: int,
     db: AsyncSession = Depends(get_session),
@@ -194,5 +195,11 @@ async def suspend_client(
     return {"message": "Client suspended successfully."}
 
 
-
-
+@router.get("/total-members")
+async def get_total_members(db: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user),):
+    result = await db.execute(
+        select(func.count(GymClientMembership.id))
+        .join(Gym, GymClientMembership.gymID == Gym.gymID)
+        .where(Gym.adminID == current_user.adminID)
+    )
+    return {"total": result.scalar()}
