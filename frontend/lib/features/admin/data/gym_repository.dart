@@ -111,7 +111,7 @@ class GymRepository {
   }
 
   // POST /gyms/
-  Future<GymModel> createGym({
+Future<GymModel> createGym({
     required String token,
     required String gymName,
     required double subscriptionPrice,
@@ -140,4 +140,17 @@ class GymRepository {
       throw Exception(jsonDecode(response.body)['detail']);
     }
   }
+
+// GET /admin/gyms/total-members
+Future<int> getTotalMembers({required String token}) async {
+  final response = await http.get(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/total-members'),
+    headers: _headers(token),
+  );
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    return jsonDecode(response.body)['total'];
+  } else {
+    throw Exception(jsonDecode(response.body)['error getting total members ']);
+  }
+}
 }

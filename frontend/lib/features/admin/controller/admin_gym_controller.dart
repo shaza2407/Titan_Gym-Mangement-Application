@@ -32,6 +32,7 @@ class AdminGymController extends ChangeNotifier {
     notifyListeners();
     try {
       gyms = await _repo.getGyms(token: token);
+      await loadTotalMembers(token: token);
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
@@ -58,6 +59,23 @@ class AdminGymController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+// ── Total members ─────────────────────────────────────────────────────────
+int totalMembers = 0;
+bool isLoadingTotalMembers = false;
+
+Future<void> loadTotalMembers({required String token}) async {
+  isLoadingTotalMembers = true;
+  notifyListeners();
+  try {
+    totalMembers = await _repo.getTotalMembers(token: token);
+  } catch (e) {
+    totalMembers = 0;
+  } finally {
+    isLoadingTotalMembers = false;
+    notifyListeners();
+  }
+}
 
   // ── Create gym ────────────────────────────────────────────────────────────
   Future<void> createGym({required String token}) async {

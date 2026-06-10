@@ -126,7 +126,7 @@ class AdminDashboardScreen extends StatelessWidget {
         children: [
           Expanded(child: _statCard('Total Gyms', '${controller.gyms.length}')),
           const SizedBox(width: 12),
-          Expanded(child: _statCard('Total Members', '—')),
+          Expanded(child: _statCard('Total Members', '${controller.totalMembers}')),
         ],
       ),
     );
