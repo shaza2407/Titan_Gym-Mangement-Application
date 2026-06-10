@@ -7,11 +7,13 @@ import 'client_detail_screen.dart';
 class ClientManagementScreen extends StatefulWidget {
   final int gymId;
   final String token;
+  final void Function(int)? onTabChange;
 
   const ClientManagementScreen({
     super.key,
     required this.gymId,
     required this.token,
+    this.onTabChange
   });
 
   @override

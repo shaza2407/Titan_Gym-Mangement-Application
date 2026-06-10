@@ -117,6 +117,7 @@ class LoginScreen extends StatelessWidget {
                         );
 
                         if (signinRes.statusCode != 200) {
+                          if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
@@ -125,6 +126,7 @@ class LoginScreen extends StatelessWidget {
                               ),
                             ),
                           );
+                        }
                           return;
                         }
 
@@ -176,7 +178,9 @@ class LoginScreen extends StatelessWidget {
                           return;
                         }
                       } catch (e) {
+                        if (context.mounted) {
                         ScaffoldMessenger.of(context,).showSnackBar(SnackBar(content: Text('Error: $e')));
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
