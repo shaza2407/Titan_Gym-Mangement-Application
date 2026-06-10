@@ -1,21 +1,42 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 
+# Machine input (used when creating a gym)
+class MachineInventoryInput(BaseModel):
+    machineName: str        
+    machineType: str       
+    quantity: int = 1
+
+
+# Machine output (used in GymResponse)
+class MachineInventoryResponse(BaseModel):
+    inventoryID: int
+    machineName: str       
+    machineType: str        
+    quantity: int
+
+    class Config:
+        from_attributes = True
+
+
+# Base
 class GymBase(BaseModel):
     gymName: str = Field(..., example="FitZone")
     subscriptionPrice: float = Field(..., example=199.99)
     yearlySubscriptionPrice: float = Field(..., example=999.99)
     location: str = Field(..., example="123 Main St, Cairo")
-    gymType: str = Field(..., example="mixed")          # males, females, mixed
+    gymType: str = Field(..., example="mixed")
     openingHours: str = Field(..., example="06:00")
     closingHours: str = Field(..., example="23:00")
 
 
+# Create
 class GymCreate(GymBase):
-    pass
+    machines: List[MachineInventoryInput] = []
 
 
+# Update
 class GymUpdate(BaseModel):
     gymName: Optional[str] = None
     subscriptionPrice: Optional[float] = None
@@ -26,13 +47,16 @@ class GymUpdate(BaseModel):
     closingHours: Optional[str] = None
 
 
+# Response
 class GymResponse(GymBase):
     gymID: int
-    adminID: int   
-    QRCode:  Optional[str] = None         
+    adminID: int
+    QRCode: Optional[str] = None
+    # machine_inventory: List[MachineInventoryResponse] = [] 
 
     class Config:
         from_attributes = True
+
 
 class GymDashboardStats(BaseModel):
     gymID: int

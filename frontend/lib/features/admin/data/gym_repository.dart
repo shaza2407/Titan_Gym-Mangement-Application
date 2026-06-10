@@ -73,8 +73,6 @@ class GymDashboardStats {
 }
 
 class GymRepository {
-
-
   Map<String, String> _headers(String token) => {
     'Content-Type': 'application/json',
     'Authorization': 'Bearer $token',
@@ -120,6 +118,8 @@ Future<GymModel> createGym({
     required String gymType,
     required String openingHours,
     required String closingHours,
+    List<Map<String, dynamic>> machines = const [], // ← add this
+
   }) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/gyms/'),
@@ -132,6 +132,8 @@ Future<GymModel> createGym({
         'gymType':                   gymType,
         'openingHours':              openingHours,
         'closingHours':              closingHours,
+        'machines': machines, 
+
       }),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
