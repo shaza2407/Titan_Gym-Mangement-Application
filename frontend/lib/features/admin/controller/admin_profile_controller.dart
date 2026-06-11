@@ -1,23 +1,8 @@
 import 'package:flutter/material.dart';
-
-class AdminProfileModel {
-  final String name;
-  final String email;
-  final String? phone;
-  final String? createdAt;
-  final int totalGyms;
-
-  AdminProfileModel({
-    required this.name,
-    required this.email,
-    this.phone,
-    this.createdAt,
-    this.totalGyms = 0,
-  });
-}
+import '../../admin/data/admin_repository.dart';
 
 class AdminProfileController extends ChangeNotifier {
-  AdminProfileModel? profile;
+  AdminProfile? profile;
   bool isLoading = false;
   bool isSaving = false;
   String? errorMessage;
@@ -30,21 +15,14 @@ class AdminProfileController extends ChangeNotifier {
 
   Future<void> loadProfile(String token) async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
     try {
-      // TODO: replace with your actual API call
-      // final data = await _repo.getAdminProfile(token);
-      profile = AdminProfileModel(
-        name: 'Admin Name',
-        email: 'admin@example.com',
-        phone: '',
-        createdAt: '2024-01-01',
-        totalGyms: 3,
-      );
+      profile = await AdminApiService.fetchAdminProfile(token);
       nameController.text  = profile?.name  ?? '';
       phoneController.text = profile?.phone ?? '';
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
       isLoading = false;
       notifyListeners();
@@ -52,7 +30,6 @@ class AdminProfileController extends ChangeNotifier {
   }
 
   Future<bool> saveProfile(String token) async {
-    // Password validation
     if (newPasswordController.text.isNotEmpty) {
       if (newPasswordController.text != confirmPasswordController.text) {
         errorMessage = 'New passwords do not match';
@@ -70,12 +47,18 @@ class AdminProfileController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     try {
-      // TODO: replace with your actual API call
-      // await _repo.updateAdminProfile(token, name, phone, newPassword)
-      await Future.delayed(const Duration(seconds: 1)); // simulate
+      await AdminApiService.updateAdminProfile(
+        token:           token,
+        name:            nameController.text.trim(),
+        phone:           phoneController.text.trim(),
+        currentPassword: currentPasswordController.text.trim(),
+        newPassword:     newPasswordController.text.trim(),
+      );
+      // refresh profile after save
+      await loadProfile(token);
       return true;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
       return false;
     } finally {
       isSaving = false;

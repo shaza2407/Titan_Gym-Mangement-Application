@@ -4,16 +4,19 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.params import Depends
 from app.database import get_session
-from app.routers import auth
-from app.routers import coach_dashboard,coach_schedule
-from app.routers import admin_clients_management, admin_coaches_management
-from app.routers import gym
-from app.routers import client_dashboard
-from app.routers import client_attendance
-from app.routers import achievements
-from app.routers import training_plan
-from app.routers import admin_schedule
-from app.routers import client_schedule
+from app.routers.Admin import admin_clients_management
+from app.routers.Auth import auth
+from app.routers.Coach import coach_dashboard
+from app.routers.Admin import admin_coaches_management
+from app.routers.Admin import gym
+from app.routers.Admin import admin_dashboard
+from app.routers.Client import client_dashboard
+from app.routers.Client import client_attendance
+from app.routers.Client import achievements
+from app.routers.Client import training_plan
+from app.routers.Admin import admin_schedule
+from app.routers.Client import client_schedule
+from app.routers.Coach import coach_schedule
 
 
 app = FastAPI(title="Titan Gym Management System")
@@ -26,7 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routers import (
+from app.routers.Auth import (
     auth
 )
 
@@ -56,6 +59,7 @@ app.include_router(client_schedule.router)
 
 # admin routers
 app.include_router(admin_schedule.router)
+app.include_router(admin_dashboard.router)
 
 # Achievements
 app.include_router(achievements.router)
