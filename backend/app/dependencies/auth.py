@@ -71,7 +71,7 @@ async def require_admin(token: str = Depends(oauth2_scheme),
 async def require_coach(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_session)
-) -> Coach:
+) -> User:  # ← User not Coach
     user = await get_current_user(token=token, db=db)
     if user.role != "coach":
         raise HTTPException(403, "Coaches only")
@@ -81,7 +81,8 @@ async def require_coach(
     if not coach:
         raise HTTPException(404, "Coach record not found")
 
-    return coach
+    return user
+
 async def require_client(current_user: User = Depends(get_current_user)):
     if current_user.role != "client":
         raise HTTPException(403, "Clients only")
