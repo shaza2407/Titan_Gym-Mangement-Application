@@ -23,6 +23,22 @@ from app.schemas.TrainingPlanResponse import (
 from app.services.gemini_agent import gemini_agent
 from app.services.achievement_engine import achievement_engine
 
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_LEFT
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    PageBreak,
+    KeepTogether,
+)
+from reportlab.platypus.flowables import HRFlowable
+
 router = APIRouter(prefix="/training-plans", tags=["AI Training Plans"])
 
 
@@ -432,88 +448,325 @@ async def _check_auto_complete(
 
 def _generate_pdf(plan: TrainingPlan) -> bytes:
     """
-    Generate a PDF for the training plan using reportlab.
-    Falls back gracefully if reportlab is not installed.
+    Generate a clean and professional PDF for a training plan.
     """
+
     try:
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.units import cm
-        from reportlab.platypus import (
-            SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-        )
-        from reportlab.lib import colors
-    except ImportError:
-        raise RuntimeError("reportlab is not installed. Run: pip install reportlab")
+        from reportlab.pdfbase.ttfonts import TTFont
+        from reportlab.pdfbase import pdfmetrics
+    except Exception:
+        pass
 
     buffer = BytesIO()
-    doc    = SimpleDocTemplate(buffer, pagesize=A4,
-                               leftMargin=2*cm, rightMargin=2*cm,
-                               topMargin=2*cm, bottomMargin=2*cm)
-    styles = getSampleStyleSheet()
-    story  = []
 
-    # ── Header ──
-    story.append(Paragraph(plan.title, styles["Title"]))
-    story.append(Spacer(1, 0.3*cm))
-    meta = (
-        f"Goal: {plan.goal} | Level: {plan.level or '—'} | "
-        f"Duration: {plan.weeks or '?'} weeks | "
-        f"Created: {plan.created_at.strftime('%Y-%m-%d')}"
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=1.5 * cm,
+        bottomMargin=1.5 * cm,
     )
-    story.append(Paragraph(meta, styles["Normal"]))
-    story.append(Spacer(1, 0.5*cm))
 
-    # ── Weeks & Days ──
+    styles = getSampleStyleSheet()
+
+    # =========================
+    # Custom Styles
+    # =========================
+
+    title_style = ParagraphStyle(
+        "CustomTitle",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=24,
+        leading=30,
+        textColor=colors.HexColor("#1a1a2e"),
+        spaceAfter=14,
+    )
+
+    section_style = ParagraphStyle(
+        "SectionStyle",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=18,
+        leading=22,
+        textColor=colors.HexColor("#16213e"),
+        spaceBefore=16,
+        spaceAfter=10,
+    )
+
+    workout_style = ParagraphStyle(
+        "WorkoutStyle",
+        parent=styles["Heading3"],
+        fontName="Helvetica-Bold",
+        fontSize=13,
+        leading=16,
+        textColor=colors.HexColor("#0f3460"),
+        spaceBefore=12,
+        spaceAfter=8,
+    )
+
+    normal_style = ParagraphStyle(
+        "NormalStyle",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=14,
+    )
+
+    small_style = ParagraphStyle(
+        "SmallStyle",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#555555"),
+    )
+
+    story = []
+
+    # =========================
+    # Header
+    # =========================
+
+    story.append(Paragraph(plan.title, title_style))
+
+    meta = f"""
+    <b>Goal:</b> {plan.goal}<br/>
+    <b>Level:</b> {plan.level or 'N/A'}<br/>
+    <b>Duration:</b> {plan.weeks or '?'} weeks<br/>
+    <b>Created:</b> {plan.created_at.strftime('%Y-%m-%d')}
+    """
+
+    story.append(Paragraph(meta, normal_style))
+    story.append(Spacer(1, 0.4 * cm))
+
+    story.append(
+        HRFlowable(
+            width="100%",
+            thickness=1,
+            color=colors.HexColor("#1a1a2e"),
+        )
+    )
+
+    story.append(Spacer(1, 0.4 * cm))
+
+    # =========================
+    # Parse JSON
+    # =========================
+
     try:
-        data  = json.loads(plan.plan_json)
+        data = json.loads(plan.plan_json)
         weeks = data.get("plan", [])
-    except (json.JSONDecodeError, TypeError):
+    except Exception:
         weeks = []
 
-    for week in weeks:
-        week_title = f"Week {week.get('week', '?')}"
+    # =========================
+    # Weeks
+    # =========================
+
+    for week_index, week in enumerate(weeks, start=1):
+
+        week_number = week.get("week", week_index)
+
+        week_title = f"Week {week_number}"
+
         if week.get("theme"):
             week_title += f" — {week['theme']}"
-        story.append(Paragraph(week_title, styles["Heading2"]))
-        story.append(Spacer(1, 0.2*cm))
 
-        for day in week.get("days", []):
-            story.append(Paragraph(
-                f"<b>{day.get('day','')}</b> — {day.get('focus','')}",
-                styles["Heading3"],
-            ))
+        story.append(Paragraph(week_title, section_style))
+        story.append(Spacer(1, 0.15 * cm))
+
+        days = week.get("days", [])
+
+        for day_index, day in enumerate(days, start=1):
+
+            day_name = day.get("day", f"Workout Day {day_index}")
+            focus = day.get("focus", "")
+
+            if focus:
+                heading = f"{day_name} — {focus}"
+            else:
+                heading = day_name
+
+            story.append(Paragraph(heading, workout_style))
+
             exercises = day.get("exercises", [])
-            if exercises:
-                rows = [["Exercise", "Sets", "Reps", "Notes"]]
-                for ex in exercises:
-                    if isinstance(ex, dict):
-                        rows.append([
-                            ex.get("name", ""),
-                            str(ex.get("sets", "")),
-                            str(ex.get("reps", "")),
-                            ex.get("notes", ""),
-                        ])
-                    else:
-                        rows.append([str(ex), "", "", ""])
 
-                tbl = Table(rows, colWidths=[6*cm, 2*cm, 2*cm, 7*cm])
-                tbl.setStyle(TableStyle([
-                    ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#1a1a2e")),
-                    ("TEXTCOLOR",  (0,0), (-1,0), colors.white),
-                    ("FONTNAME",   (0,0), (-1,0), "Helvetica-Bold"),
-                    ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#f5f5f5")]),
-                    ("GRID",       (0,0), (-1,-1), 0.4, colors.grey),
-                    ("FONTSIZE",   (0,0), (-1,-1), 9),
-                    ("PADDING",    (0,0), (-1,-1), 4),
-                ]))
-                story.append(tbl)
+            if exercises:
+
+                rows = [
+                    [
+                        Paragraph("<b>Exercise</b>", small_style),
+                        Paragraph("<b>Sets</b>", small_style),
+                        Paragraph("<b>Reps</b>", small_style),
+                        Paragraph("<b>Notes</b>", small_style),
+                    ]
+                ]
+
+                for ex in exercises:
+
+                    if isinstance(ex, dict):
+
+                        name = Paragraph(
+                            str(ex.get("name", "")),
+                            small_style,
+                        )
+
+                        sets = Paragraph(
+                            str(ex.get("sets", "")),
+                            small_style,
+                        )
+
+                        reps = Paragraph(
+                            str(ex.get("reps", "")),
+                            small_style,
+                        )
+
+                        notes = Paragraph(
+                            str(ex.get("notes", "")),
+                            small_style,
+                        )
+
+                        rows.append([name, sets, reps, notes])
+
+                    else:
+
+                        rows.append(
+                            [
+                                Paragraph(str(ex), small_style),
+                                "",
+                                "",
+                                "",
+                            ]
+                        )
+
+                table = Table(
+                    rows,
+                    repeatRows=1,
+                    colWidths=[
+                        5.5 * cm,
+                        2 * cm,
+                        2.5 * cm,
+                        6.5 * cm,
+                    ],
+                )
+
+                table.setStyle(
+                    TableStyle(
+                        [
+                            # Header
+                            (
+                                "BACKGROUND",
+                                (0, 0),
+                                (-1, 0),
+                                colors.HexColor("#1a1a2e"),
+                            ),
+                            (
+                                "TEXTCOLOR",
+                                (0, 0),
+                                (-1, 0),
+                                colors.white,
+                            ),
+                            (
+                                "FONTNAME",
+                                (0, 0),
+                                (-1, 0),
+                                "Helvetica-Bold",
+                            ),
+                            (
+                                "FONTSIZE",
+                                (0, 0),
+                                (-1, 0),
+                                10,
+                            ),
+
+                            # Body
+                            (
+                                "BACKGROUND",
+                                (0, 1),
+                                (-1, -1),
+                                colors.white,
+                            ),
+
+                            (
+                                "ROWBACKGROUNDS",
+                                (0, 1),
+                                (-1, -1),
+                                [
+                                    colors.white,
+                                    colors.HexColor("#f7f7f7"),
+                                ],
+                            ),
+
+                            (
+                                "GRID",
+                                (0, 0),
+                                (-1, -1),
+                                0.5,
+                                colors.HexColor("#cccccc"),
+                            ),
+
+                            (
+                                "VALIGN",
+                                (0, 0),
+                                (-1, -1),
+                                "TOP",
+                            ),
+
+                            (
+                                "LEFTPADDING",
+                                (0, 0),
+                                (-1, -1),
+                                6,
+                            ),
+                            (
+                                "RIGHTPADDING",
+                                (0, 0),
+                                (-1, -1),
+                                6,
+                            ),
+                            (
+                                "TOPPADDING",
+                                (0, 0),
+                                (-1, -1),
+                                6,
+                            ),
+                            (
+                                "BOTTOMPADDING",
+                                (0, 0),
+                                (-1, -1),
+                                6,
+                            ),
+                        ]
+                    )
+                )
+
+                story.append(KeepTogether(table))
 
             if day.get("notes"):
-                story.append(Paragraph(f"<i>Notes: {day['notes']}</i>", styles["Normal"]))
-            story.append(Spacer(1, 0.3*cm))
+                story.append(
+                    Spacer(1, 0.1 * cm)
+                )
 
-        story.append(Spacer(1, 0.4*cm))
+                story.append(
+                    Paragraph(
+                        f"<i>Notes:</i> {day['notes']}",
+                        normal_style,
+                    )
+                )
+
+            story.append(Spacer(1, 0.35 * cm))
+
+        story.append(Spacer(1, 0.5 * cm))
+
+    # =========================
+    # Build PDF
+    # =========================
 
     doc.build(story)
-    return buffer.getvalue()
+
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    return pdf
