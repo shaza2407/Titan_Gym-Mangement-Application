@@ -207,5 +207,83 @@ class AdminApiService {
       throw Exception(detail);
     }
   }
+
+// Admin Profile
+static Future<AdminProfile> fetchAdminProfile(String token) async {
+  final res = await http.get(
+    Uri.parse('${ApiConstants.baseUrl}/admin/profile'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+  if (res.statusCode == 200) {
+    return AdminProfile.fromJson(jsonDecode(res.body));
+  }
+  throw Exception('Failed to load profile: ${res.statusCode}');
+}
+
+static Future<void> updateAdminProfile({
+  required String token,
+  required String name,
+  required String phone,
+  String? currentPassword,
+  String? newPassword,
+}) async {
+  final body = {
+    'name': name,
+    'phone': phone,
+    if (currentPassword != null && currentPassword.isNotEmpty)
+      'current_password': currentPassword,
+    if (newPassword != null && newPassword.isNotEmpty)
+      'new_password': newPassword,
+  };
+
+  final res = await http.put(
+    Uri.parse('${ApiConstants.baseUrl}/admin/profile'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode(body),
+  );
+  if (res.statusCode != 200) {
+    final detail = jsonDecode(res.body)['detail'] ?? 'Unknown error';
+    throw Exception(detail);
+  }
+}
+}
+
+//admin profile models
+class AdminProfile {
+  final int adminID;
+  final int userID;
+  final String name;
+  final String email;
+  final String? phone;
+  final String? createdAt;
+  final int totalGyms;
+
+  AdminProfile({
+    required this.adminID,
+    required this.userID,
+    required this.name,
+    required this.email,
+    this.phone,
+    this.createdAt,
+    this.totalGyms = 0,
+  });
+
+  factory AdminProfile.fromJson(Map<String, dynamic> json) {
+    return AdminProfile(
+      adminID:    json['adminID'],
+      userID:     json['userID'],
+      name:       json['name']       ?? '',
+      email:      json['email']      ?? '',
+      phone:      json['phone'],
+      createdAt:  json['created_at'],
+      totalGyms:  json['total_gyms'] ?? 0,
+    );
+  }
 }
 

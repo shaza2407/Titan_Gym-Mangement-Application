@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'signup_controller.dart';
+import '../controller/signup_controller.dart';
 import 'package:provider/provider.dart';
 
 
@@ -93,7 +93,9 @@ class SignupScreen extends StatelessWidget {
                         Text("Already have an account? "),
                         GestureDetector(
                           onTap: () => Navigator.pushNamed(context, '/login'),
-                          child: Text('Sign in', style: TextStyle(color: Color(0xFF4F46E5), fontWeight: FontWeight.bold)),
+                          child: 
+                            _HoverTextButton(label: 'Sign in',onTap: () => Navigator.pushNamed(context, '/login'),),
+
                               ),
                             ],
                           ),
@@ -128,3 +130,54 @@ class SignupScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+class _HoverTextButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _HoverTextButton({required this.label, required this.onTap});
+
+  @override
+  State<_HoverTextButton> createState() => __HoverTextButtonState();
+}
+
+class __HoverTextButtonState extends State<_HoverTextButton> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() {
+        _isHovered = false;
+        _isPressed = false;
+      }),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: Text(
+          widget.label,
+          style: TextStyle(
+            color: _isPressed
+                ? const Color(0xFF3730A3)  
+                : const Color(0xFF4F46E5), 
+            decoration: _isHovered
+                ? TextDecoration.underline
+                : TextDecoration.none,
+            decorationColor: _isPressed
+                ? const Color(0xFF3730A3)
+                : const Color(0xFF4F46E5),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+

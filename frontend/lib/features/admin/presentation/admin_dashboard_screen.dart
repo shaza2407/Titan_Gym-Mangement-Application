@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/admin/presentation/admin_shell.dart';
 import 'package:provider/provider.dart';
 import '../controller/admin_gym_controller.dart';
 import '../data/gym_repository.dart';
@@ -9,7 +10,6 @@ import '../../shared/logout_button.dart';
 class AdminDashboardScreen extends StatelessWidget {
   final String token;
   const AdminDashboardScreen({super.key, required this.token});
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -41,8 +41,8 @@ class AdminDashboardScreen extends StatelessWidget {
                         label: const Text('Create New Gym',
                             style: TextStyle(color: Colors.white, fontSize: 16)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4F46E5),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: const Color(0xFF165DFC),
+                          padding: const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                         ),
@@ -58,7 +58,7 @@ class AdminDashboardScreen extends StatelessWidget {
                                 child: Text(controller.errorMessage!,
                                     style: const TextStyle(color: Colors.red)))
                             : controller.gyms.isEmpty
-                                ? const Center(child: Text('No gyms yet. Create one!'))
+                                ? const Center(child: Text('No gyms yet. Create your first one!'))
                                 : ListView.builder(
                                     padding: const EdgeInsets.symmetric(horizontal: 16),
                                     itemCount: controller.gyms.length,
@@ -85,7 +85,7 @@ class AdminDashboardScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
-        color: Color(0xFF4F46E5),
+        color: Color(0xFF165DFC),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
@@ -119,6 +119,8 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
+
+//summary metrics cards
   Widget _buildStats(AdminGymController controller) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -136,7 +138,7 @@ class AdminDashboardScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: const Color(0xFF4F46E5), borderRadius: BorderRadius.circular(12)),
+          color: const Color(0xFF165DFC), borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -144,7 +146,7 @@ class AdminDashboardScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(value,
               style: const TextStyle(
-                  color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                  color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -163,26 +165,23 @@ class AdminDashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              //gym title
               Text(gym.gymName,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Row(
                 children: [
-                  // ← tapping arrow navigates to the gym dashboard
                   IconButton(
                     icon: const Icon(Icons.arrow_forward_ios, size: 16),
                     onPressed: () => Navigator.push(
                       context,
+                      
                       MaterialPageRoute(
-                        builder: (_) => ChangeNotifierProvider.value(
-                          value: controller,
-                          child: GymDashboardScreen(gym: gym, token: token),
+                        builder: (_) => ChangeNotifierProvider(
+                          create: (_) => AdminGymController(),
+                          child: AdminShell(gym: gym, token: token),
                         ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.more_vert),
-                    onPressed: () {},
                   ),
                 ],
               ),
@@ -193,28 +192,28 @@ class AdminDashboardScreen extends StatelessWidget {
               const Icon(Icons.location_on, size: 14, color: Colors.grey),
               const SizedBox(width: 4),
               Text(gym.location,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  style: const TextStyle(color: Color.fromARGB(255, 102, 108, 116), fontSize: 13)),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.access_time, size: 14, color: Colors.grey),
+              const Icon(Icons.access_time, size: 14, color: Color.fromARGB(255, 102, 108, 116)),
               const SizedBox(width: 4),
               Text('${gym.openingHours} - ${gym.closingHours}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  style: const TextStyle(color: Color.fromARGB(255, 102, 108, 116), fontSize: 13)),
               const Spacer(),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.fitness_center, size: 14, color: Colors.grey),
+              const Icon(Icons.fitness_center, size: 14, color: Color.fromARGB(255, 102, 108, 116)),
               const SizedBox(width: 4),
               Text(gym.gymType,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  style: const TextStyle(color: Color.fromARGB(255, 102, 108, 116), fontSize: 13)),
               const Spacer(),
-              Text('\$${gym.subscriptionPrice.toStringAsFixed(0)}/mo',
+              Text('\$${gym.subscriptionPrice.toStringAsFixed(0)}/monthly',
                   style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),

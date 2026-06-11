@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/shared/admin_bottom_bar.dart';
-import '../data/admin_api_service.dart';
+import '../data/admin_repository.dart';
 import 'invite_member_screen.dart';
 import 'client_detail_screen.dart';
 
 class ClientManagementScreen extends StatefulWidget {
   final int gymId;
   final String token;
+  final void Function(int)? onTabChange;
 
   const ClientManagementScreen({
     super.key,
     required this.gymId,
     required this.token,
+    this.onTabChange
   });
 
   @override
@@ -70,11 +72,6 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      bottomNavigationBar: AdminBottomBar(
-          currentIndex: 1,
-          token: widget.token,
-          gymId: widget.gymId
-      ),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
