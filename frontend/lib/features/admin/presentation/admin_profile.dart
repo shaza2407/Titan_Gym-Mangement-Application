@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/logout_button.dart';
 import '../controller/admin_profile_controller.dart';
+import '../../auth/presentation/forget_password_page.dart';
+
 
 class AdminProfileScreen extends StatefulWidget {
   final String token;
@@ -11,9 +13,9 @@ class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({
     super.key,
     required this.token,
-    required this.gymId,  
-    this.onTabChange  
-    });
+    required this.gymId,
+    this.onTabChange,
+  });
 
   @override
   State<AdminProfileScreen> createState() => _AdminProfileScreenState();
@@ -21,6 +23,7 @@ class AdminProfileScreen extends StatefulWidget {
 
 class _AdminProfileScreenState extends State<AdminProfileScreen> {
   late AdminProfileController _ctrl;
+  // bool _showPasswordSection = false;
 
   @override
   void initState() {
@@ -40,25 +43,23 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               body: Center(child: CircularProgressIndicator()),
             );
           }
+
           return Scaffold(
             backgroundColor: const Color(0xFFF5F5F5),
             appBar: AppBar(
               backgroundColor: Colors.white,
+              elevation: 0,
+              automaticallyImplyLeading: false,
               title: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Admin Profile',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Manage your account information',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
+                  Text('Admin Profile',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold)),
+                  Text('Manage your account information',
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
               ),
               centerTitle: true,
@@ -85,40 +86,16 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     subtitle: 'Your personal details',
                     children: [
                       _buildField('Full Name', ctrl.nameController),
+                      // Email is read-only
                       _buildReadOnly('Email Address', ctrl.profile?.email ?? ''),
-                      _buildField(
-                        'Phone Number',
-                        ctrl.phoneController,
-                        keyboardType: TextInputType.phone,
-                      ),
+                      _buildField('Phone Number', ctrl.phoneController,
+                          keyboardType: TextInputType.phone),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Security ──────────────────────────────────────
-                  _buildSection(
-                    icon: Icons.lock_outline,
-                    iconColor: const Color(0xFF4F46E5),
-                    title: 'Security',
-                    subtitle: 'Update your password',
-                    children: [
-                      _buildField(
-                        'Current Password',
-                        ctrl.currentPasswordController,
-                        obscure: true,
-                      ),
-                      _buildField(
-                        'New Password',
-                        ctrl.newPasswordController,
-                        obscure: true,
-                      ),
-                      _buildField(
-                        'Confirm New Password',
-                        ctrl.confirmPasswordController,
-                        obscure: true,
-                      ),
-                    ],
-                  ),
+                  // ── Password Section ──────────────────────────────
+                  _buildPasswordSection(ctrl),
                   const SizedBox(height: 16),
 
                   // ── Account Info ──────────────────────────────────
@@ -129,14 +106,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     subtitle: 'Your account details',
                     children: [
                       _buildReadOnly('Role', 'Administrator'),
-                      _buildReadOnly(
-                        'Member Since',
-                        ctrl.profile?.createdAt ?? '-',
-                      ),
-                      _buildReadOnly(
-                        'Total Gyms Managed',
-                        '${ctrl.profile?.totalGyms ?? 0} gyms',
-                      ),
+                      _buildReadOnly('Total Gyms Managed',
+                          '${ctrl.profile?.totalGyms ?? 0} gyms'),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -145,9 +116,25 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   if (ctrl.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(
-                        ctrl.errorMessage!,
-                        style: const TextStyle(color: Colors.red),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline,
+                                color: Colors.red, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(ctrl.errorMessage!,
+                                  style: const TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
@@ -164,8 +151,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                               if (success && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content:
-                                        Text('Profile updated successfully'),
+                                    content: Text('Profile updated successfully'),
                                     backgroundColor: Color(0xFF4F46E5),
                                   ),
                                 );
@@ -173,22 +159,20 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                             },
                       icon: ctrl.isSaving
                           ? const SizedBox(
-                              width: 18, height: 18,
+                              width: 18,
+                              height: 18,
                               child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2,
-                              ),
+                                  color: Colors.white, strokeWidth: 2),
                             )
                           : const Icon(Icons.save, color: Colors.white),
                       label: Text(
                         ctrl.isSaving ? 'Saving...' : 'Save Changes',
-                        style: const TextStyle(
-                            fontSize: 16, color: Colors.white),
+                        style: const TextStyle(fontSize: 16, color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: const Color(0xFF4F46E5),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
+                            borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
                   ),
@@ -201,6 +185,54 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       ),
     );
   }
+
+  // ── Password section with toggle ──────────────────────────────────────────
+  Widget _buildPasswordSection(AdminProfileController ctrl) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lock_outline, color: Color(0xFF4F46E5), size: 20),
+              const SizedBox(width: 8),
+              const Text('Security',style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Spacer(),
+              Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+              onTap: () => Navigator.push(context,
+                MaterialPageRoute(
+                builder: (_) => ForgotPasswordPage(),
+                ),
+              ),
+              child: const Text('Reset password?',
+              style: TextStyle(
+              color: Color(0xFF4F46E5),
+              fontSize: 13,
+              decoration: TextDecoration.underline,
+              ),
+            ),
+          ) ,
+        ),
+            ],
+          ),
+
+            // Forgot password link
+
+          ],
+        
+      ),
+    );
+  }
+
+
 
   // ── Avatar card ───────────────────────────────────────────────────────────
   Widget _buildAvatarCard(AdminProfileController ctrl) {
@@ -220,38 +252,31 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         children: [
           CircleAvatar(
             radius: 44,
-            backgroundColor: const Color(0xFF4F46E5), // ← blue for admin
-            child: Text(
-              initials,
-              style: const TextStyle(
-                fontSize: 28,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            backgroundColor: const Color(0xFF4F46E5),
+            child: Text(initials,
+                style: const TextStyle(
+                    fontSize: 28,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 12),
           Text(name,
               style: const TextStyle(
                   fontSize: 18, fontWeight: FontWeight.bold)),
-          const Text('Administrator',
-              style: TextStyle(color: Colors.grey)),
+          Text(ctrl.profile?.email ?? '',
+              style: const TextStyle(color: Colors.grey, fontSize: 13)),
           const SizedBox(height: 8),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFFF0EFFF),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
-              'Admin Account',
-              style: TextStyle(
-                color: Color(0xFF4F46E5),
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
+            child: const Text('Administrator',
+                style: TextStyle(
+                    color: Color(0xFF4F46E5),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12)),
           ),
         ],
       ),
@@ -307,14 +332,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 13)),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           obscureText: obscure,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          onChanged: (_) => setState(() {}), // rebuild for match indicator
           decoration: InputDecoration(
             hintText: hint ?? label,
             filled: true,
@@ -336,19 +361,24 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 13)),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(value,
-              style: const TextStyle(color: Colors.black54)),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(value,
+                    style: const TextStyle(color: Colors.black54)),
+              ),
+              const Icon(Icons.lock_outline, size: 14, color: Colors.grey),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
       ],
