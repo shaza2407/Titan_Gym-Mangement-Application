@@ -12,4 +12,3 @@ class Machine(Base):
     description = Column("description", String,  nullable=True)
  
     gym_inventories = relationship("GymMachineInventory", back_populates="machine")
- 
