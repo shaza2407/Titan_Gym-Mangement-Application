@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/admin/presentation/admin_shell.dart';
 import 'package:provider/provider.dart';
 import '../controller/admin_gym_controller.dart';
 import '../data/gym_repository.dart';
@@ -173,10 +174,11 @@ class AdminDashboardScreen extends StatelessWidget {
                     icon: const Icon(Icons.arrow_forward_ios, size: 16),
                     onPressed: () => Navigator.push(
                       context,
+                      
                       MaterialPageRoute(
-                        builder: (_) => ChangeNotifierProvider.value(
-                          value: controller,
-                          child: GymDashboardScreen(gym: gym, token: token),
+                        builder: (_) => ChangeNotifierProvider(
+                          create: (_) => AdminGymController(),
+                          child: AdminShell(gym: gym, token: token),
                         ),
                       ),
                     ),

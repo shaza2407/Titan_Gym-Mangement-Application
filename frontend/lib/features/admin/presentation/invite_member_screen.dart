@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/admin_api_service.dart';
+import '../data/admin_repository.dart';
 import '../../shared/admin_bottom_bar.dart';
 
 class InviteMemberScreen extends StatefulWidget {
