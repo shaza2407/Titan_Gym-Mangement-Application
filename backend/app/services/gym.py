@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 import qrcode
 import base64
 from io import BytesIO
-from app.models.Gym import Gym
+from app.models import Gym , GymMachineInventory
 from app.schemas.gym import GymCreate, GymUpdate
 from sqlalchemy import func
 from datetime import date, datetime, timezone
@@ -27,13 +27,23 @@ async def get_all_gyms_by_admin(db: AsyncSession, admin_id: int, skip: int = 0, 
 
 async def create_gym(db: AsyncSession, gym_data: GymCreate, admin_id: int) -> Gym:
     data = gym_data.model_dump()
+    machines = data.pop("machines", []) 
     data["adminID"] = admin_id
-    data["QRCode"] = ""  
+    data["QRCode"] = ""
     new_gym = Gym(**data)
     try:
         db.add(new_gym)
-        await db.flush()  
+        await db.flush() 
         new_gym.QRCode = generate_qr_code(new_gym.gymID, new_gym.gymName)
+        # Add machines to inventory
+        for machine in machines:
+            inventory = GymMachineInventory(
+                gymID=new_gym.gymID,
+                machineName=machine["machineName"], 
+                machineType=machine["machineType"],
+                quantity=machine["quantity"],
+            )
+        db.add(inventory)
         await db.commit()
         await db.refresh(new_gym)
     except IntegrityError:

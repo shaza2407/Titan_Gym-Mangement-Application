@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import './verify_email_controller.dart';
+import '../controller/verify_email_controller.dart';
 
 class VerifyEmailPage extends StatelessWidget {
   final String email;

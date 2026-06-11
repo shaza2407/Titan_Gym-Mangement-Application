@@ -59,7 +59,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     ),
                   ),
                   Text(
-                    'Update your personal information',
+                    'Manage your account information',
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
