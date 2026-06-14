@@ -39,11 +39,11 @@ class _AdminShellState extends State<AdminShell> {
       case 1:
         return ClientManagementScreen(
           token: widget.token,
-          gymId: widget.gym.gymID,
+          gym: widget.gym,
           onTabChange: _onTap,
         );
       case 2:
-        return const Center(child: Text('Schedule — Coming Soon'));
+        return const Center(child: Text('Schedule - Coming Soon'));
       case 3:
         return AdminProfileScreen(
           token: widget.token,

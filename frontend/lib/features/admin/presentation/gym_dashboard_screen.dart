@@ -6,6 +6,8 @@ import '../../shared/logout_button.dart';
 import 'client_management_screen.dart';
 import 'coach_management_screen.dart';
 import 'invite_member_screen.dart';
+import 'attendance_tracking_screen.dart';
+import '../data/gym_repository.dart';
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
@@ -199,7 +201,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       'View and manage gym clients',
                       () => Navigator.push(context, MaterialPageRoute(
                         builder: (_) => ClientManagementScreen(
-                            token: widget.token, gymId: widget.gym.gymID),
+                            token: widget.token, gym: widget.gym),
                       )),
                     ),
                     _buildActionItem(
@@ -209,7 +211,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       'View and manage gym coaches',
                       () => Navigator.push(context, MaterialPageRoute(
                         builder: (_) => CoachManagementScreen(
-                            token: widget.token, gymId: widget.gym.gymID),
+                            token: widget.token, gym: widget.gym),
                       )),
                     ),
                     _buildActionItem(
@@ -219,7 +221,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       'Enroll a new member to the gym',
                       () => Navigator.push(context, MaterialPageRoute(
                         builder: (_) => InviteMemberScreen(
-                            gymId: widget.gym.gymID, token: widget.token),
+                            gym: widget.gym, token: widget.token),
                       )),
                     ),
                     _buildActionItem(
@@ -241,7 +243,10 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color.fromARGB(255, 66, 0, 173),
                       'Attendance Tracking',
                       'View attendance records and QR codes',
-                      () {},
+                      () => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => AttendanceTrackingScreen(
+                            token: widget.token, gym: widget.gym),
+                      )),
                     ),
                     _buildActionItem(
                       Icons.tune,
