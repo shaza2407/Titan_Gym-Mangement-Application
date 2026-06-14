@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../data/admin_repository.dart';
-import '../../shared/admin_bottom_bar.dart';
+import '../data/gym_repository.dart';
 
 class InviteMemberScreen extends StatefulWidget {
-  final int gymId;
+  final GymModel gym;
   final String token;
 
   const InviteMemberScreen({
     super.key,
-    required this.gymId,
+    required this.gym,
     required this.token,
   });
 
@@ -38,9 +38,9 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
 
     try {
       if (_isCoach) {
-        await AdminApiService.inviteCoach(widget.gymId, email, widget.token);
+        await AdminApiService.inviteCoach(widget.gym.gymID, email, widget.token);
       } else {
-        await AdminApiService.inviteClient(widget.gymId, email, widget.token);
+        await AdminApiService.inviteClient(widget.gym.gymID, email, widget.token);
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,10 +62,6 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      bottomNavigationBar: AdminBottomBar(currentIndex: 5,
-          token: widget.token,
-          gymId: widget.gymId
-      ),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

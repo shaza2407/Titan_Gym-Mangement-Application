@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
-import '../admin/presentation/client_management_screen.dart';
+import 'package:provider/provider.dart';
 import '../admin/presentation/admin_profile.dart';
-
-
+import '../admin/presentation/admin_dashboard_screen.dart';
+import '../admin/presentation/attendance_tracking_screen.dart';
+import '../admin/presentation/gym_dashboard_screen.dart';
+import '../admin/data/gym_repository.dart';
+import '../admin/controller/admin_gym_controller.dart';
 
 class AdminBottomBar extends StatelessWidget {
-  final int currentIndex, gymId;
+  final int currentIndex;
   final String token;
+   final GymModel gym;
 
   const AdminBottomBar({
     super.key,
     required this.currentIndex,
     required this.token,
-    required this.gymId,
+    required this.gym,
   });
 
   @override
   Widget build(BuildContext context) {
     final items = [
       (Icons.dashboard, 'Dashboard'),
-      (Icons.people_outline, 'Clients'),
+      (Icons.bar_chart_rounded, 'Analytics'),
       (Icons.calendar_today, 'Schedule'),
       (Icons.person_outline, 'Profile'),
     ];
@@ -62,19 +66,22 @@ class AdminBottomBar extends StatelessWidget {
     if (index == currentIndex) return;
     switch (index) {
       case 0:
-        Navigator.pop(context);
-        break;
+      Navigator.pushReplacement(context, MaterialPageRoute(
+        builder: (_) => ChangeNotifierProvider(
+          create: (_) => AdminGymController(),
+          child: GymDashboardScreen(token: token, gym: gym),
+        ),
+      ));
+      break;
       case 1:
-        Navigator.push(context, MaterialPageRoute(
-          builder: (_) => ClientManagementScreen(gymId: gymId, token: token),
-        ));
+        // TODO: Analytics screen
         break;
       case 2:
         // TODO: Schedule screen
         break;
       case 3:
         Navigator.push(context, MaterialPageRoute(
-        builder: (_) => AdminProfileScreen(gymId: gymId, token: token)));
+        builder: (_) => AdminProfileScreen(gymId: gym.gymID, token: token)));
         break;
     }
   }

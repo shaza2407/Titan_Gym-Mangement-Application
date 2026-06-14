@@ -8,6 +8,12 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Frontend</string>
+
+	########### permission for saving QR code to photo library
+	<key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Save QR code to your photo library</string>
+    ###########
+
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

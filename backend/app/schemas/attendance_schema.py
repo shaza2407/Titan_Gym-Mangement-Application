@@ -1,7 +1,10 @@
 # schemas/attendance_schema.py
+import string
+
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, date
+from typing import List
 
 class CheckinStatusResponse(BaseModel):
     can_checkin:       bool
@@ -42,4 +45,22 @@ class DashboardStatsResponse(BaseModel):
     favorite_checkin_hour: Optional[int] = None
     most_active_day: Optional[str] = None
     total_gyms_visited: Optional[int] = None
-    
+
+
+
+class AttendanceStatsResponse(BaseModel):
+    today_total: int
+    this_week: int
+
+class QRCodeResponse(BaseModel):
+    gym_id: int
+    qr_identifier: str
+    gym_name: str
+
+class DayAttendance(BaseModel):
+    day: str
+    count: int
+
+class WeeklyAttendanceResponse(BaseModel):
+    week_start: str
+    days: list[DayAttendance]
