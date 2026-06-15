@@ -38,6 +38,7 @@ from reportlab.platypus import (
     KeepTogether,
 )
 from reportlab.platypus.flowables import HRFlowable
+from app.schemas.CompleteDayRequest import CompleteDayRequest
 
 router = APIRouter(prefix="/training-plans", tags=["AI Training Plans"])
 
@@ -75,7 +76,7 @@ def _parse_plan_json(plan: TrainingPlan) -> list[WeekPlan]:
                 theme = w.get("theme"),
                 days  = [
                     DayPlan(
-                        day       = d.get("day", ""),
+                        day       = str(d.get("day", "")),
                         focus     = d.get("focus", ""),
                         exercises = d.get("exercises", []),
                         notes     = d.get("notes"),
@@ -281,15 +282,17 @@ async def duplicate_plan(
     "/{plan_id}/complete-day",
     summary="Mark a day's workout as completed",
 )
+@router.post("/{plan_id}/complete-day")
 async def complete_day(
     plan_id: int,
-    tracking_date: date,
-    completed_exercises: int,
-    total_exercises: int,
-    duration_minutes: Optional[int] = None,
-    current_user = Depends(require_client),
+    request: CompleteDayRequest,
+    current_user=Depends(require_client),
     db: AsyncSession = Depends(get_session),
 ):
+    tracking_date = request.tracking_date
+    completed_exercises = request.completed_exercises
+    total_exercises = request.total_exercises
+    duration_minutes = request.duration_minutes
     client_id = await _get_client_id(current_user, db)
     plan      = await _get_owned_plan(plan_id, client_id, db)
 
