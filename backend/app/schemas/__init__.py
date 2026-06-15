@@ -15,5 +15,6 @@ from app.schemas import (
     SignInRequest,
     SignInResponse,
     ForgotPasswordRequest,
-    ResetPasswordRequest
+    ResetPasswordRequest,
+    CompleteDayRequest
 )
