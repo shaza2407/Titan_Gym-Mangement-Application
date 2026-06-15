@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/shared/admin_bottom_bar.dart';
-import '../data/admin_api_service.dart';
+import '../data/admin_repository.dart';
 import 'invite_member_screen.dart';
 import 'client_detail_screen.dart';
+import '../data/gym_repository.dart';
 
 class ClientManagementScreen extends StatefulWidget {
-  final int gymId;
+  final GymModel gym;
   final String token;
+  final void Function(int)? onTabChange;
 
   const ClientManagementScreen({
     super.key,
-    required this.gymId,
+    required this.gym,
     required this.token,
+    this.onTabChange
   });
 
   @override
@@ -31,7 +34,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   }
 
   void _load() {
-    _future = AdminApiService.fetchClients(widget.gymId, widget.token);
+    _future = AdminApiService.fetchClients(widget.gym.gymID, widget.token);
   }
 
   void _refresh() => setState(() => _load());
@@ -50,7 +53,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   Future<void> _suspend(int memberId) async {
     try {
       await AdminApiService.suspendClient(
-          widget.gymId, memberId, widget.token);
+          widget.gym.gymID, memberId, widget.token);
       _refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -70,11 +73,6 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      bottomNavigationBar: AdminBottomBar(
-          currentIndex: 1,
-          token: widget.token,
-          gymId: widget.gymId
-      ),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -107,7 +105,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => InviteMemberScreen(
-                    gymId: widget.gymId,
+                    gym: widget.gym,
                     token: widget.token,
                   ),
                 ),
