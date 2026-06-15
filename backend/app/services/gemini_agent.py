@@ -34,6 +34,7 @@ def _build_prompt(
     req: TrainingPlanRequest,
     client_name: str,
     valid_machines: Optional[List[str]] = None,
+    parent_plan: Optional[TrainingPlan] = None,
 ) -> str:
     system = (
         "You are an expert certified personal trainer and sports scientist. "
@@ -64,7 +65,16 @@ def _build_prompt(
     if req.injuries:
         user += f"Injuries: {req.injuries}. "
     user += machines_section
-    
+
+    if parent_plan is not None:
+        parent_data = json.loads(parent_plan.plan_json) if parent_plan.plan_json else {}
+        user += (
+            f"\n\nEDITING EXISTING PLAN: This is a revision of plan '{parent_plan.title}'. "
+            "Use the previous plan as a base reference, keeping structure and duration "
+            "(inject new exercises, adjust intensities, and add progression). "
+            f"Previous plan summary: {json.dumps(parent_data, indent=2)[:3000]}"
+        )
+
     # --- UPDATED STRICT JSON SCHEMA SECTION ---
     user += (
         "\n\nCRITICAL JSON INSTRUCTIONS: "
@@ -192,6 +202,7 @@ class GeminiTrainingAgent:
         req: TrainingPlanRequest,
         db: AsyncSession,
         gym_id: Optional[int] = None,
+        parent_plan: Optional[TrainingPlan] = None,
     ) -> TrainingPlanResponse:
         from app.models.User import User
 
@@ -210,22 +221,17 @@ class GeminiTrainingAgent:
         if gym_id:
             machines = (
                 await db.execute(
-                    select(Machine.machineName)
-                    .join(
-                        GymMachineInventory,
-                        GymMachineInventory.machineID == Machine.machineID,
-                    )
-                    .where(
-                        GymMachineInventory.gymID == gym_id,
-                        GymMachineInventory.status == "available",
-                    )
+                    select(GymMachineInventory.machineName)
+                    .where(GymMachineInventory.gymID == gym_id)
                 )
             ).scalars().all()
             if machines:
                 valid_machines = list(machines)
                 logger.info("Gym %s machines sent to Gemini: %s", gym_id, valid_machines)
 
-        prompt = _build_prompt(req, client_name=user_obj.name, valid_machines=valid_machines)
+        prompt = _build_prompt(
+            req, client_name=user_obj.name, valid_machines=valid_machines, parent_plan=parent_plan
+        )
         logger.info("Generating plan client=%s gym=%s model=%s", client_id, gym_id, MODEL_NAME)
 
         raw_text: Optional[str] = None
