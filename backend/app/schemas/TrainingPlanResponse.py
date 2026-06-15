@@ -31,7 +31,7 @@ class TrainingPlanResponse(BaseModel):
     parent_plan_id: Optional[int]        = None
     plan:           List[WeekPlan]
     raw_json:       str
-    created_at:     datetime
+    created_at:     Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 
@@ -48,6 +48,6 @@ class TrainingPlanSummary(BaseModel):
     version:        int = 1
     parent_plan_id: Optional[int]        = None
     is_active:      bool = True
-    created_at:     datetime
+    created_at:     Optional[datetime] = None
 
     model_config = {"from_attributes": True}

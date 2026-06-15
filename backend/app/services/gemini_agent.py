@@ -1,20 +1,17 @@
 # app/services/gemini_agent.py
-"""
-     Replaced with the actual models you have:
-       - Machine          (app/models/Machine.py)
-       - GymMachineInventory (app/models/gymMachineInventory.py)
-
-     Now generates plans using machines that are "available" in a specific gym.
-"""
 
 import os
 import json
 import logging
+import asyncio
+import random
 from typing import Optional, List
 
 from google import genai
+from google.genai.errors import ServerError, ClientError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from fastapi import HTTPException
 
 from app.models.training_plan import TrainingPlan
 from app.models.client import Client
@@ -25,7 +22,8 @@ from app.schemas.TrainingPlanResponse import TrainingPlanResponse, WeekPlan, Day
 logger = logging.getLogger(__name__)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-MODEL_NAME     = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.5-flash"
+FALLBACK_MODELS = ["gemini-2.5-flash", MODEL_NAME]
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -36,33 +34,167 @@ def _build_prompt(
     req: TrainingPlanRequest,
     client_name: str,
     valid_machines: Optional[List[str]] = None,
+    parent_plan: Optional[TrainingPlan] = None,
 ) -> str:
     system = (
         "You are an expert certified personal trainer and sports scientist. "
-        "Always return a single valid JSON object – no markdown fences, no extra text."
+        "Return only a single valid JSON object – no markdown fences, no extra text, "
+        "and keep it as small as possible."
     )
 
     machines_section = ""
     if valid_machines:
         machines_list = ", ".join(valid_machines)
         machines_section = (
-            f"\nAvailable & valid gym machines/equipment: {machines_list}. "
-            "Only include exercises that use these machines or require no equipment."
+            f"\nHARD CONSTRAINT – every exercise MUST use one of these machines: {machines_list}. "
+            "If no machine fits, use a bodyweight alternative. "
+            "Do NOT invent any other equipment."
+        )
+    else:
+        machines_section = (
+            "\nHARD CONSTRAINT – no gym machines available. "
+            "Every single exercise MUST be bodyweight only. "
+            "Do NOT use any equipment whatsoever."
         )
 
-    user = f"""
-Generate a complete {req.weeks}-week gym training plan for {client_name}:
-Goal: {req.fitness_goal}, Level: {req.level}, Days/Week: {req.days_per_week}, \
-Equipment: {req.equipment}, Injuries: {req.injuries or 'none'}.{machines_section}
+    user = f"Create a {req.weeks}-week plan for {client_name}. "
+    user += f"Goal: {req.fitness_goal}. Level: {req.level}. "
+    user += f"Days/week: {req.days_per_week}. "
+    if req.equipment:
+        user += f"Equipment: {req.equipment}. "
+    if req.injuries:
+        user += f"Injuries: {req.injuries}. "
+    user += machines_section
 
-Follow the JSON structure strictly (title, goal, level, weeks, plan).
-"""
+    if parent_plan is not None:
+        parent_data = json.loads(parent_plan.plan_json) if parent_plan.plan_json else {}
+        user += (
+            f"\n\nEDITING EXISTING PLAN: This is a revision of plan '{parent_plan.title}'. "
+            "Use the previous plan as a base reference, keeping structure and duration "
+            "(inject new exercises, adjust intensities, and add progression). "
+            f"Previous plan summary: {json.dumps(parent_data, indent=2)[:3000]}"
+        )
+
+    # --- UPDATED STRICT JSON SCHEMA SECTION ---
+    user += (
+        "\n\nCRITICAL JSON INSTRUCTIONS: "
+        "You must respond ONLY with a raw JSON object. Do not include markdown formatting or extra text. "
+        "Use this exact schema:\n"
+        "{\n"
+        '  "title": "String",\n'
+        '  "goal": "String",\n'
+        '  "level": "String",\n'
+        '  "weeks": 1,\n'
+        '  "plan": [\n'
+        '    {\n'
+        '      "week": 1,\n'
+        '      "theme": "String",\n'
+        '      "days": [\n'
+        '        {\n'
+        '          "day": 1,\n'
+        '          "focus": "String",\n'
+        '          "exercises": [\n'
+        '            {"name": "String (Machine or Bodyweight only)", "sets": 3, "reps": "10-12"}\n'
+        '          ]\n'
+        '        }\n'
+        '      ]\n'
+        '    }\n'
+        '  ]\n'
+        "}"
+    )
+
     return f"{system}\n\n{user}"
+
+# ── Retry decorator for Gemini calls ──────────────────────────────────────────
+
+def is_retryable_error(exception: Exception) -> bool:
+    text = str(exception).lower()
+    return any(
+        token in text
+        for token in (
+            "503", "unavailable", "rate limit", "quota",
+            "429", "500", "502", "504", "temporary", "overloaded",
+        )
+    )
+
+
+class GeminiAPIError(Exception):
+    pass
 
 
 # ── Agent ─────────────────────────────────────────────────────────────────────
 
 class GeminiTrainingAgent:
+
+    async def _call_gemini_with_retry(
+        self,
+        prompt: str,
+        model_name: str = MODEL_NAME,
+        max_retries: int = 2,
+    ) -> str:
+        last_error: Optional[Exception] = None
+
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    wait_time = 3.0 + random.uniform(0, 2)
+                    logger.info(
+                        "Retry %s/%s for model=%s after %.1fs",
+                        attempt + 1, max_retries, model_name, wait_time,
+                    )
+                    await asyncio.sleep(wait_time)
+                else:
+                    await asyncio.sleep(0.4)
+
+                response = await client.aio.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config={
+                        "response_mime_type": "application/json",
+                        "temperature": 0.7,
+                        "max_output_tokens": 8192,
+                    },
+                )
+
+                raw_text = response.text.strip()
+                if raw_text:
+                    logger.info(
+                        "Gemini OK model=%s attempt=%s", model_name, attempt + 1
+                    )
+                    return raw_text
+                raise GeminiAPIError("Empty response from Gemini API")
+
+            except Exception as exc:
+                last_error = exc
+                if not is_retryable_error(exc):
+                    logger.error("Non-retryable Gemini error: %s", exc)
+                    raise GeminiAPIError(f"Gemini API error: {exc}") from exc
+
+                logger.warning(
+                    "Gemini retryable error model=%s attempt=%s/%s: %s",
+                    model_name, attempt + 1, max_retries, exc,
+                )
+
+        raise GeminiAPIError(
+            f"Failed after {max_retries} attempts for model={model_name}: {last_error}"
+        )
+
+    async def _try_fallback_models(
+        self,
+        prompt: str,
+    ) -> Optional[str]:
+        for model in FALLBACK_MODELS:
+            if model == MODEL_NAME:
+                continue
+            try:
+                logger.info("Trying fallback model: %s", model)
+                text = await self._call_gemini_with_retry(prompt, model, max_retries=2)
+                logger.info("Fallback model %s succeeded", model)
+                return text
+            except GeminiAPIError as exc:
+                logger.warning("Fallback model %s failed: %s", model, exc)
+                continue
+        return None
 
     async def generate_plan(
         self,
@@ -70,120 +202,214 @@ class GeminiTrainingAgent:
         req: TrainingPlanRequest,
         db: AsyncSession,
         gym_id: Optional[int] = None,
+        parent_plan: Optional[TrainingPlan] = None,
     ) -> TrainingPlanResponse:
-
-        # 1. Fetch client + user context
         from app.models.User import User
 
-        result = await db.execute(
-            select(Client, User)
-            .join(User, Client.userID == User.userID)
-            .where(Client.clientID == client_id)
-        )
-        row = result.first()
-        if not row:
+        client_user = (
+            await db.execute(
+                select(Client, User)
+                .join(User, Client.userID == User.userID)
+                .where(Client.clientID == client_id)
+            )
+        ).first()
+        if not client_user:
             raise ValueError(f"Client with id={client_id} not found.")
+        client_obj, user_obj = client_user
 
-        client_obj, user_obj = row
-
-        # 2. Fetch valid machines for the gym using your EXISTING models ✅
         valid_machines: Optional[List[str]] = None
         if gym_id:
-            machines_result = await db.execute(
-                select(Machine.machineName)
-                .join(
-                    GymMachineInventory,
-                    GymMachineInventory.machineID == Machine.machineID
+            machines = (
+                await db.execute(
+                    select(GymMachineInventory.machineName)
+                    .where(GymMachineInventory.gymID == gym_id)
                 )
-                .where(
-                    GymMachineInventory.gymID  == gym_id,
-                    GymMachineInventory.status == "available",   # only available machines
-                )
-            )
-            rows = machines_result.scalars().all()
-            if rows:
-                valid_machines = list(rows)
-                logger.info(
-                    "Sending %d valid machines to Gemini for gym %s",
-                    len(valid_machines), gym_id,
-                )
+            ).scalars().all()
+            if machines:
+                valid_machines = list(machines)
+                logger.info("Gym %s machines sent to Gemini: %s", gym_id, valid_machines)
 
-        # 3. Call Gemini
-        prompt = _build_prompt(req, client_name=user_obj.name, valid_machines=valid_machines)
-        logger.info("Generating AI plan for client %s (gym=%s)...", client_id, gym_id)
+        prompt = _build_prompt(
+            req, client_name=user_obj.name, valid_machines=valid_machines, parent_plan=parent_plan
+        )
+        logger.info("Generating plan client=%s gym=%s model=%s", client_id, gym_id, MODEL_NAME)
 
+        raw_text: Optional[str] = None
         try:
-            response = await client.aio.models.generate_content(
-                model=MODEL_NAME,
-                contents=prompt,
-                config={"response_mime_type": "application/json"},
-            )
-            raw_text = response.text.strip()
-        except Exception as exc:
-            logger.error("Gemini API call failed: %s", exc)
-            raise RuntimeError(f"Gemini API error: {exc}") from exc
+            raw_text = await self._call_gemini_with_retry(prompt, MODEL_NAME, max_retries=2)
+        except GeminiAPIError as exc:
+            logger.error("Primary model failed: %s", exc)
+            raw_text = await self._try_fallback_models(prompt)
+            if not raw_text:
+                logger.error("All models failed, returning fallback plan")
+                return await self._create_fallback_response(
+                    client_id, req, client_obj, user_obj, db
+                )
 
-        # 4. Parse JSON
         plan_dict = _safe_parse_json(raw_text)
-
-        # 5. Persist
         training_plan = TrainingPlan(
-            clientID  = client_id,
-            title     = plan_dict.get("title",  f"{req.fitness_goal.title()} Plan"),
-            goal      = plan_dict.get("goal",   req.fitness_goal),
-            level     = plan_dict.get("level",  req.level),
-            weeks     = plan_dict.get("weeks",  req.weeks),
-            plan_json = json.dumps(plan_dict),
+            clientID=client_id,
+            title=plan_dict.get("title", f"{req.fitness_goal.title()} Plan"),
+            goal=plan_dict.get("goal", req.fitness_goal),
+            level=plan_dict.get("level", req.level),
+            weeks=plan_dict.get("weeks", req.weeks),
+            plan_json=json.dumps(plan_dict),
         )
         db.add(training_plan)
         await db.commit()
         await db.refresh(training_plan)
 
-        # 6. Build response
-        weeks_parsed = _parse_weeks(plan_dict.get("plan", []))
+        return TrainingPlanResponse(
+            planID=training_plan.planID,
+            clientID=client_id,
+            title=training_plan.title,
+            goal=training_plan.goal,
+            level=training_plan.level,
+            weeks=training_plan.weeks,
+            plan=_parse_weeks(plan_dict.get("plan", []), req.days_per_week),
+            raw_json=training_plan.plan_json,
+            created_at=training_plan.created_at,
+        )
+
+    async def _create_fallback_response(
+        self,
+        client_id: int,
+        req: TrainingPlanRequest,
+        client_obj,
+        user_obj,
+        db: AsyncSession,
+    ) -> TrainingPlanResponse:
+        fallback = {
+            "title": f"{req.fitness_goal.title()} Plan (Basic Template)",
+            "goal": req.fitness_goal,
+            "level": req.level,
+            "weeks": req.weeks,
+            "plan": [
+                {
+                    "week": w + 1,
+                    "theme": f"Week {w + 1}",
+                    "days": [
+                        {
+                            "day": f"Day {d + 1}",
+                            "focus": "Full body",
+                            "exercises": [
+                                {
+                                    "name": "Ask your trainer for a personalized workout",
+                                    "sets": 3,
+                                    "reps": "10-12",
+                                    "notes": "AI unavailable – try again later",
+                                }
+                            ],
+                            "notes": "Temporary fallback plan",
+                        }
+                        for d in range(min(req.days_per_week, 5))
+                    ],
+                }
+                for w in range(min(req.weeks, 4))
+            ],
+        }
+
+        plan = TrainingPlan(
+            clientID=client_id,
+            title=fallback["title"],
+            goal=fallback["goal"],
+            level=fallback["level"],
+            weeks=fallback["weeks"],
+            plan_json=json.dumps(fallback),
+        )
+        db.add(plan)
+        await db.commit()
+        await db.refresh(plan)
 
         return TrainingPlanResponse(
-            planID     = training_plan.planID,
-            clientID   = client_id,
-            title      = training_plan.title,
-            goal       = training_plan.goal,
-            level      = training_plan.level,
-            weeks      = training_plan.weeks,
-            plan       = weeks_parsed,
-            raw_json   = training_plan.plan_json,
-            created_at = training_plan.created_at,
+            planID=plan.planID,
+            clientID=client_id,
+            title=plan.title,
+            goal=plan.goal,
+            level=plan.level,
+            weeks=plan.weeks,
+            plan=_parse_weeks(fallback.get("plan", []), req.days_per_week),
+            raw_json=plan.plan_json,
+            created_at=plan.created_at,
         )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _safe_parse_json(text: str) -> dict:
+    # 1. Strip basic markdown
     text = text.replace("```json", "").replace("```", "").strip()
+    
+    # 2. Isolate the JSON object to ignore any conversational text
+    start_idx = text.find("{")
+    end_idx = text.rfind("}")
+    
+    if start_idx != -1 and end_idx != -1:
+        text = text[start_idx : end_idx + 1]
+        
     try:
         return json.loads(text)
-    except json.JSONDecodeError:
-        logger.error("Failed to parse Gemini response: %s", text)
-        return {"title": "Error generating plan", "plan": []}
+    except json.JSONDecodeError as e:
+        logger.error("JSON parse failed: %s | Text snippet: %s", e, text[:250])
+        
+        # 3. Try to repair if it was truncated
+        text = _try_repair_truncated_json(text)
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            logger.error("JSON repair also failed")
+            return {"title": "Parse error", "plan": []}
 
 
-def _parse_weeks(weeks_list: list) -> list[WeekPlan]:
-    result = []
+def _try_repair_truncated_json(text: str) -> str:
+    text = text.rstrip(",")
+    if not text.endswith("}"):
+        text += "}"
+    open_braces = text.count("{")
+    close_braces = text.count("}")
+    text += "}" * (open_braces - close_braces)
+    open_brackets = text.count("[")
+    close_brackets = text.count("]")
+    text += "]" * (open_brackets - close_brackets)
+    return text
+
+
+def _parse_weeks(weeks_list: list, days_per_week: int = 5) -> list[WeekPlan]:
+    if not weeks_list:
+        return []
+
+    first = weeks_list[0]
+    is_flat = "day" in first and "days" not in first
+
+    if is_flat:
+        out: list[WeekPlan] = []
+        for w_idx in range(0, len(weeks_list), days_per_week):
+            chunk = weeks_list[w_idx : w_idx + days_per_week]
+            days = [
+                DayPlan(
+                    day=str(d.get("day", i + 1)),
+                    focus=d.get("focus", ""),
+                    exercises=d.get("exercises", []),
+                    notes=d.get("notes"),
+                )
+                for i, d in enumerate(chunk)
+            ]
+            out.append(WeekPlan(week=w_idx // days_per_week + 1, theme=None, days=days))
+        return out
+
+    out: list[WeekPlan] = []
     for w in weeks_list:
-        days_parsed = [
+        days = [
             DayPlan(
-                day       = d.get("day", ""),
-                focus     = d.get("focus", ""),
-                exercises = d.get("exercises", []),
-                notes     = d.get("notes"),
+                day=str(d.get("day", "")),
+                focus=d.get("focus", ""),
+                exercises=d.get("exercises", []),
+                notes=d.get("notes"),
             )
             for d in w.get("days", [])
         ]
-        result.append(WeekPlan(
-            week  = w.get("week", 0),
-            theme = w.get("theme"),
-            days  = days_parsed,
-        ))
-    return result
+        out.append(WeekPlan(week=w.get("week", 0), theme=w.get("theme"), days=days))
+    return out
 
 
 gemini_agent = GeminiTrainingAgent()
