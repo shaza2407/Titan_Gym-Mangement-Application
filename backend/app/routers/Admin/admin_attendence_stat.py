@@ -19,7 +19,7 @@ router = APIRouter(prefix="/admin/attendance", tags=["Admin – Attendance"])
 
 ## help function
 async def _varify_gym_owner(gym_id: int, admin_id: int, db: AsyncSession) -> Gym:
-    print("//////////////  HERE 2  //////////////")
+    # print("//////////////  HERE 2  //////////////")
     result = await db.execute(select(Gym).where(Gym.gymID == gym_id, Gym.adminID == admin_id))
     gym = result.scalar_one_or_none()
     if not gym:
@@ -30,7 +30,7 @@ async def _varify_gym_owner(gym_id: int, admin_id: int, db: AsyncSession) -> Gym
 ## "/admin/attendance/{gym_id}/stats"
 @router.get("/{gym_id}/stats", response_model=AttendanceStatsResponse)
 async def get_attendance_stats(gym_id: int, db: AsyncSession = Depends(get_session), current_admin = Depends(get_current_user)):
-    print("//////////////  HERE 1  //////////////")
+    # print("//////////////  HERE 1  //////////////")
     await _varify_gym_owner(gym_id, current_admin.userID, db)
 
     today = date.today()
