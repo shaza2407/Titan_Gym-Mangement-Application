@@ -17,6 +17,7 @@ from app.services.coach_schedule import (
     get_class_requests,
     create_class_request,
     get_coach_gymID,
+    remove_class,
 )
 
 router = APIRouter(prefix="/coach/schedule", tags=["Coach Schedule"])
@@ -84,3 +85,30 @@ async def create_request(
         raise HTTPException(400, "You are not connected to any gym")
     result = await create_class_request(coach.coachID, gymID, payload, db)
     return result
+
+
+# DELETE /coach/schedule/my-classes/{class_id}
+@router.delete("/my-classes/{class_id}")
+async def delete_class(
+    class_id: int,
+    current_user=Depends(require_coach),
+    db: AsyncSession = Depends(get_session)
+):
+    coach = await get_coach_or_404(
+        current_user.userID,
+        db,
+    )
+
+    success = await remove_class(
+        coach.coachID,
+        class_id,
+        db,
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail="Class not found",
+        )
+
+    return {"message": "Class removed successfully"}

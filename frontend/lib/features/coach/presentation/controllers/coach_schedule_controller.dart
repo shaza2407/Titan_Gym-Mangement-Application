@@ -6,41 +6,46 @@ class CoachScheduleController extends ChangeNotifier {
   final CoachScheduleRepository _repo = CoachScheduleRepository();
 
   CoachScheduleStatsModel? stats;
-  List<CoachWeeklyDayModel> weekly   = [];
-  List<CoachClassModel> myClasses    = [];
+  List<CoachWeeklyDayModel> weekly = [];
+  List<CoachClassModel> myClasses = [];
   List<CoachClassRequestModel> requests = [];
 
-  bool isLoading      = false;
-  bool isSubmitting   = false;
+  bool isLoading = false;
+  bool isSubmitting = false;
   String? errorMessage;
 
   int selectedTab = 0; // 0=Schedule, 1=MyClasses, 2=Requests
 
   // Request form fields
-  final classNameController    = TextEditingController();
-  final durationController     = TextEditingController();
-  final maxCapacityController  = TextEditingController();
-  final reasonController       = TextEditingController();
-  bool isRecurring             = true;
+  final classNameController = TextEditingController();
+  final durationController = TextEditingController();
+  final maxCapacityController = TextEditingController();
+  final reasonController = TextEditingController();
+  bool isRecurring = true;
   String? selectedDay;
   String? selectedDate;
   String? selectedTime;
 
   final List<String> days = [
-    'monday', 'tuesday', 'wednesday', 'thursday',
-    'friday', 'saturday', 'sunday'
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
   ];
 
   Future<void> loadAll(String token) async {
-    isLoading    = true;
+    isLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      stats     = await _repo.getStats(token);
-      weekly    = await _repo.getWeekly(token);
+      stats = await _repo.getStats(token);
+      weekly = await _repo.getWeekly(token);
       myClasses = await _repo.getMyClasses(token);
-      requests  = await _repo.getRequests(token);
+      requests = await _repo.getRequests(token);
     } catch (e) {
       errorMessage = e.toString();
     } finally {
@@ -74,14 +79,14 @@ class CoachScheduleController extends ChangeNotifier {
 
     try {
       final data = {
-        'class_name':     classNameController.text.trim(),
-        'is_recurring':   isRecurring,
-        'day_of_week':    isRecurring ? selectedDay : null,
+        'class_name': classNameController.text.trim(),
+        'is_recurring': isRecurring,
+        'day_of_week': isRecurring ? selectedDay : null,
         'requested_date': !isRecurring ? selectedDate : null,
         'requested_time': selectedTime,
-        'duration':       int.tryParse(durationController.text.trim()) ?? 45,
-        'max_capacity':   int.tryParse(maxCapacityController.text.trim()) ?? 20,
-        'reason':         reasonController.text.trim().isEmpty
+        'duration': int.tryParse(durationController.text.trim()) ?? 45,
+        'max_capacity': int.tryParse(maxCapacityController.text.trim()) ?? 20,
+        'reason': reasonController.text.trim().isEmpty
             ? null
             : reasonController.text.trim(),
       };
@@ -104,10 +109,10 @@ class CoachScheduleController extends ChangeNotifier {
     durationController.clear();
     maxCapacityController.clear();
     reasonController.clear();
-    selectedDay  = null;
+    selectedDay = null;
     selectedDate = null;
     selectedTime = null;
-    isRecurring  = true;
+    isRecurring = true;
   }
 
   void setTab(int index) {
@@ -116,8 +121,8 @@ class CoachScheduleController extends ChangeNotifier {
   }
 
   void setRecurring(bool value) {
-    isRecurring  = value;
-    selectedDay  = null;
+    isRecurring = value;
+    selectedDay = null;
     selectedDate = null;
     notifyListeners();
   }
@@ -135,5 +140,24 @@ class CoachScheduleController extends ChangeNotifier {
   void setTime(String value) {
     selectedTime = value;
     notifyListeners();
+  }
+
+  Future<bool> deleteClass(String token, int classId) async {
+    try {
+      await _repo.removeClass(token, classId);
+
+      // Remove locally
+      myClasses.removeWhere((c) => c.id == classId);
+
+      // Refresh stats/schedule if needed
+      await loadAll(token);
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 }

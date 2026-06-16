@@ -207,8 +207,9 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Change the section title from "Upcoming Classes" to "Today's Classes"
                   const Text(
-                    'Upcoming Classes',
+                    "Today's Classes", // ← changed
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Text(
@@ -219,7 +220,7 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
                   if (ctrl.upcoming.isEmpty)
                     const Center(
                       child: Text(
-                        'No upcoming classes',
+                        'No classes for today', // ← changed message
                         style: TextStyle(color: Colors.grey),
                       ),
                     )
