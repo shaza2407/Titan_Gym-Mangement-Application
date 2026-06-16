@@ -45,3 +45,5 @@ wheel==0.45.1
 qrcode[pil]==8.2
 google-genai==1.16.0
 bcrypt==4.0.1
+dateutil
+pytz
