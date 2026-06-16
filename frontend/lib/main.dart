@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/coach/coach_dashboard/presentation/layouts/coach_layout.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/auth/presentation/login_screen.dart';
 import 'features/client/presentation/screens/client_dashboard_screen.dart';
@@ -7,7 +6,7 @@ import 'features/client/presentation/screens/client_profile_screen.dart';
 import 'features/auth/presentation/verify_email_page.dart';
 import 'features/auth/presentation/forget_password_page.dart';
 import 'features/admin/presentation/admin_dashboard_screen.dart';
-import 'features/admin/presentation/attendance_tracking_screen.dart';
+import 'features/coach/presentation/screens/coach_dashboard_screen.dart';
 import 'features/shared/api_constants.dart';
 // import 'features/admin/presentation/client_management_screen.dart';
 // import 'features/admin/presentation/coach_management_screen.dart';
@@ -54,7 +53,7 @@ class MyApp extends StatelessWidget {
         if (settings.name == '/coach-dashboard') {
           final token = settings.arguments as String;
           return MaterialPageRoute(
-            builder: (_) => CoachMainWrapper(token:token),
+            builder: (_) => CoachDashboardScreen(token: token), // ← new
           );
         }
         if (settings.name == '/verify-email') {

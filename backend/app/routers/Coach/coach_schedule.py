@@ -1,185 +1,114 @@
-from datetime import date, datetime, timedelta, timezone
+# app/routers/coach_schedule.py
 
-from fastapi import APIRouter, Depends
-from sqlalchemy import func, select
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy import select
 from app.database import get_session
-from app.models.class_session import ClassSession
-from app.models.class_request import ClassRequest, RequestStatus
+from app.dependencies.auth import require_coach
 from app.models.coach import Coach
 from app.schemas.coach_schemas import (
-    ClassSessionResponse,
-    ClassRequestResponse,
+    CoachScheduleStatsResponse,
     CreateClassRequestPayload,
-    ScheduleStatsResponse,
 )
-from app.dependencies.auth import require_coach
+from app.services.coach_schedule import (
+    get_schedule_stats,
+    get_weekly_schedule,
+    get_my_classes,
+    get_class_requests,
+    create_class_request,
+    get_coach_gymID,
+    remove_class,
+)
 
-router = APIRouter(prefix="/coach", tags=["Coach"])
+router = APIRouter(prefix="/coach/schedule", tags=["Coach Schedule"])
 
-@router.get("/schedule/stats", response_model=ScheduleStatsResponse)
-async def get_schedule_stats(
-    db: AsyncSession = Depends(get_session),
-    coach: Coach = Depends(require_coach),
+
+async def get_coach_or_404(userID: int, db: AsyncSession) -> Coach:
+    result = await db.execute(select(Coach).where(Coach.userID == userID))
+    coach = result.scalar_one_or_none()
+    if not coach:
+        raise HTTPException(404, "Coach not found")
+    return coach
+
+
+# GET /coach/schedule/stats
+@router.get("/stats", response_model=CoachScheduleStatsResponse)
+async def schedule_stats(
+    current_user=Depends(require_coach),
+    db: AsyncSession = Depends(get_session)
 ):
-    coach_id = coach.coachID
-
-    today = date.today()
-    end_of_week = today + timedelta(days=7)
-
-    weekly_classes = await db.scalar(
-        select(func.count()).select_from(ClassSession).filter(
-            ClassSession.coach_id == coach_id,
-            ClassSession.date >= today,
-            ClassSession.date <= end_of_week,
-        )
-    ) or 0
-
-    total_clients = await db.scalar(
-        select(func.sum(ClassSession.current_clients)).filter(
-            ClassSession.coach_id == coach_id
-        )
-    ) or 0
-
-    pending_requests = await db.scalar(
-        select(func.count()).select_from(ClassRequest).filter(
-            ClassRequest.coach_id == coach_id,
-            ClassRequest.status == RequestStatus.PENDING,
-        )
-    ) or 0
-
-    return ScheduleStatsResponse(
-        weekly_classes=weekly_classes,
-        total_clients=total_clients,
-        pending_requests=pending_requests,
-    )
+    coach = await get_coach_or_404(current_user.userID, db)
+    stats = await get_schedule_stats(coach.coachID, db)
+    return CoachScheduleStatsResponse(**stats)
 
 
-@router.get("/schedule/this-week", response_model=list[ClassSessionResponse])
-async def get_weekly_schedule(
-    db: AsyncSession = Depends(get_session),
-    coach: Coach = Depends(require_coach),
+# GET /coach/schedule/weekly
+@router.get("/weekly")
+async def weekly(
+    current_user=Depends(require_coach),
+    db: AsyncSession = Depends(get_session)
 ):
-    coach_id = coach.coachID
-    today = date.today()
-    end_of_week = today + timedelta(days=7)
-
-    # Get ClassSession records
-    result = await db.execute(
-        select(ClassSession).filter(
-            ClassSession.coach_id == coach_id,
-            ClassSession.date >= today,
-            ClassSession.date <= end_of_week,
-        ).order_by(ClassSession.date.asc(), ClassSession.start_time.asc())
-    )
-    sessions = result.scalars().all()
-
-    # Get approved ClassRequest records for this week
-    req_result = await db.execute(
-        select(ClassRequest).filter(
-            ClassRequest.coach_id == coach_id,
-            ClassRequest.status == RequestStatus.APPROVED,
-            ClassRequest.requested_date >= today,
-            ClassRequest.requested_date <= end_of_week,
-        ).order_by(ClassRequest.requested_date.asc(), ClassRequest.requested_time.asc())
-    )
-    approved_requests = req_result.scalars().all()
-
-    # Convert both to ClassSessionResponse format
-    responses = []
-    
-    for session in sessions:
-        responses.append(ClassSessionResponse(
-            id=session.id,
-            title=session.title,
-            date=session.date,
-            start_time=session.start_time,
-            coach_id=session.coach_id,
-            current_clients=session.current_clients,
-            max_clients=session.max_clients,
-            is_approved_request=False,
-        ))
-    
-    for req in approved_requests:
-        responses.append(ClassSessionResponse(
-            id=req.id,
-            title=req.class_name,
-            date=req.requested_date,
-            start_time=req.requested_time,
-            coach_id=req.coach_id,
-            current_clients=0,
-            max_clients=req.max_capacity,
-            is_approved_request=True,
-        ))
-    
-    # Sort by date and time
-    responses.sort(key=lambda x: (x.date, x.start_time))
-    return responses
+    coach = await get_coach_or_404(current_user.userID, db)
+    return await get_weekly_schedule(coach.coachID, db)
 
 
-@router.get("/classes")
-async def get_my_classes(
-    db: AsyncSession = Depends(get_session),
-    coach: Coach = Depends(require_coach),
+# GET /coach/schedule/my-classes
+@router.get("/my-classes")
+async def my_classes(
+    current_user=Depends(require_coach),
+    db: AsyncSession = Depends(get_session)
 ):
-    coach_id = coach.coachID
-
-    result = await db.execute(
-        select(ClassSession).filter(ClassSession.coach_id == coach_id)
-    )
-    all_classes = result.scalars().all()
-
-    classes_map = {}
-    for c in all_classes:
-        if c.title not in classes_map:
-            classes_map[c.title] = {
-                "title": c.title,
-                "schedule_summary": "Check schedule for days",
-                "current_clients": c.current_clients,
-                "max_clients": c.max_clients,
-            }
-    return list(classes_map.values())
+    coach = await get_coach_or_404(current_user.userID, db)
+    return await get_my_classes(coach.coachID, db)
 
 
-@router.get("/class-requests", response_model=list[ClassRequestResponse])
-async def get_requests_list(
-    db: AsyncSession = Depends(get_session),
-    coach: Coach = Depends(require_coach),
+# GET /coach/schedule/requests
+@router.get("/requests")
+async def class_requests(
+    current_user=Depends(require_coach),
+    db: AsyncSession = Depends(get_session)
 ):
-    coach_id = coach.coachID
-
-    result = await db.execute(
-        select(ClassRequest).filter(
-            ClassRequest.coach_id == coach_id
-        ).order_by(ClassRequest.created_at.desc())
-    )
-    return result.scalars().all()
+    coach = await get_coach_or_404(current_user.userID, db)
+    return await get_class_requests(coach.coachID, db)
 
 
-@router.post("/class-requests", status_code=201)
-async def request_new_class(
+# POST /coach/schedule/requests
+@router.post("/requests", status_code=201)
+async def create_request(
     payload: CreateClassRequestPayload,
-    db: AsyncSession = Depends(get_session),
-    coach: Coach = Depends(require_coach),
+    current_user=Depends(require_coach),
+    db: AsyncSession = Depends(get_session)
 ):
-    coach_id = coach.coachID
+    coach = await get_coach_or_404(current_user.userID, db)
+    gymID = await get_coach_gymID(coach.coachID, db)
+    if not gymID:
+        raise HTTPException(400, "You are not connected to any gym")
+    result = await create_class_request(coach.coachID, gymID, payload, db)
+    return result
 
-    new_request = ClassRequest(
-        coach_id=coach_id,
-        class_name=payload.class_name,
-        gym_location=payload.gym_location or "Unknown",
-        requested_date=payload.requested_date,
-        requested_time=payload.requested_time,
-        duration=payload.duration,
-        max_capacity=payload.max_capacity,
-        reason_for_request=payload.reason,
-        status=RequestStatus.PENDING,
-        created_at=datetime.now(timezone.utc),
+
+# DELETE /coach/schedule/my-classes/{class_id}
+@router.delete("/my-classes/{class_id}")
+async def delete_class(
+    class_id: int,
+    current_user=Depends(require_coach),
+    db: AsyncSession = Depends(get_session)
+):
+    coach = await get_coach_or_404(
+        current_user.userID,
+        db,
     )
 
-    db.add(new_request)
-    await db.commit()
-    await db.refresh(new_request)
+    success = await remove_class(
+        coach.coachID,
+        class_id,
+        db,
+    )
 
-    return {"message": "Class request submitted successfully", "request_id": new_request.id}
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail="Class not found",
+        )
+
+    return {"message": "Class removed successfully"}

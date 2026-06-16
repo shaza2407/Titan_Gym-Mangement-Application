@@ -4,13 +4,13 @@ import '../data/auth_repository.dart';
 class ForgotPasswordController extends ChangeNotifier {
   final AuthRepository _repo = AuthRepository();
 
-  final emailController    = TextEditingController();
-  final codeController     = TextEditingController();
+  final emailController = TextEditingController();
+  final codeController = TextEditingController();
   final passwordController = TextEditingController();
-  final confirmController  = TextEditingController();
+  final confirmController = TextEditingController();
 
-  bool isLoading    = false;
-  bool codeSent     = false;  // controls which step to show
+  bool isLoading = false;
+  bool codeSent = false; // controls which step to show
   String? errorMessage;
   String? successMessage;
   String? sentEmail; // store email to pass to reset step
@@ -30,7 +30,7 @@ class ForgotPasswordController extends ChangeNotifier {
     try {
       await _repo.forgotPassword(email: emailController.text.trim());
       sentEmail = emailController.text.trim();
-      codeSent = true; 
+      codeSent = true;
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
@@ -40,11 +40,13 @@ class ForgotPasswordController extends ChangeNotifier {
   }
 
   // Step 2 — verify code and reset password
-  Future<void> resetPassword(BuildContext context) async {
+  // Returns true on success so the UI can show a confirmation dialog
+  // and decide where to navigate next.
+  Future<bool> resetPassword() async {
     if (passwordController.text != confirmController.text) {
       errorMessage = 'Passwords do not match';
       notifyListeners();
-      return;
+      return false;
     }
 
     isLoading = true;
@@ -53,13 +55,14 @@ class ForgotPasswordController extends ChangeNotifier {
 
     try {
       await _repo.resetPassword(
-        email:       sentEmail!,
-        code:        codeController.text.trim(),
+        email: sentEmail!,
+        code: codeController.text.trim(),
         newPassword: passwordController.text,
       );
-      Navigator.pushReplacementNamed(context, '/login');
+      return true;
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
+      return false;
     } finally {
       isLoading = false;
       notifyListeners();

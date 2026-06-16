@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/shared/admin_bottom_bar.dart';
 import '../data/admin_repository.dart';
 import 'invite_member_screen.dart';
 import 'client_detail_screen.dart';
