@@ -18,7 +18,7 @@ from app.schemas.client_schemas import (
 )
 from app.email_utils import send_invitation_email
 from app.dependencies.gym_member_managment import get_admin_gym
-
+from app.models import Attendance
 
 
 router = APIRouter(prefix="/admin/gyms", tags=["Admin - Client Management"])
@@ -35,9 +35,17 @@ async def list_clients(status_filter: str | None = None,
 
     rows = (await db.execute(select(GymClientMembership, Client, User)
                              .join(Client, GymClientMembership.clientID == Client.clientID)
-                             .join(User, Client.userID == User.userID)  # ← correct join path
+                             .join(User, Client.userID == User.userID)
                              .where(GymClientMembership.gymID == gym.gymID)
                              )).all()
+
+    visit_counts_result = await db.execute(
+        select(Attendance.membershipID, func.count(Attendance.id).label("visits"))
+        .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
+        .where(GymClientMembership.gymID == gym.gymID)
+        .group_by(Attendance.membershipID)
+    )
+    visit_map = {r.membershipID: r.visits for r in visit_counts_result.all()}
 
     for membership, client, user in rows:
         # search filter
@@ -63,7 +71,7 @@ async def list_clients(status_filter: str | None = None,
             status=display_status,
             subscription=membership.subscription,
             subscription_end=membership.subscription_end,
-            visits=None,  # wire up when visits table is ready
+            visits=visit_map.get(membership.id, 0),
             joined=membership.joined_at,
             invitation_sent=None,
         ))

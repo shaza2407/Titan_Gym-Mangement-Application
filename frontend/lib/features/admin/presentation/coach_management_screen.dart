@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import '../data/admin_repository.dart';
 import 'invite_member_screen.dart';
 import 'coach_detail_screen.dart';
+import '../../shared/admin_bottom_bar.dart';
+import '../data/gym_repository.dart';
 
 class CoachManagementScreen extends StatefulWidget {
-  final int gymId;
+  final GymModel gym;
   final String token;
 
   const CoachManagementScreen({
     super.key,
-    required this.gymId,
+    required this.gym,
     required this.token,
   });
 
@@ -30,7 +32,7 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
   }
 
   void _load() {
-    _future = AdminApiService.fetchCoaches(widget.gymId, widget.token);
+    _future = AdminApiService.fetchCoaches(widget.gym.gymID, widget.token);
   }
 
   void _refresh() => setState(() => _load());
@@ -48,7 +50,7 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
 
   Future<void> _suspend(int coachId) async {
     try {
-      await AdminApiService.suspendCoach(widget.gymId, coachId, widget.token);
+      await AdminApiService.suspendCoach(widget.gym.gymID, coachId, widget.token);
       _refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -102,7 +104,7 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => InviteMemberScreen(
-                    gymId: widget.gymId,
+                    gym: widget.gym,
                     token: widget.token,
                   ),
                 ),
@@ -130,7 +132,7 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // ── Stats Row ──────────────────────────────────────────
+                // ─ Stats Row
                 Row(
                   children: [
                     _StatCard(
@@ -153,7 +155,7 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // ── Search ─────────────────────────────────────────────
+                // ─ Search
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _searchQuery = v),
@@ -170,14 +172,14 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ── Filter Tabs ────────────────────────────────────────
+                // ─ Filter Tabs
                 _FilterRow(
                   selected: _selectedFilter,
                   onSelect: (v) => setState(() => _selectedFilter = v),
                 ),
                 const SizedBox(height: 16),
 
-                // ── Coach Cards ────────────────────────────────────────
+                // ─ Coach Cards
                 if (filtered.isEmpty)
                   const Center(
                     child: Padding(
@@ -207,8 +209,6 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
     );
   }
 }
-
-// ─── Filter Row ───────────────────────────────────────────────────────────────
 
 class _FilterRow extends StatelessWidget {
   final String selected;
@@ -262,7 +262,7 @@ class _FilterRow extends StatelessWidget {
   }
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
+// ─── Stat Card
 
 class _StatCard extends StatelessWidget {
   final String label, value;
@@ -302,7 +302,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ─── Coach Card ───────────────────────────────────────────────────────────────
+// ─── Coach Card ───
 
 class _CoachCard extends StatelessWidget {
   final CoachListItem coach;
@@ -342,7 +342,7 @@ class _CoachCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ──────────────────────────────────────────────────
+          // ── Header ──
           Row(
             children: [
               const CircleAvatar(
@@ -402,7 +402,7 @@ class _CoachCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // ── Pending info ─────────────────────────────────────────────
+          // ── Pending info
           if (isPending) ...[
             Text('Invitation Sent',
                 style: TextStyle(color: Colors.grey[600], fontSize: 12)),
@@ -419,7 +419,7 @@ class _CoachCard extends StatelessWidget {
             const SizedBox(height: 12),
           ],
 
-          // ── Active stats ─────────────────────────────────────────────
+          // ─ Active stats
           if (!isPending) ...[
             Row(
               children: [
@@ -433,7 +433,7 @@ class _CoachCard extends StatelessWidget {
             const SizedBox(height: 12),
           ],
 
-          // ── Action Buttons ────────────────────────────────────────────
+          // ── Action Buttons
           Row(
             children: [
               Expanded(
