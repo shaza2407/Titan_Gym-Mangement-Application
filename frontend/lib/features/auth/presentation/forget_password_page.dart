@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/forget_password_controller.dart';
+import 'password_reset_success_screen.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
-  const ForgotPasswordPage({super.key});
+  final bool isLoggedIn;
+  const ForgotPasswordPage({super.key, this.isLoggedIn = false});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +17,13 @@ class ForgotPasswordPage extends StatelessWidget {
             appBar: AppBar(
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }
+                },
               ),
             ),
             body: Padding(
@@ -23,7 +31,6 @@ class ForgotPasswordPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: const BoxDecoration(
@@ -40,7 +47,9 @@ class ForgotPasswordPage extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   Text(
-                    controller.codeSent ? 'Enter Reset Code' : 'Forgot Password',
+                    controller.codeSent
+                        ? 'Enter Reset Code'
+                        : 'Forgot Password',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -136,9 +145,22 @@ class ForgotPasswordPage extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: controller.isLoading
                           ? null
-                          : () => controller.codeSent
-                              ? controller.resetPassword(context)
-                              : controller.sendCode(),
+                          : () async {
+                              if (!controller.codeSent) {
+                                controller.sendCode();
+                                return;
+                              }
+                              final success = await controller.resetPassword();
+                              if (success && context.mounted) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => PasswordResetSuccessPage(
+                                      isLoggedIn: isLoggedIn,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -149,7 +171,9 @@ class ForgotPasswordPage extends StatelessWidget {
                       child: controller.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
-                              controller.codeSent ? 'Reset Password' : 'Send Code',
+                              controller.codeSent
+                                  ? 'Reset Password'
+                                  : 'Send Code',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,

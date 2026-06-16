@@ -11,7 +11,8 @@ from app.schemas.attendance_schema import (
     CheckinStatusResponse,
     CheckinResponse,
     CheckinRecord,
-    CheckinHistoryResponse
+    CheckinHistoryResponse,
+    CheckinRequest,
 )
 from app.services.attendance import (
     get_membership,
@@ -73,6 +74,7 @@ async def checkin_status(
 # POST /client/checkin
 @router.post("/checkin", response_model=CheckinResponse)
 async def checkin(
+        payload: CheckinRequest,
         current_user=Depends(require_client),
         db: AsyncSession = Depends(get_session)
 ):
@@ -91,8 +93,14 @@ async def checkin(
     if await already_checked_in_today(membership.id, db):
         raise HTTPException(400, "Already checked in today")
 
-    # Get gym details for welcome message
+    # Get gym details and validate the scanned code matches this gym
     gym = await get_gym_from_membership(membership, db)
+    if not gym:
+        raise HTTPException(404, "Gym not found")
+
+    if not gym.QRCode or payload.qr_code.strip() != gym.QRCode.strip():
+        raise HTTPException(400, "This QR code doesn't belong to your gym")
+
     gym_name = gym.gymName if gym else "Gym"
 
     # Record check-in with all fields populated
@@ -102,7 +110,7 @@ async def checkin(
     )
 
     # ── Fire achievement engine ──────────────────────────────────────────────
-    await achievement_engine.on_checkin(membership.clientID, db)
+    # await achievement_engine.on_checkin(membership.clientID, db)
 
     # Custom welcome message based on check-in time
     now = datetime.now(timezone.utc)

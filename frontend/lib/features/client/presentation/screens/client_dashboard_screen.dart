@@ -48,7 +48,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                       children: [
                         CircleAvatar(
                           radius: 20,
-                          backgroundColor: const Color(0xFF4F46E5),
+                          backgroundColor: const Color.fromARGB(255, 63, 163, 77),
                           child: const Icon(
                             Icons.fitness_center,
                             color: Colors.white,
@@ -202,10 +202,6 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
             if (stats != null) _buildSubscriptionCard(stats),
             const SizedBox(height: 12),
 
-            // ── Membership Status Card ────────────────────────────
-            if (stats != null) _buildMembershipCard(stats),
-            const SizedBox(height: 16),
-
             // ── Stats Row ─────────────────────────────────────────
             Row(
               children: [
@@ -321,21 +317,40 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   Widget _buildSubscriptionCard(DashboardStatsModel stats) {
     final isExpired = stats.isExpired;
     final isSuspended = stats.isSuspended;
-    final isActive = stats.isActive;
 
-    final bgColor = isActive ? const Color(0xFFE8F5E9) : Colors.red.shade50;
-    final badgeColor = isActive ? const Color(0xFF4CAF50) : Colors.red;
-    final badgeText = isActive
-        ? 'Active'
+    final Color bgColor = isSuspended
+        ? Colors.amber.shade50
+        : isExpired
+        ? Colors.red.shade50
+        : const Color(0xFFE8F5E9);
+
+    final Color badgeColor = isSuspended
+        ? Colors.amber.shade700
+        : isExpired
+        ? Colors.red
+        : const Color(0xFF4CAF50);
+
+    final Color subTextColor = isSuspended
+        ? Colors.amber.shade800
+        : isExpired
+        ? Colors.red
+        : Colors.grey;
+
+    final String badgeText = isSuspended
+        ? 'Suspended'
         : isExpired
         ? 'Expired'
-        : 'Suspended';
-    final label = isExpired
+        : 'Active';
+
+    final String label = isSuspended
+        ? 'Subscription Suspended'
+        : isExpired
         ? 'Subscription Expired'
-        : isSuspended
-        ? 'Subscription'
         : 'Active Subscription';
-    final expiryText = isExpired
+
+    final String expiryText = isSuspended
+        ? 'Your subscription is suspended — contact your gym'
+        : isExpired
         ? 'Expired on ${stats.subscriptionEnd ?? ''} — Please renew'
         : 'Expires ${stats.subscriptionEnd ?? ''} (${stats.daysRemaining} days)';
 
@@ -368,10 +383,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                 const SizedBox(height: 4),
                 Text(
                   expiryText,
-                  style: TextStyle(
-                    color: isExpired ? Colors.red : Colors.grey,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: subTextColor, fontSize: 12),
                 ),
               ],
             ),
@@ -386,70 +398,6 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
               badgeText,
               style: const TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Membership Status Card ────────────────────────────────────────────────
-  Widget _buildMembershipCard(DashboardStatsModel stats) {
-    final isSuspended = stats.isSuspended;
-    final bgColor = isSuspended ? Colors.red.shade50 : const Color(0xFFF0F0FF);
-    final iconColor = isSuspended ? Colors.red : const Color(0xFF4F46E5);
-    final badgeColor = isSuspended ? Colors.red : const Color(0xFF4F46E5);
-    final statusText = isSuspended ? 'Suspended' : 'Active Member';
-    final subText = isSuspended
-        ? 'Your membership has been suspended — contact gym'
-        : 'Member of ${stats.gymName ?? 'your gym'}';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(
-                isSuspended ? Icons.block : Icons.verified_user_outlined,
-                color: iconColor,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    statusText,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    subText,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: badgeColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              isSuspended ? 'Suspended' : 'Active',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -564,5 +512,4 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       ),
     );
   }
-
 }
