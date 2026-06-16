@@ -8,6 +8,7 @@ import 'coach_management_screen.dart';
 import 'invite_member_screen.dart';
 import 'attendance_tracking_screen.dart';
 import '../data/gym_repository.dart';
+import 'analytics_screen.dart';
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
@@ -236,7 +237,10 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color.fromARGB(255, 66, 0, 173),
                       'Analytics Dashboard',
                       'View revenue and performance metrics',
-                      () {},
+                      () => Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => AnalyticsScreen(
+                            token: widget.token, gymId: widget.gym.gymID),
+                      )),
                     ),
                     _buildActionItem(
                       Icons.qr_code_scanner,
