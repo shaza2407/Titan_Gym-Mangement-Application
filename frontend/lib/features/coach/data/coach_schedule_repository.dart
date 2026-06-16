@@ -53,6 +53,7 @@ class CoachScheduleRepository {
       Uri.parse('$baseUrl/coach/schedule/requests'),
       headers: _headers(token),
     );
+
     if (res.statusCode == 200) {
       return (jsonDecode(res.body) as List)
           .map((e) => CoachClassRequestModel.fromJson(e))
@@ -61,8 +62,7 @@ class CoachScheduleRepository {
     throw Exception('Failed to load requests');
   }
 
-  Future<String> createRequest(
-      String token, Map<String, dynamic> data) async {
+  Future<String> createRequest(String token, Map<String, dynamic> data) async {
     final res = await http.post(
       Uri.parse('$baseUrl/coach/schedule/requests'),
       headers: _headers(token),
@@ -72,6 +72,18 @@ class CoachScheduleRepository {
       return jsonDecode(res.body)['message'];
     }
     throw Exception(
-        jsonDecode(res.body)['detail'] ?? 'Failed to create request');
+      jsonDecode(res.body)['detail'] ?? 'Failed to create request',
+    );
+  }
+
+  Future<void> removeClass(String token, int classId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/coach/schedule/my-classes/$classId'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to remove class');
+    }
   }
 }

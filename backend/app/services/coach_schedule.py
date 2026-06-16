@@ -1,7 +1,7 @@
 # app/services/coach_schedule.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import delete, select, func
 from datetime import date, timedelta
 from app.models.class_session import ClassSession
 from app.models.class_request import ClassRequest, RequestStatus
@@ -112,20 +112,20 @@ async def get_upcoming_classes(coachID: int, db: AsyncSession, limit: int = 3) -
     today = date.today()
     day_names = ["monday", "tuesday", "wednesday",
                  "thursday", "friday", "saturday", "sunday"]
+    today_name = day_names[today.weekday()]
 
     sessions_result = await db.execute(
         select(ClassSession).where(ClassSession.coach_id == coachID)
     )
     sessions = sessions_result.scalars().all()
 
-    upcoming = []
+    todays_classes = []
     for s in sessions:
         gym_name = await get_gym_name(s.gymID, db) if s.gymID else None
 
-        if s.is_recurring and s.day_of_week:
-            next_d = _next_occurrence(s.day_of_week)
-            count = await _count_enrolled(s.id, next_d, db)
-            upcoming.append({
+        if s.is_recurring and s.day_of_week and s.day_of_week.lower() == today_name:
+            count = await _count_enrolled(s.id, today, db)
+            todays_classes.append({
                 "id":              s.id,
                 "title":           s.title,
                 "day_of_week":     s.day_of_week,
@@ -135,27 +135,23 @@ async def get_upcoming_classes(coachID: int, db: AsyncSession, limit: int = 3) -
                 "gym_name":        gym_name,
                 "current_clients": count,
                 "max_clients":     s.max_clients,
-                "sort_date":       next_d,
             })
-        elif not s.is_recurring and s.date and s.date >= today:
-            count = await _count_enrolled(s.id, s.date, db)
-            upcoming.append({
+        elif not s.is_recurring and s.date == today:
+            count = await _count_enrolled(s.id, today, db)
+            todays_classes.append({
                 "id":              s.id,
                 "title":           s.title,
                 "day_of_week":     s.day_of_week,
                 "date":            s.date,
                 "start_time":      s.start_time,
                 "duration":        s.duration,
-                "gym_name":        gym_name,
+                "gym_name":        gym_name,  
                 "current_clients": count,
                 "max_clients":     s.max_clients,
-                "sort_date":       s.date,
             })
 
-    upcoming.sort(key=lambda x: (x["sort_date"], x["start_time"]))
-    for u in upcoming:
-        u.pop("sort_date")
-    return upcoming[:limit]
+    todays_classes.sort(key=lambda x: x["start_time"])
+    return todays_classes
 
 
 # ── Schedule Stats ────────────────────────────────────────────────────────────
@@ -332,22 +328,90 @@ async def get_class_requests(coachID: int, db: AsyncSession) -> list:
     return items
 
 
+from fastapi import HTTPException
+from sqlalchemy import select
+
 async def create_class_request(
     coachID: int,
     gymID: int,
     payload: CreateClassRequestPayload,
     db: AsyncSession
 ) -> dict:
-    day_names = ["monday", "tuesday", "wednesday", "thursday",
-                 "friday", "saturday", "sunday"]
 
-    day_of_week    = payload.day_of_week
+    day_names = [
+        "monday", "tuesday", "wednesday",
+        "thursday", "friday", "saturday", "sunday"
+    ]
+
+    day_of_week = payload.day_of_week
     requested_date = payload.requested_date
 
-    # Auto-compute day_of_week from date for one-time
-    if not payload.is_recurring and payload.requested_date:
-        day_of_week = day_names[payload.requested_date.weekday()]
+    # For one-time classes compute day automatically
+    if not payload.is_recurring and requested_date:
+        day_of_week = day_names[requested_date.weekday()]
 
+    # CHECK EXISTING CLASSES
+    if payload.is_recurring:
+
+        existing_class = await db.scalar(
+            select(ClassSession).where(
+                ClassSession.coach_id == coachID,
+                ClassSession.is_recurring == True,
+                ClassSession.day_of_week == day_of_week,
+                ClassSession.start_time == payload.requested_time,
+            )
+        )
+
+    else:
+
+        existing_class = await db.scalar(
+            select(ClassSession).where(
+                ClassSession.coach_id == coachID,
+                ClassSession.is_recurring == False,
+                ClassSession.date == requested_date,
+                ClassSession.start_time == payload.requested_time,
+            )
+        )
+
+    if existing_class:
+        raise HTTPException(
+            status_code=400,
+            detail="You already have a class at this time"
+        )
+
+    # CHECK EXISTING PENDING REQUESTS
+    if payload.is_recurring:
+
+        existing_request = await db.scalar(
+            select(ClassRequest).where(
+                ClassRequest.coach_id == coachID,
+                ClassRequest.status == RequestStatus.PENDING,
+                ClassRequest.is_recurring == True,
+                ClassRequest.day_of_week == day_of_week,
+                ClassRequest.requested_time == payload.requested_time,
+            )
+        )
+
+    else:
+
+        existing_request = await db.scalar(
+            select(ClassRequest).where(
+                ClassRequest.coach_id == coachID,
+                ClassRequest.status == RequestStatus.PENDING,
+                ClassRequest.is_recurring == False,
+                ClassRequest.requested_date == requested_date,
+                ClassRequest.requested_time == payload.requested_time,
+            )
+        )
+
+    if existing_request:
+        raise HTTPException(
+            status_code=400,
+            detail="You already have a pending request at this time"
+        )
+
+
+    # CREATE REQUEST
     new_request = ClassRequest(
         coach_id=coachID,
         gymID=gymID,
@@ -361,15 +425,47 @@ async def create_class_request(
         reason_for_request=payload.reason,
         status=RequestStatus.PENDING,
     )
+
     db.add(new_request)
+
     await db.commit()
     await db.refresh(new_request)
 
     return {
-        "message":    "Request submitted successfully",
+        "message": "Request submitted successfully",
         "request_id": new_request.id,
     }
 
 
+# ── remove class ────────────────────────────────────────────────────────────
+
+async def remove_class(
+    coachID: int,
+    class_id: int,
+    db: AsyncSession,
+):
+    result = await db.execute(
+        select(ClassSession).where(
+            ClassSession.id == class_id,
+            ClassSession.coach_id == coachID,
+        )
+    )
+
+    session = result.scalar_one_or_none()
+
+    if not session:
+        return False
+
+    # delete enrollments first
+    await db.execute(
+        delete(ClassEnrollment).where(
+            ClassEnrollment.session_id == class_id
+        )
+    )
+
+    await db.delete(session)
+    await db.commit()
+
+    return True
 
 
