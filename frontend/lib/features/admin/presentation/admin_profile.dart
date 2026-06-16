@@ -4,7 +4,6 @@ import '../../shared/logout_button.dart';
 import '../controller/admin_profile_controller.dart';
 import '../../auth/presentation/forget_password_page.dart';
 
-
 class AdminProfileScreen extends StatefulWidget {
   final String token;
   final int gymId;
@@ -53,13 +52,18 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               title: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Admin Profile',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold)),
-                  Text('Manage your account information',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(
+                    'Admin Profile',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Manage your account information',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ),
               centerTitle: true,
@@ -87,9 +91,15 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     children: [
                       _buildField('Full Name', ctrl.nameController),
                       // Email is read-only
-                      _buildReadOnly('Email Address', ctrl.profile?.email ?? ''),
-                      _buildField('Phone Number', ctrl.phoneController,
-                          keyboardType: TextInputType.phone),
+                      _buildReadOnly(
+                        'Email Address',
+                        ctrl.profile?.email ?? '',
+                      ),
+                      _buildField(
+                        'Phone Number',
+                        ctrl.phoneController,
+                        keyboardType: TextInputType.phone,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -106,8 +116,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     subtitle: 'Your account details',
                     children: [
                       _buildReadOnly('Role', 'Administrator'),
-                      _buildReadOnly('Total Gyms Managed',
-                          '${ctrl.profile?.totalGyms ?? 0} gyms'),
+                      _buildReadOnly(
+                        'Total Gyms Managed',
+                        '${ctrl.profile?.totalGyms ?? 0} gyms',
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -126,12 +138,17 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline,
-                                color: Colors.red, size: 18),
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 18,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(ctrl.errorMessage!,
-                                  style: const TextStyle(color: Colors.red)),
+                              child: Text(
+                                ctrl.errorMessage!,
+                                style: const TextStyle(color: Colors.red),
+                              ),
                             ),
                           ],
                         ),
@@ -146,12 +163,15 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                       onPressed: ctrl.isSaving
                           ? null
                           : () async {
-                              final success =
-                                  await ctrl.saveProfile(widget.token);
+                              final success = await ctrl.saveProfile(
+                                widget.token,
+                              );
                               if (success && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Profile updated successfully'),
+                                    content: Text(
+                                      'Profile updated successfully',
+                                    ),
                                     backgroundColor: Color(0xFF4F46E5),
                                   ),
                                 );
@@ -162,17 +182,23 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                               width: 18,
                               height: 18,
                               child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2),
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
                             )
                           : const Icon(Icons.save, color: Colors.white),
                       label: Text(
                         ctrl.isSaving ? 'Saving...' : 'Save Changes',
-                        style: const TextStyle(fontSize: 16, color: Colors.white),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4F46E5),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
@@ -200,39 +226,45 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.lock_outline, color: Color(0xFF4F46E5), size: 20),
+              const Icon(
+                Icons.lock_outline,
+                color: Color(0xFF4F46E5),
+                size: 20,
+              ),
               const SizedBox(width: 8),
-              const Text('Security',style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                'Security',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const Spacer(),
               Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-              onTap: () => Navigator.push(context,
-                MaterialPageRoute(
-                builder: (_) => ForgotPasswordPage(),
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const ForgotPasswordPage(isLoggedIn: true),
+                    ),
+                  ),
+                  child: const Text(
+                    'Reset password?',
+                    style: TextStyle(
+                      color: Color(0xFF4F46E5),
+                      fontSize: 13,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
                 ),
               ),
-              child: const Text('Reset password?',
-              style: TextStyle(
-              color: Color(0xFF4F46E5),
-              fontSize: 13,
-              decoration: TextDecoration.underline,
-              ),
-            ),
-          ) ,
-        ),
             ],
           ),
 
-            // Forgot password link
-
-          ],
-        
+          // Forgot password link
+        ],
       ),
     );
   }
-
-
 
   // ── Avatar card ───────────────────────────────────────────────────────────
   Widget _buildAvatarCard(AdminProfileController ctrl) {
@@ -253,18 +285,24 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           CircleAvatar(
             radius: 44,
             backgroundColor: const Color(0xFF4F46E5),
-            child: Text(initials,
-                style: const TextStyle(
-                    fontSize: 28,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold)),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                fontSize: 28,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
-          Text(name,
-              style: const TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold)),
-          Text(ctrl.profile?.email ?? '',
-              style: const TextStyle(color: Colors.grey, fontSize: 13)),
+          Text(
+            name,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            ctrl.profile?.email ?? '',
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
@@ -272,11 +310,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               color: const Color(0xFFF0EFFF),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('Administrator',
-                style: TextStyle(
-                    color: Color(0xFF4F46E5),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12)),
+            child: const Text(
+              'Administrator',
+              style: TextStyle(
+                color: Color(0xFF4F46E5),
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
           ),
         ],
       ),
@@ -305,13 +346,19 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             children: [
               Icon(icon, color: iconColor, size: 20),
               const SizedBox(width: 8),
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
-          Text(subtitle,
-              style: const TextStyle(color: Colors.grey, fontSize: 13)),
+          Text(
+            subtitle,
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          ),
           const SizedBox(height: 16),
           ...children,
         ],
@@ -331,8 +378,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -360,8 +409,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -373,8 +424,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           child: Row(
             children: [
               Expanded(
-                child: Text(value,
-                    style: const TextStyle(color: Colors.black54)),
+                child: Text(
+                  value,
+                  style: const TextStyle(color: Colors.black54),
+                ),
               ),
               const Icon(Icons.lock_outline, size: 14, color: Colors.grey),
             ],
