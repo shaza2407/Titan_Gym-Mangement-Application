@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../coach_profile/coach_profile_controller.dart';
+import '../controllers/coach_profile_controller.dart';
 
 class CoachProfileScreen extends StatefulWidget {
   final String token;
   final VoidCallback? onBack;
-  const CoachProfileScreen({super.key, this.onBack, required this.token});
+  const CoachProfileScreen({super.key, required this.token, this.onBack});
 
   @override
   State<CoachProfileScreen> createState() => _CoachProfileScreenState();
@@ -18,7 +18,7 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
   void initState() {
     super.initState();
     _ctrl = CoachProfileController();
-    // _ctrl.loadProfile(widget.token);
+    _ctrl.loadProfile(widget.token);
   }
 
   @override
@@ -38,14 +38,11 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
+              automaticallyImplyLeading: false,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
                 onPressed: () {
-                  if (widget.onBack != null) {
-                    widget.onBack!();
-                  } else {
-                    Navigator.pop(context);
-                  }
+                  if (widget.onBack != null) widget.onBack!();
                 },
               ),
               title: const Column(
@@ -70,14 +67,14 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ── Avatar ─────────────────────────────────────
+                  // ── Avatar ─────────────────────────────────────────
                   _buildAvatarCard(ctrl),
                   const SizedBox(height: 16),
 
-                  // ── Basic Information ───────────────────────────
+                  // ── Basic Information ───────────────────────────────
                   _buildSection(
                     icon: Icons.person_outline,
-                    iconColor: const Color(0xFF4CAF50),
+                    iconColor: Color.fromARGB(255, 206, 132, 28),
                     title: 'Basic Information',
                     subtitle: 'Your personal details',
                     children: [
@@ -92,41 +89,19 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                         keyboardType: TextInputType.phone,
                       ),
                       _buildField(
-                        'Age',
-                        ctrl.ageController,
+                        'Years of Experience',
+                        ctrl.yearsExperienceController,
                         keyboardType: TextInputType.number,
                       ),
-                      _buildDropdown(
-                        label: 'Gender',
-                        value: ctrl.selectedGender,
-                        items: ctrl.genders,
-                        onChanged: ctrl.setGender,
-                      ),
+                      _buildDatePicker(ctrl),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Fitness Goal ────────────────────────────────
-                  _buildSection(
-                    icon: Icons.fitness_center,
-                    iconColor: const Color(0xFF4F46E5),
-                    title: 'Fitness Goal',
-                    subtitle: 'What are you working towards?',
-                    children: [
-                      _buildDropdown(
-                        label: 'Goal',
-                        value: ctrl.selectedFitnessGoal,
-                        items: ctrl.fitnessGoals,
-                        onChanged: ctrl.setFitnessGoal,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── About Me ────────────────────────────────────
+                  // ── About Me ───────────────────────────────────────
                   _buildSection(
                     icon: Icons.info_outline,
-                    iconColor: const Color(0xFF4CAF50),
+                    iconColor: const Color.fromARGB(255, 206, 132, 28),
                     title: 'About Me',
                     subtitle: 'Tell us about yourself',
                     children: [
@@ -135,23 +110,24 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Emergency Contact ───────────────────────────
+                  // ── Professional Information ────────────────────────
                   _buildSection(
-                    icon: Icons.emergency_outlined,
-                    iconColor: Colors.red,
-                    title: 'Emergency Contact',
-                    subtitle: 'In case of emergency',
+                    icon: Icons.workspace_premium_outlined,
+                    iconColor: Color.fromARGB(255, 206, 132, 28),
+                    title: 'Professional Information',
+                    subtitle: 'Your coaching credentials',
                     children: [
                       _buildField(
-                        'Contact Information',
-                        ctrl.emergencyContactController,
-                        hint: 'Name - Phone number',
+                        'Certifications',
+                        ctrl.certificationsController,
+                        hint: 'e.g. NASM-CPT, ACE',
                       ),
+                      const SizedBox(height: 4),
+                      _buildSpecializations(ctrl),
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Error ───────────────────────────────────────
                   if (ctrl.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -161,7 +137,7 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                       ),
                     ),
 
-                  // ── Save Button ─────────────────────────────────
+                  // ── Save Button ─────────────────────────────────────
                   SizedBox(
                     width: double.infinity,
                     height: 54,
@@ -169,19 +145,19 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                       onPressed: ctrl.isSaving
                           ? null
                           : () async {
-                              // final success = await ctrl.saveProfile(
-                              //   widget.token,
-                              // );
-                              // if (success && context.mounted) {
-                              //   ScaffoldMessenger.of(context).showSnackBar(
-                              //     const SnackBar(
-                              //       content: Text(
-                              //         'Profile updated successfully',
-                              //       ),
-                              //       backgroundColor: Color(0xFF4CAF50),
-                              //     ),
-                              //   );
-                              // }
+                              final success = await ctrl.saveProfile(
+                                widget.token,
+                              );
+                              if (success && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Profile updated successfully',
+                                    ),
+                                    backgroundColor: Color(0xFF4CAF50),
+                                  ),
+                                );
+                              }
                             },
                       icon: ctrl.isSaving
                           ? const SizedBox(
@@ -218,8 +194,6 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
     );
   }
 
-  // ── Widgets ──────────────────────────────────────────────────────────────
-
   Widget _buildAvatarCard(CoachProfileController ctrl) {
     final name = ctrl.profile?.name ?? '';
     final initials = name.trim().isEmpty
@@ -235,34 +209,17 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
       ),
       child: Column(
         children: [
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: 44,
-                backgroundColor: const Color(0xFF4CAF50),
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          CircleAvatar(
+            radius: 44,
+            backgroundColor: Color.fromARGB(255, 206, 132, 28),
+            child: Text(
+              initials,
+              style: const TextStyle(
+                fontSize: 28,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: Colors.black,
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 14,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -375,35 +332,109 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
     );
   }
 
-  Widget _buildDropdown({
-    required String label,
-    required String? value,
-    required List<String> items,
-    required void Function(String?) onChanged,
-  }) {
+  Widget _buildDatePicker(CoachProfileController ctrl) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        const Text(
+          'Date of Birth',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: value,
-          hint: Text('Select $label'),
-          items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey[100],
-            border: OutlineInputBorder(
+        GestureDetector(
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: ctrl.dateOfBirth != null
+                  ? DateTime.parse(ctrl.dateOfBirth!)
+                  : DateTime(1990),
+              firstDate: DateTime(1940),
+              lastDate: DateTime.now(),
+            );
+            if (picked != null) {
+              ctrl.setDateOfBirth(
+                '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}',
+              );
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  ctrl.dateOfBirth ?? 'Select date of birth',
+                  style: TextStyle(
+                    color: ctrl.dateOfBirth != null
+                        ? Colors.black
+                        : Colors.grey,
+                  ),
+                ),
+                const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+              ],
             ),
           ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildSpecializations(CoachProfileController ctrl) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Specializations',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Select all that apply',
+          style: TextStyle(color: Colors.grey, fontSize: 12),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: ctrl.availableSpecializations.map((spec) {
+            final isSelected = ctrl.selectedSpecializations.contains(spec);
+            return GestureDetector(
+              onTap: () => ctrl.toggleSpecialization(spec),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Color.fromARGB(255, 206, 132, 28)
+                      : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? Color.fromARGB(255, 206, 132, 28)
+                        : Colors.grey.shade300,
+                  ),
+                ),
+                child: Text(
+                  spec,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
+                    fontSize: 13,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
         const SizedBox(height: 16),
       ],
