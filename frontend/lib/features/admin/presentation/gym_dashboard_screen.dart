@@ -7,7 +7,6 @@ import 'client_management_screen.dart';
 import 'coach_management_screen.dart';
 import 'invite_member_screen.dart';
 import 'attendance_tracking_screen.dart';
-import '../data/gym_repository.dart';
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
