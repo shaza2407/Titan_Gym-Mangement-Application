@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../data/admin_repository.dart';
 import 'invite_member_screen.dart';
 import 'coach_detail_screen.dart';
-import '../../shared/admin_bottom_bar.dart';
 import '../data/gym_repository.dart';
 
 class CoachManagementScreen extends StatefulWidget {
