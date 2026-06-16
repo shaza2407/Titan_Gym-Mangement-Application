@@ -106,7 +106,7 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
                   children: [
                     CircleAvatar(
                       radius: 20,
-                      backgroundColor: const Color(0xFF4F46E5),
+                      backgroundColor: const Color.fromARGB(255, 206, 132, 28),
                       child: const Icon(
                         Icons.fitness_center,
                         color: Colors.white,
@@ -392,7 +392,11 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF4F46E5), size: 22),
+            Icon(
+              icon,
+              color: const Color.fromARGB(255, 206, 132, 28),
+              size: 22,
+            ),
             const SizedBox(width: 14),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
