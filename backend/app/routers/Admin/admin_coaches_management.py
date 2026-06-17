@@ -3,6 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import secrets
 from datetime import datetime, timedelta
+from app.services.notification_service import notify_invite
+
 
 from app.database import get_session
 from app.models.User import User
@@ -150,7 +152,9 @@ async def invite_member(body: InviteCoachRequest,
 
     await db.commit()
     await send_invitation_email(body.email, gym.gymName, inv.token)
+    await notify_invite(db, body.email, gym.gymName, "coach")
 
+    
     return InviteCoachResponse(message="Invitation sent successfully.", email=body.email)
 
 

@@ -8,6 +8,8 @@ import 'client_scan_screen.dart';
 import '../controllers/client_dashboard_controller.dart';
 import '../../domain/dashboard_model.dart';
 import 'client_schedule_screen.dart';
+import '../../../Services/token_helper.dart';
+import '../../../Services/notifications_screen.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
@@ -85,42 +87,44 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                 ),
 
                 actions: [
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.black,
-                        ),
-                        onPressed: () {},
-                      ),
-
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Text(
-                            '3',
-                            style: TextStyle(color: Colors.white, fontSize: 10),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  IconButton(
-                    icon: const Icon(
-                      Icons.logout_outlined,
-                      color: Colors.black,
-                    ),
-                    onPressed: () => showLogoutDialog(context),
-                  ),
-                ],
+  Stack(
+    children: [
+      IconButton(
+        icon: const Icon(
+          Icons.notifications_outlined,
+          color: Colors.black,
+        ),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => NotificationsScreen(
+              userId: getUserIdFromToken(widget.token),
+              token: widget.token,
+            ),
+          ),
+        ),
+      ),
+      Positioned(
+        right: 8,
+        top: 8,
+        child: Container(
+          padding: const EdgeInsets.all(3),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+          ),
+          child: const Text(
+            '3',
+            style: TextStyle(color: Colors.white, fontSize: 10),
+          ),
+        ),
+      ),
+    ],
+  ),
+  IconButton(
+    icon: const Icon(Icons.logout_outlined, color: Colors.black),
+    onPressed: () => showLogoutDialog(context),
+  ),
+],
               )
             : null,
 

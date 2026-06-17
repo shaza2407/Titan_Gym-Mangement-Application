@@ -118,12 +118,12 @@ async def signin(payload: SignInRequest, db: AsyncSession = Depends(get_session)
         {
             "sub"  : str(user.userID),
             "role" : role,
-            # "exp"  : datetime.datetime.utcnow() + datetime.timedelta(hours=24)
             "exp": datetime.utcnow() + timedelta(hours=24)
         },
         SECRET_KEY,
         algorithm=ALGORITHM
     )
+    
     return SignInResponse(access_token = token,token_type = "bearer",role = role,userID= user.userID)
 
 #GET /auth/verify-email?token=***
