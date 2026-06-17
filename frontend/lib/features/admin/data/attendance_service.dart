@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../shared/api_constants.dart';
-import 'attendance_analytics_models.dart';
+import 'attendance_models.dart';
 
 
 class AttendanceAnalyticsService {

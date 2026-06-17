@@ -19,6 +19,7 @@ from app.routers.Client import client_schedule
 from app.routers.Coach import coach_schedule
 from app.routers.Admin import admin_attendence_stat
 from app.routers.Notifications import notifications
+from app.routers.Admin import admin_analytics
 
 app = FastAPI(title="Titan Gym Management System")
 
@@ -73,3 +74,5 @@ app.include_router(admin_attendence_stat.router)
 
 # Notifications
 app.include_router(notifications.router)
+# Admin Analytics
+app.include_router(admin_analytics.router)
