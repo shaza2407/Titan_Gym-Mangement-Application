@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_scan_controller.dart';
 import '../../domain/attendance_model.dart';
+import 'qr_scanner_page.dart';
 
 class ClientScanScreen extends StatefulWidget {
   final String token;
@@ -252,7 +253,18 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
             child: ElevatedButton.icon(
               onPressed: (ctrl.canCheckin && !ctrl.isCheckingIn)
                   ? () async {
-                      final success = await ctrl.doCheckin(widget.token);
+                      final scannedCode = await Navigator.push<String>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const QrScannerPage(),
+                        ),
+                      );
+                      if (scannedCode == null || !context.mounted) return;
+
+                      final success = await ctrl.doCheckin(
+                        widget.token,
+                        scannedCode,
+                      );
                       if (success && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

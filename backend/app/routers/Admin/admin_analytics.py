@@ -1,17 +1,10 @@
-from cProfile import label
-from calendar import month
-from importlib.metadata import distribution
-from unittest import result
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pip._internal.operations.install import wheel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, cast, Date, extract, case, or_, and_
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
-## add dateutil to requ.txt
-
-
+import pytz
 from app.database import get_session
 from app.dependencies.auth import get_current_user
 from app.models.attendance import Attendance
@@ -66,8 +59,7 @@ async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, 
 ## /admin/analytics/{gym_id}/summary
 @router.get("/{gym_id}/summary", response_model=AnalyticsSummaryResponse)
 async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
-    gym = await _verify_gym_owner(gym_id, current_admin, db)
-
+    gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
     today = date.today()
     month_start = today.replace(day=1)
     days_elapsed = today.day  # days from the 1st up to and including today
@@ -77,8 +69,8 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     ## 1- Total Revenue This Month => new memberships * subscription price
     this_month_revenue = await calc_revenue_for_period(db, gym, month_start, today)
     last_month_revenue = await calc_revenue_for_period(db, gym, prev_month_start, month_start - relativedelta(days=1))
-    last_month_revenue = last_month_revenue or 1
 
+    last_month_revenue = last_month_revenue or 1
     revenue_change = round(((this_month_revenue - last_month_revenue) / last_month_revenue * 100), 2)
 
     ## 2- Active Members
@@ -128,8 +120,8 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     active_classes_result = await db.execute(
         select(func.count(ClassSession.id)).where(
             ClassSession.gymID == gym_id,
-            ClassSession.start_time >= month_start,
-            ClassSession.start_time <= today,
+            ClassSession.date >= month_start,
+            ClassSession.date <= today,
         )
     )
     active_classes = active_classes_result.scalar_one_or_none() or 0
@@ -137,8 +129,8 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     prev_classes_result = await db.execute(
         select(func.count(ClassSession.id)).where(
             ClassSession.gymID == gym_id,
-            ClassSession.start_time >= prev_month_start,
-            ClassSession.start_time < month_start,
+            ClassSession.date >= prev_month_start,
+            ClassSession.date < month_start,
         )
     )
     prev_month_classes = prev_classes_result.scalar_one_or_none() or 0
@@ -159,7 +151,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
 ## /admin/analytics/{gym_id}/revenue-trend
 @router.get("/{gym_id}/revenue-trend", response_model=RevenueTrendResponse)
 async def get_revenue_trend(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
-    gym = await _verify_gym_owner(gym_id, current_admin, db)
+    gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
 
     today = date.today()
     months = []
@@ -178,7 +170,7 @@ async def get_revenue_trend(gym_id: int, db: AsyncSession = Depends(get_session)
 ## /admin/analytics/{gym_id}/member-trend
 @router.get("/{gym_id}/member-trend", response_model=MemberGrowthResponse)
 async def get_member_trend(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
-    gym = await _verify_gym_owner(gym_id, current_admin, db)
+    gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
 
     today = date.today()
     months = []
@@ -199,9 +191,9 @@ async def get_member_trend(gym_id: int, db: AsyncSession = Depends(get_session),
     return MemberGrowthResponse(months=months)
 
 ## /admin/analytics/{gym_id}/membership-dist
-@router.get("/{gym_id}/membership-dist", response_model=MemberGrowthResponse)
+@router.get("/{gym_id}/membership-dist", response_model=MembershipDistributionResponse)
 async def get_membership_dist(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
-    gym = await _verify_gym_owner(gym_id, current_admin, db)
+    gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
 
     result = await db.execute(
         select(GymClientMembership.subscription.label("type"),
@@ -218,10 +210,10 @@ async def get_membership_dist(gym_id: int, db: AsyncSession = Depends(get_sessio
 ## /admin/analytics/{gym_id}/weekly-pattern
 @router.get("/{gym_id}/weekly-pattern", response_model=WeeklyPatternResponse)
 async def get_weekly_pattern(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
-    gym = await _verify_gym_owner(gym_id, current_admin, db)
+    gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
 
     today = date.today()
-    week_start = today - timedelta(days=7)
+    week_start = today - timedelta(days=6)
     result = await db.execute(
         select(
             cast(Attendance.checked_in, Date).label("day"),

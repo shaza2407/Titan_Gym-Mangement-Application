@@ -8,6 +8,9 @@ import 'features/auth/presentation/forget_password_page.dart';
 import 'features/admin/presentation/admin_dashboard_screen.dart';
 import 'features/coach/presentation/screens/coach_dashboard_screen.dart';
 import 'features/shared/api_constants.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'features/Services/notification_service.dart';
 // import 'features/admin/presentation/client_management_screen.dart';
 // import 'features/admin/presentation/coach_management_screen.dart';
 // import 'features/admin/presentation/client_detail_screen.dart';
@@ -18,6 +21,8 @@ import 'features/shared/api_constants.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConstants.initialize();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
+  await NotificationService.init();  
   runApp(const MyApp());
 }
 

@@ -5,11 +5,11 @@ import 'package:provider/provider.dart';
 import '../../../shared/logout_button.dart';
 import 'client_profile_screen.dart';
 import 'client_scan_screen.dart';
-import 'client_schedule_screen.dart';
-import 'training_plan_screen.dart';
-import 'client_achievement_screen.dart';
 import '../controllers/client_dashboard_controller.dart';
 import '../../domain/dashboard_model.dart';
+import 'client_schedule_screen.dart';
+import '../../../Services/token_helper.dart';
+import '../../../Services/notifications_screen.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
@@ -35,101 +35,102 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     return ChangeNotifierProvider.value(
       value: _ctrl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF3F4F6), // Light grey background
-        appBar: _currentIndex == 0 ? _buildAppBar() : null,
+        backgroundColor: const Color(0xFFF5F5F5),
+        appBar: _currentIndex == 0
+            ? AppBar(
+                backgroundColor: Colors.white,
+                elevation: 0,
+                automaticallyImplyLeading: false,
+
+                title: Consumer<ClientDashboardController>(
+                  builder: (context, ctrl, _) {
+                    final stats = ctrl.stats;
+
+                    return Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: const Color.fromARGB(255, 63, 163, 77),
+                          child: const Icon(
+                            Icons.fitness_center,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'My Dashboard',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            Text(
+                              stats?.gymName ?? 'Welcome back!',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+                actions: [
+  Stack(
+    children: [
+      IconButton(
+        icon: const Icon(
+          Icons.notifications_outlined,
+          color: Colors.black,
+        ),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => NotificationsScreen(
+              userId: getUserIdFromToken(widget.token),
+              token: widget.token,
+            ),
+          ),
+        ),
+      ),
+      Positioned(
+        right: 8,
+        top: 8,
+        child: Container(
+          padding: const EdgeInsets.all(3),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+          ),
+          child: const Text(
+            '3',
+            style: TextStyle(color: Colors.white, fontSize: 10),
+          ),
+        ),
+      ),
+    ],
+  ),
+  IconButton(
+    icon: const Icon(Icons.logout_outlined, color: Colors.black),
+    onPressed: () => showLogoutDialog(context),
+  ),
+],
+              )
+            : null,
+
         body: _buildBody(),
         bottomNavigationBar: _buildBottomNav(),
       ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0.5,
-      automaticallyImplyLeading: false,
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4F46E5), // Indigo Accent
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.fitness_center,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'My Dashboard',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const Text(
-                'Welcome back!',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      actions: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.notifications_none, color: Colors.black),
-              onPressed: () {},
-            ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: const Text(
-                  '4',
-                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
-        ),
-        Container(
-          margin: const EdgeInsets.only(right: 16, left: 8),
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: IconButton(
-            icon: const Icon(
-              Icons.logout_outlined,
-              color: Colors.black,
-              size: 20,
-            ),
-            onPressed: () => showLogoutDialog(context),
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(),
-          ),
-        ),
-      ],
     );
   }
 
@@ -167,23 +168,30 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       currentIndex: _currentIndex,
       onTap: (i) => setState(() => _currentIndex = i),
       type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.white,
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      selectedItemColor: const Color(0xFF4F46E5), // Indigo selected tab
-      unselectedItemColor: const Color(0xFF9CA3AF),
+      selectedItemColor: const Color(0xFF4F46E5),
+      unselectedItemColor: Colors.grey,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: ''),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: ''),
+        BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Home'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_month_outlined),
+          label: 'Schedule',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.qr_code_scanner),
+          label: 'Scan',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          label: 'Profile',
+        ),
       ],
     );
   }
 
+  // ── Home Tab ──────────────────────────────────────────────────────────────
   Widget _buildHomeTab(ClientDashboardController ctrl) {
     if (ctrl.isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)));
+      return const Center(child: CircularProgressIndicator());
     }
 
     final stats = ctrl.stats;
@@ -194,88 +202,111 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildWeeklyGoalCard(stats),
-            const SizedBox(height: 24),
+            // ── Subscription Card ─────────────────────────────────
+            if (stats != null) _buildSubscriptionCard(stats),
+            const SizedBox(height: 12),
+
+            // ── Stats Row ─────────────────────────────────────────
+            Row(
+              children: [
+                _buildStatCard(
+                  Icons.trending_up,
+                  stats != null ? '${stats.daysThisWeek}/7' : '-',
+                  'Days This\nWeek',
+                  const Color(0xFF4CAF50),
+                ),
+                const SizedBox(width: 12),
+                _buildStatCard(
+                  Icons.emoji_events_outlined,
+                  stats != null ? '${stats.currentStreak} days' : '-',
+                  'Current Streak',
+                  const Color(0xFFFF9800),
+                ),
+                const SizedBox(width: 12),
+                _buildStatCard(
+                  Icons.qr_code,
+                  stats != null ? '${stats.totalVisits}' : '-',
+                  'Total Visits',
+                  const Color(0xFF4F46E5),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // ── Actions ──────────────────────────────────────────
             Container(
-              width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-                boxShadow: const [
-                  BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
-                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Quick Actions',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                    'Actions',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
                   const Text(
                     'Access your fitness features',
-                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 13),
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
                   ),
-                  const SizedBox(height: 20),
-                  _buildActionCard(
-                    icon: Icons.qr_code,
-                    title: 'Scan QR Code',
-                    subtitle: 'Check in to the gym',
-                    isHighlighted: true,
-                    onTap: () => setState(() => _currentIndex = 2),
+                  const SizedBox(height: 16),
+                  _buildActionItem(
+                    Icons.notifications_outlined,
+                    'My Gym${stats?.gymName != null ? ' - ${stats!.gymName}' : ''}',
+                    'View announcements and enroll in classes',
+                    () {},
                   ),
-                  _buildActionCard(
-                    icon: Icons.notifications_none,
-                    title: 'My Gym - Titan Fitness',
-                    subtitle: 'View announcements and enroll in classes',
-                    onTap: () => setState(() => _currentIndex = 1),
+                  _buildActionItem(
+                    Icons.track_changes_outlined,
+                    'Training Plans',
+                    'Generate personalized workout plans',
+                    () {},
                   ),
-                  _buildActionCard(
-                    icon: Icons.calendar_today_outlined,
-                    title: 'My Schedule',
-                    subtitle: 'View and manage your classes',
-                    onTap: () => setState(() => _currentIndex = 1),
+                  _buildActionItem(
+                    Icons.emoji_events_outlined,
+                    'My Badges',
+                    'View your achievements',
+                    () {},
                   ),
-                  _buildActionCard(
-                    icon: Icons.track_changes_outlined,
-                    title: 'Training Plans',
-                    subtitle: 'Generate personalized workout plans',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TrainingPlanScreen(
-                            token: widget.token,
-                            onBack: () => Navigator.pop(context),
-                          ),
-                        ),
-                      );
-                    },
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Achievements ──────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'My Achievements',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  _buildActionCard(
-                    icon: Icons.person_outline,
-                    title: 'My Profile',
-                    subtitle: 'Update personal information',
-                    onTap: () => setState(() => _currentIndex = 3),
+                  const Text(
+                    'Unlock badges by reaching milestones',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
                   ),
-                  _buildActionCard(
-                    icon: Icons.military_tech_outlined,
-                    title: 'My Badges',
-                    subtitle: 'View your achievements',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ClientAchievementScreen(
-                            token: widget.token,
-                            onBack: () => Navigator.pop(context),
-                          ),
-                        ),
-                      );
-                    },
+                  const SizedBox(height: 16),
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.2,
+                    children: [
+                      _buildBadge('🎉', 'First Timer', true),
+                      _buildBadge('💪', '3 Day Warrior', true),
+                      _buildBadge('🔥', 'Weekly Streak', true),
+                      _buildBadge('🏆', 'Monthly Champion', false),
+                    ],
                   ),
                 ],
               ),
@@ -286,57 +317,93 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     );
   }
 
-  Widget _buildWeeklyGoalCard(DashboardStatsModel? stats) {
-    // Fallback static data to match the UI if not available
-    final int days = stats?.daysThisWeek ?? 4;
-    final int target = 5;
-    final double percent = (days / target) * 100;
-    
+  // ── Subscription Card ─────────────────────────────────────────────────────
+  Widget _buildSubscriptionCard(DashboardStatsModel stats) {
+    final isExpired = stats.isExpired;
+    final isSuspended = stats.isSuspended;
+
+    final Color bgColor = isSuspended
+        ? Colors.amber.shade50
+        : isExpired
+        ? Colors.red.shade50
+        : const Color(0xFFE8F5E9);
+
+    final Color badgeColor = isSuspended
+        ? Colors.amber.shade700
+        : isExpired
+        ? Colors.red
+        : const Color(0xFF4CAF50);
+
+    final Color subTextColor = isSuspended
+        ? Colors.amber.shade800
+        : isExpired
+        ? Colors.red
+        : Colors.grey;
+
+    final String badgeText = isSuspended
+        ? 'Suspended'
+        : isExpired
+        ? 'Expired'
+        : 'Active';
+
+    final String label = isSuspended
+        ? 'Subscription Suspended'
+        : isExpired
+        ? 'Subscription Expired'
+        : 'Active Subscription';
+
+    final String expiryText = isSuspended
+        ? 'Your subscription is suspended — contact your gym'
+        : isExpired
+        ? 'Expired on ${stats.subscriptionEnd ?? ''} — Please renew'
+        : 'Expires ${stats.subscriptionEnd ?? ''} (${stats.daysRemaining} days)';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: const [
-          BoxShadow(color: Color(0x05000000), blurRadius: 8, offset: Offset(0, 2))
-        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Weekly Attendance Goal',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  stats.subscription ?? '-',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  expiryText,
+                  style: TextStyle(color: subTextColor, fontSize: 12),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Keep up the great work!',
-            style: TextStyle(color: Color(0xFF6B7280), fontSize: 13),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '$days out of $target days',
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: badgeColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              badgeText,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-              Text(
-                '${percent.toInt()}%',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: percent / 100,
-              backgroundColor: const Color(0xFFE5E7EB),
-              color: const Color(0xFF111827), // Dark navy / almost black
-              minHeight: 10,
             ),
           ),
         ],
@@ -344,48 +411,108 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     );
   }
 
-  Widget _buildActionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    bool isHighlighted = false,
-    required VoidCallback onTap,
-  }) {
-    final borderColor = isHighlighted ? const Color(0x8010B981) : const Color(0xFFE5E7EB);
-    
+  // ── Helper Widgets ────────────────────────────────────────────────────────
+  Widget _buildStatCard(
+    IconData icon,
+    String value,
+    String label,
+    Color color,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey, fontSize: 11),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionItem(
+    IconData icon,
+    String title,
+    String subtitle,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          border: Border.all(color: borderColor, width: 1.5),
+          border: Border.all(color: Colors.grey.shade200),
           borderRadius: BorderRadius.circular(12),
-          color: Colors.white,
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFF10B981), size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 15),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
-                  ),
-                ],
-              ),
+            Icon(icon, color: const Color(0xFF4CAF50), size: 22),
+            const SizedBox(width: 14),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String emoji, String label, bool earned) {
+    return Container(
+      decoration: BoxDecoration(
+        color: earned ? const Color(0xFFE8F5E9) : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: earned ? const Color(0xFF4CAF50) : Colors.grey.shade300,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            earned ? emoji : '🏆',
+            style: TextStyle(
+              fontSize: 32,
+              color: earned ? null : Colors.grey.shade400,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: earned ? Colors.black : Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }

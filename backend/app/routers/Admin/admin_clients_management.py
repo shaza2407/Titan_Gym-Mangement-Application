@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select , func
 import secrets
 from datetime import datetime, timedelta, date
+from app.services.notification_service import notify_invite
 
 from app.database import get_session
 from app.dependencies.auth import get_current_user
@@ -176,7 +177,7 @@ async def invite_member(body: InviteClientRequest,
         db.add(inv)
     await db.commit()
     await send_invitation_email(body.email, gym.gymName, inv.token)
-
+    await notify_invite(db, body.email, gym.gymName, "client")
     return InviteClientResponse(message="Invitation sent successfully.", email=body.email)
 
 ## POST /admin/gyms/{gym_id}/clients/{member_id}/suspend

@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../shared/api_constants.dart';
+import '../../Services/notification_service.dart';
 
 class LoginScreen extends StatelessWidget {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-
-  LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -135,21 +134,39 @@ class LoginScreen extends StatelessWidget {
                         final signinData = jsonDecode(signinRes.body);
                         final token = signinData['access_token'] as String;
                         final role = signinData['role'] as String;
+                        final userId = signinData['userID'] is int? signinData['userID'] as int
+                        : int.parse(signinData['userID'].toString());
+                          await NotificationService.saveToken(userId, token);
                         if (role == 'admin') {
-                          Navigator.pushReplacementNamed(context,'/admin-dashboard', arguments: token,); 
+                            Navigator.pushReplacementNamed(context, '/admin-dashboard', arguments: token);
                           return;
                         }
                         
                         if (role == 'coach') {
-                          Navigator.pushReplacementNamed(
-                            context,
-                            '/coach-dashboard',
-                            arguments: token,
-                          );
+                          Navigator.pushReplacementNamed(context, '/coach-dashboard', arguments: token);
                           return;
                         }
 
                         if (role == 'client') {
+                          // Step 3 — Check if connected to gym
+                          final meRes = await http.get(
+                            Uri.parse('${ApiConstants.baseUrl}/client/me'),
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer $token',
+                            },
+                          );
+
+                          if (meRes.statusCode == 200) {
+                            final meData = jsonDecode(meRes.body);
+                            final isConnected = meData['is_connected'] as bool;
+
+                            if (isConnected) {
+                                    Navigator.pushReplacementNamed(context, '/client-dashboard', arguments: token);
+                            } else {
+                               Navigator.pushReplacementNamed(context, '/client-profile-only', arguments: token);
+                            }
+                          }
                           Navigator.pushReplacementNamed(
                             context,
                             '/client-dashboard',

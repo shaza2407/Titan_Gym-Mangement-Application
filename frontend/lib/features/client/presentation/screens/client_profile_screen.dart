@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
 import '../../../shared/logout_button.dart';
+import '../../../auth/presentation/forget_password_page.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
@@ -160,6 +161,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+
+                  // ── Security ────────────────────────────────────
+                  _buildSecurityCard(),
                   const SizedBox(height: 16),
 
                   // ── Error ───────────────────────────────────────
@@ -463,6 +468,49 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+
+  // ── Security ─────────────────────────────────────────────────────────────
+  Widget _buildSecurityCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.lock_outline, color: Color(0xFF4F46E5), size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Security',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ForgotPasswordPage(isLoggedIn: true),
+              ),
+            ),
+            child: const Text(
+              'Reset password?',
+              style: TextStyle(
+                color: Color(0xFF4F46E5),
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
