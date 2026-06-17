@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'gym_dashboard_screen.dart';
-import 'client_management_screen.dart';
 import 'admin_profile.dart';
 import 'analytics_screen.dart';
 import '../data/gym_repository.dart';
