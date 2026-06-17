@@ -324,7 +324,7 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFF4F46E5).withOpacity(0.1),
+              color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.calendar_month, color: Color(0xFF4F46E5)),
@@ -355,7 +355,7 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: capacityColor.withOpacity(0.1),
+                  color: capacityColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

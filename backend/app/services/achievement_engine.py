@@ -280,15 +280,14 @@ class AchievementEngine:
         client_id: int,
         db: AsyncSession,
     ) -> None:
-        return
-
-        # """Total classes attended: 5 / 15 / 30 / 60 / 120"""
-        # result = await db.execute(
-        #     select(func.count(ClientClassEnrollment.enrollmentID))
-        #     .where(ClientClassEnrollment.membershipID.clientID == client_id)
-        # )
-        # count = result.scalar() or 0
-        # await self._apply_progress("class_enthusiast", client_id, count, db)
+        """Total classes attended: 5 / 15 / 30 / 60 / 120"""
+        from app.models.class_enrollment import ClassEnrollment
+        result = await db.execute(
+            select(func.count(ClassEnrollment.id))
+            .where(ClassEnrollment.clientID == client_id)
+        )
+        count = result.scalar() or 0
+        await self._apply_progress("class_enthusiast", client_id, count, db)
 
     # ── Training plan achievements ────────────────────────────────────────────
 
