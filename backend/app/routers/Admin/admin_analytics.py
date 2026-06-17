@@ -4,8 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, cast, Date, extract, case, or_, and_
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
-## add dateutil and pytz to requ.txt
-
 import pytz
 from app.database import get_session
 from app.dependencies.auth import get_current_user
