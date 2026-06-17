@@ -18,11 +18,17 @@ import 'features/Services/notification_service.dart';
 // import 'features/admin/presentation/invite_member_screen.dart';
 
 
-void main() async{
+import 'package:flutter/foundation.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConstants.initialize();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
-  await NotificationService.init();  
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  if (!kIsWeb) {
+    await NotificationService.init();
+  }
+
   runApp(const MyApp());
 }
 

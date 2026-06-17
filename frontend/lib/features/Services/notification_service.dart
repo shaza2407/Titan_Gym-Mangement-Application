@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import '../shared/api_constants.dart';
+import 'package:flutter/foundation.dart'; 
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -60,13 +61,16 @@ class NotificationService {
     });
   }
 
-  static Future<void> saveToken(int userId, String authToken) async {
-    final token = await _messaging.getToken();
-    if (token == null) return;
 
-    await http.post(
-      Uri.parse('${ApiConstants.baseUrl}/notifications/fcm-token?user_id=$userId&token=$token'),
-      headers: {'Authorization': 'Bearer $authToken'},
-    );
-  }
+static Future<void> saveToken(int userId, String authToken) async {
+  if (kIsWeb) return; 
+
+  final token = await _messaging.getToken();
+  if (token == null) return;
+
+  await http.post(
+    Uri.parse('${ApiConstants.baseUrl}/notifications/fcm-token?user_id=$userId&token=$token'),
+    headers: {'Authorization': 'Bearer $authToken'},
+  );
+}
 }
