@@ -1,3 +1,5 @@
+// lib/features/client/presentation/screens/client_scan_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_scan_controller.dart';
@@ -30,25 +32,33 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
         builder: (context, ctrl, _) {
           if (ctrl.isLoading) {
             return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              backgroundColor: Color(0xFFF3F4F6),
+              body: Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5))),
             );
           }
 
           final statusInfo = ctrl.statusInfo;
+          // Adapt the status colors to our light theme
+          Color accentColor = const Color(0xFF4F46E5); // Indigo default
+          if (ctrl.isBlocked) {
+            accentColor = Colors.red;
+          } else if (ctrl.canCheckin) {
+            accentColor = const Color(0xFF10B981); // Emerald green
+          } else if (ctrl.status?.reason == 'already_checked_in') {
+            accentColor = const Color(0xFF6366F1); // Light Indigo
+          }
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF5F5F5),
+            backgroundColor: const Color(0xFFF3F4F6), // Light theme
             appBar: AppBar(
               backgroundColor: Colors.white,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {
-                  if (widget.onBack != null) {
-                    widget.onBack!();
-                  }
-                },
-              ),
+              elevation: 0.5,
+              leading: widget.onBack != null
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.black),
+                      onPressed: widget.onBack,
+                    )
+                  : null,
               title: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -58,11 +68,12 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                       color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   Text(
-                    'Scan to check in',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    'Scan the gym QR to verify attendance',
+                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
                   ),
                 ],
               ),
@@ -77,10 +88,10 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
 
                   // ── Blocked banner ────────────────────────────────
                   if (ctrl.isBlocked)
-                    _buildBlockedBanner(statusInfo['message']),
+                    _buildBlockedBanner(statusInfo['message'] ?? 'Check-in blocked'),
 
                   // ── QR Scanner box ────────────────────────────────
-                  _buildScannerBox(ctrl, statusInfo),
+                  _buildScannerBox(ctrl, statusInfo, accentColor),
                   const SizedBox(height: 16),
 
                   // ── Recent check-ins ──────────────────────────────
@@ -102,8 +113,9 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+        color: const Color(0xFFECFDF5), // Light Green
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -112,16 +124,17 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Last Check-In',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                'Last Check-In Time',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14),
               ),
+              const SizedBox(height: 4),
               Text(
                 _formatTime(last.checkedIn),
-                style: const TextStyle(color: Colors.grey, fontSize: 13),
+                style: const TextStyle(color: Color(0xFF4B5563), fontSize: 12),
               ),
             ],
           ),
-          const Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 32),
+          const Icon(Icons.check_circle, color: Color(0xFF10B981), size: 28),
         ],
       ),
     );
@@ -133,13 +146,13 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: const Color(0xFFFEF2F2), // Light Red
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.red.shade200),
+        border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+          const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 26),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -147,6 +160,7 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
               style: const TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
           ),
@@ -158,6 +172,7 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
   Widget _buildScannerBox(
     ClientScanController ctrl,
     Map<String, dynamic> statusInfo,
+    Color accentColor,
   ) {
     return Container(
       width: double.infinity,
@@ -165,70 +180,72 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+        ],
       ),
       child: Column(
         children: [
           const Text(
-            'Scan QR Code',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            'Check-In Terminal',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
           ),
+          const SizedBox(height: 4),
           const Text(
-            "Point your camera at the gym's QR code",
-            style: TextStyle(color: Colors.grey, fontSize: 13),
+            "Press scan to check into the gym center",
+            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
           const SizedBox(height: 20),
 
-          // QR frame
+          // QR frame simulation
           Container(
             width: double.infinity,
             height: 220,
             decoration: BoxDecoration(
-              color: ctrl.canCheckin
-                  ? const Color(0xFFE8F5E9)
-                  : ctrl.isBlocked
-                  ? Colors.red.shade50
-                  : const Color(0xFFF0F0FF),
+              color: const Color(0xFFF9FAFB),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: ctrl.canCheckin
-                    ? const Color(0xFF4CAF50)
-                    : ctrl.isBlocked
-                    ? Colors.red
-                    : const Color(0xFF4F46E5),
+                color: accentColor,
                 width: 2,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: accentColor.withValues(alpha: 0.05),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                )
+              ]
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.qr_code_scanner,
-                  size: 80,
-                  color: ctrl.canCheckin
-                      ? const Color(0xFF4CAF50)
-                      : ctrl.isBlocked
-                      ? Colors.red
-                      : const Color(0xFF4F46E5),
+                  Icons.qr_code_scanner_outlined,
+                  size: 72,
+                  color: accentColor,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Text(
-                  statusInfo['message'],
+                  statusInfo['message'] ?? 'Ready to scan',
                   style: TextStyle(
-                    color: statusInfo['color'],
+                    color: ctrl.isBlocked ? Colors.red : Colors.black87,
                     fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
                 ),
+                const SizedBox(height: 4),
                 if (ctrl.canCheckin)
                   const Text(
-                    'Position the QR code within the frame',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    'Ensure camera detects the gym QR code',
+                    style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 11),
                   ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Button
+          // Action Button
           SizedBox(
             width: double.infinity,
             height: 54,
@@ -240,7 +257,7 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Checked in successfully!'),
-                            backgroundColor: Color(0xFF4CAF50),
+                            backgroundColor: Color(0xFF10B981),
                           ),
                         );
                       } else if (!success && context.mounted) {
@@ -261,28 +278,30 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                       height: 18,
                       child: CircularProgressIndicator(
                         color: Colors.white,
-                        strokeWidth: 2,
+                        strokeWidth: 2.5,
                       ),
                     )
                   : const Icon(Icons.qr_code, color: Colors.white),
               label: Text(
                 ctrl.checkedInNow
-                    ? 'Checked In!'
+                    ? 'Check-In Complete!'
                     : ctrl.isCheckingIn
-                    ? 'Checking in...'
+                    ? 'Verifying...'
                     : ctrl.canCheckin
-                    ? 'Start Scanning'
+                    ? 'Simulate Check-In'
                     : ctrl.status?.reason == 'already_checked_in'
-                    ? 'Already Checked In Today'
-                    : 'Cannot Check In',
-                style: const TextStyle(fontSize: 16, color: Colors.white),
+                    ? 'Checked In Today'
+                    : 'Access Suspended',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ctrl.canCheckin
-                    ? Colors.black
-                    : ctrl.isBlocked
-                    ? Colors.red
-                    : Colors.grey,
+                    ? const Color(0xFF4F46E5) // Indigo Primary
+                    : const Color(0xFFD1D5DB),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -301,24 +320,32 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Recent Check-ins',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            'Attendance Log',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
           ),
+          const SizedBox(height: 2),
           const Text(
-            'Your attendance history',
-            style: TextStyle(color: Colors.grey, fontSize: 13),
+            'Your monthly check-in history',
+            style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
           const SizedBox(height: 16),
           if (checkins.isEmpty)
             const Center(
-              child: Text(
-                'No check-ins yet',
-                style: TextStyle(color: Colors.grey),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.0),
+                child: Text(
+                  'No check-ins logged yet',
+                  style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+                ),
               ),
             )
           else
@@ -344,8 +371,9 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFF9FAFB),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -354,7 +382,7 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
             children: [
               const Icon(
                 Icons.check_circle_outline,
-                color: Color(0xFF4CAF50),
+                color: Color(0xFF10B981),
                 size: 22,
               ),
               const SizedBox(width: 12),
@@ -363,11 +391,11 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                 children: [
                   Text(
                     time,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                   Text(
                     dateStr,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11),
                   ),
                 ],
               ),
@@ -376,10 +404,13 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Text('check-in', style: TextStyle(fontSize: 12)),
+            child: const Text(
+              'Verified',
+              style: TextStyle(fontSize: 10, color: Color(0xFF6B7280), fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),

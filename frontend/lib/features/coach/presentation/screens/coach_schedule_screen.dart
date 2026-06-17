@@ -453,7 +453,7 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: capacityColor.withOpacity(0.1),
+                  color: capacityColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -577,9 +577,9 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: statusColor.withOpacity(0.3)),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   r.status,
@@ -687,7 +687,7 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                       Switch(
                         value: c.isRecurring,
                         onChanged: c.setRecurring,
-                        activeColor: const Color(0xFF4F46E5),
+                        activeThumbColor: const Color(0xFF4F46E5),
                       ),
                     ],
                   ),
@@ -707,7 +707,7 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                         ),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
-                          value: c.selectedDay,
+                          initialValue: c.selectedDay,
                           hint: const Text('Select day'),
                           items: c.days
                               .map(

@@ -36,5 +36,5 @@ class DashboardStatsModel {
   bool get isSuspended => membershipStatus == 'suspended';
   bool get isActive    => !isExpired && !isSuspended;
 
-  get name => null;
+  Null get name => null;
 }

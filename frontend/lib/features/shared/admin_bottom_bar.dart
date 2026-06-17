@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../admin/presentation/admin_profile.dart';
-import '../admin/presentation/admin_dashboard_screen.dart';
-import '../admin/presentation/attendance_tracking_screen.dart';
 import '../admin/presentation/gym_dashboard_screen.dart';
 import '../admin/data/gym_repository.dart';
 import '../admin/controller/admin_gym_controller.dart';

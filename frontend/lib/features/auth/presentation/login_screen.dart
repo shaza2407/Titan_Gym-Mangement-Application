@@ -7,6 +7,8 @@ class LoginScreen extends StatelessWidget {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  LoginScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
 
@@ -148,33 +150,11 @@ class LoginScreen extends StatelessWidget {
                         }
 
                         if (role == 'client') {
-                          // Step 3 — Check if connected to gym
-                          final meRes = await http.get(
-                            Uri.parse('${ApiConstants.baseUrl}/client/me'),
-                            headers: {
-                              'Content-Type': 'application/json',
-                              'Authorization': 'Bearer $token',
-                            },
+                          Navigator.pushReplacementNamed(
+                            context,
+                            '/client-dashboard',
+                            arguments: token,
                           );
-
-                          if (meRes.statusCode == 200) {
-                            final meData = jsonDecode(meRes.body);
-                            final isConnected = meData['is_connected'] as bool;
-
-                            if (isConnected) {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/client-dashboard',
-                                arguments: token,
-                              );
-                            } else {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/client-profile-only',
-                                arguments: token,
-                              );
-                            }
-                          }
                           return;
                         }
                       } catch (e) {

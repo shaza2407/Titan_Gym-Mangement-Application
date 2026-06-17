@@ -155,7 +155,7 @@ class CreateGymScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
-            value: machine.machineType,
+            initialValue: machine.machineType,
             decoration: const InputDecoration(
               labelText: 'Machine Type',
               border: InputBorder.none,
@@ -316,7 +316,7 @@ const SizedBox(height: 16),
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           border: InputBorder.none,
