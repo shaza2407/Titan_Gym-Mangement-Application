@@ -7,9 +7,12 @@ from app.models.User import User
 from app.models.notification import Notification, FcmToken
 
 # Initialize Firebase once
+import os
+
 if not firebase_admin._apps:
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    cred = credentials.Certificate(os.path.join(BASE_DIR, "serviceAccountKey.json"))
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    cred_path = os.path.join(BASE_DIR, "..", "serviceAccountKey.json")
+    cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 
 
