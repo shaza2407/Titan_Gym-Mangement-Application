@@ -46,3 +46,5 @@ qrcode[pil]==8.2
 google-genai==1.16.0
 bcrypt==4.0.1
 firebase-admin==7.6.0
+dateutil
+pytz
