@@ -57,6 +57,9 @@ class QRCodeResponse(BaseModel):
     qr_identifier: str
     gym_name: str
 
+class CheckinRequest(BaseModel):
+    qr_code: str
+
 class DayAttendance(BaseModel):
     day: str
     count: int

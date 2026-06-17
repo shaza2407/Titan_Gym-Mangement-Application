@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'gym_dashboard_screen.dart';
 import 'client_management_screen.dart';
 import 'admin_profile.dart';
+import 'analytics_screen.dart';
 import '../data/gym_repository.dart';
 
 class AdminShell extends StatefulWidget {
@@ -37,9 +38,9 @@ class _AdminShellState extends State<AdminShell> {
           onTabChange: _onTap,        
         );
       case 1:
-        return ClientManagementScreen(
+        return AnalyticsScreen(
           token: widget.token,
-          gym: widget.gym,
+          gymId: widget.gym.gymID,
           onTabChange: _onTap,
         );
       case 2:
@@ -61,7 +62,7 @@ class _AdminShellState extends State<AdminShell> {
   Widget _buildBottomBar() {
     final items = [
       (Icons.dashboard_outlined, 'Dashboard'),
-      (Icons.people_outline, 'Clients'),
+      (Icons.insert_chart_outlined, 'Analytics'),
       (Icons.calendar_today_outlined, 'Schedule'),
       (Icons.person_outline, 'Profile'),
     ];
