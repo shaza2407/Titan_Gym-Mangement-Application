@@ -250,10 +250,10 @@ final result = await SaverGallery.saveImage(
   skipIfExists: false,
   androidRelativePath: 'Pictures',
 );
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result != null ? 'QR code saved to gallery' : 'Failed to save')),
-      );
+          SnackBar(content: Text(result.isSuccess ? 'QR code saved to gallery' : 'Failed to save')),
+        );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
