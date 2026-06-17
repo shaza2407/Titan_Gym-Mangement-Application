@@ -87,10 +87,6 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
       actions: [
         Stack(
           children: [
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.black),
-              onPressed: () {},
-            ),
             Positioned(
               right: 8, top: 8,
               child: Container(
