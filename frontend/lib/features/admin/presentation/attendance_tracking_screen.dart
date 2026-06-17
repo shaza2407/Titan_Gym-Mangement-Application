@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:saver_gallery/saver_gallery.dart';
 import 'dart:ui' as ui;
 import '../data/attendance_models.dart';
 import '../data/attendance_service.dart';
@@ -244,10 +244,15 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
       final bytes = byteData!.buffer.asUint8List();
 
       /// 3. save to gallery
-      final result = await ImageGallerySaver.saveImage(bytes, name: 'gym_qr_$data');
+final result = await SaverGallery.saveImage(
+  bytes,
+  fileName: 'gym_qr_$data',
+  skipIfExists: false,
+  androidRelativePath: 'Pictures',
+);
       if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['isSuccess'] ? 'QR code saved to gallery' : 'Failed to save')),
+        SnackBar(content: Text(result != null ? 'QR code saved to gallery' : 'Failed to save')),
       );
     } catch (e) {
       if (!mounted) return;
