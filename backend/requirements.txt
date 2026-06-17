@@ -45,6 +45,6 @@ wheel==0.45.1
 qrcode[pil]==8.2
 google-genai==1.16.0
 bcrypt==4.0.1
-firebase-admin==7.6.0
-dateutil
-pytz
+firebase-admin
+python-dateutil==2.9.0.post0
+pytz==2026.2
