@@ -8,6 +8,7 @@ import 'coach_management_screen.dart';
 import 'invite_member_screen.dart';
 import 'attendance_tracking_screen.dart';
 import 'analytics_screen.dart';
+import 'gym_settings_screen.dart';
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
@@ -26,6 +27,8 @@ class GymDashboardScreen extends StatefulWidget {
 }
 
 class _GymDashboardScreenState extends State<GymDashboardScreen> {
+  int _currentIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -44,13 +47,12 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
         return Scaffold(
           backgroundColor: const Color(0xFFF5F5F5),
           appBar: _buildAppBar(),
-          body: _buildBody(controller),
+          body: _buildCurrentTab(controller),
         );
       },
     );
   }
 
-  // ── AppBar ────────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white,
@@ -59,58 +61,75 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
       title: Row(
         children: [
           Container(
-            width: 40, height: 40,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: const Color(0xFF4F46E5),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.grid_view_rounded, color: Colors.white, size: 20),
+            child: const Icon(Icons.grid_view_rounded,
+                color: Colors.white, size: 20),
           ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Admin Dashboard',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+          // const SizedBox(width: 10),
+          
+          const Text(
+            ' ',
+            style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
+          ),
+          Text(widget.gym.gymName,
+                    style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
                 ),
-              ),
-            ],
+          const Text(
+            ' Dashboard',
+            style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
           ),
         ],
       ),
       actions: [
         SizedBox(
-  width: 48,
-  height: 48,
-  child: Stack(
-    children: [
-      // IconButton(
-      //   icon: const Icon(Icons.notifications_outlined),
-      //   onPressed: () {},
-      // ),
-      // Positioned(
-      //   right: 6,
-      //   top: 6,
-      //   child: Container(
-      //     padding: const EdgeInsets.all(3),
-      //     decoration: const BoxDecoration(
-      //       color: Colors.red,
-      //       shape: BoxShape.circle,
-      //     ),
-      //     child: const Text(
-      //       '2',
-      //       style: TextStyle(color: Colors.white, fontSize: 10),
-      //     ),
-      //   ),
-      // ),
-    ],
-  ),
-),
+          width: 44,
+          height: 44,
+          child: Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined,
+                    color: Colors.black),
+                onPressed: () {},
+              ),
+              Positioned(
+                right: 6,
+                top: 6,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text('2',
+                      style:
+                          TextStyle(color: Colors.white, fontSize: 10)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings_outlined, color: Colors.black),
+          onPressed: () => Navigator.push(context,
+            MaterialPageRoute(
+              builder: (_) => GymSettingsScreen(gym: widget.gym,token: widget.token,),
+            ),
+          ),
+      ),
         IconButton(
           icon: const Icon(Icons.logout_outlined, color: Colors.black),
           onPressed: () => showLogoutDialog(context),
@@ -119,45 +138,49 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
     );
   }
 
-  // ── Body ──────────────────────────────────────────────────────────────────
-  Widget _buildBody(AdminGymController controller) {
+  Widget _buildCurrentTab(AdminGymController controller) {
+    switch (_currentIndex) {
+      case 0:
+        return _buildHomeTab(controller);
+      case 1:
+        return AnalyticsScreen(
+            token: widget.token, gymId: widget.gym.gymID);
+      default:
+        return _buildHomeTab(controller);
+    }
+  }
+
+  Widget _buildHomeTab(AdminGymController controller) {
     if (controller.isLoadingStats) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (controller.statsError != null) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 48),
-              const SizedBox(height: 12),
-              Text(controller.statsError!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () => controller.loadDashboardStats(
-                    token: widget.token, gymId: widget.gym.gymID),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4F46E5),
-                    foregroundColor: Colors.white),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 48),
+            const SizedBox(height: 12),
+            Text(controller.statsError!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => controller.loadDashboardStats(
+                  token: widget.token, gymId: widget.gym.gymID),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4F46E5),
+                  foregroundColor: Colors.white),
+            ),
+          ],
         ),
       );
     }
 
-    if (controller.dashboardStats == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final stats = controller.dashboardStats!; // now safe
+    final stats = controller.dashboardStats;
 
     return RefreshIndicator(
       onRefresh: () => controller.loadDashboardStats(
@@ -168,29 +191,48 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // Gym selector
               _buildGymSelector(),
               const SizedBox(height: 16),
 
-              // Stats row
-              Row(
+              // 2x2 Stats Grid
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.4,
                 children: [
-                  _buildStatCard(Icons.people_alt_outlined,
-                      '${stats.totalMembers}', 'Total\nMembers', const Color(0xFF4F46E5)),
-                  const SizedBox(width: 12),
-                  _buildStatCard(Icons.attach_money,
-                      '${stats.activeSubscriptions}', 'Active\nSubs', const Color(0xFF1D9E75)),
-                  const SizedBox(width: 12),
-                  _buildStatCard(Icons.qr_code_2_outlined,
-                      '${stats.todayAttendance}', "Today's\nAttendance", const Color(0xFFD85A30)),
+                  _buildStatCard(
+                    Icons.people_alt_outlined,
+                    '${stats?.totalMembers ?? 0}',
+                    'Total Members',
+                    const Color(0xFF4F46E5),
+                  ),
+                  _buildStatCard(
+                    Icons.attach_money,
+                    '${stats?.activeSubscriptions ?? 0}',
+                    'Active Subscriptions',
+                    const Color(0xFF1D9E75),
+                  ),
+                  _buildStatCard(
+                    Icons.qr_code_2_outlined,
+                    '${stats?.todayAttendance ?? 0}',
+                    "Today's Attendance",
+                    const Color(0xFFD85A30),
+                  ),
+                  _buildStatCard(
+                    Icons.sports_gymnastics_sharp,
+                    '\$${stats != null ? 'place holder' : '0'}',
+                    'Todays Classes',
+                    const Color(0xFFD85A30),
+                  ),
                 ],
               ),
-
-              // Revenue card
               const SizedBox(height: 16),
 
-              // Quick actions
+              // Quick Actions
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -201,77 +243,81 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Quick Actions',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                     const Text('Access key management features',
-                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                        style:
+                            TextStyle(color: Colors.grey, fontSize: 13)),
                     const SizedBox(height: 16),
                     _buildActionItem(
-                      Icons.people_outline,
-                      const Color.fromARGB(255, 66, 0, 173),
-                      'Client Management',
-                      'View and manage gym clients',
-                      () => Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => ClientManagementScreen(
-                            token: widget.token, gym: widget.gym),
-                      )),
-                    ),
-                    _buildActionItem(
-                      Icons.fitness_center,
-                      const Color.fromARGB(255, 66, 0, 173),
-                      'Coach Management',
-                      'View and manage gym coaches',
-                      () => Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => CoachManagementScreen(
-                            token: widget.token, gym: widget.gym),
-                      )),
-                    ),
-                    _buildActionItem(
-                      Icons.person_add_outlined,
-                      const Color.fromARGB(255, 66, 0, 173),
-                      'Add New Member',
-                      'Enroll a new member to the gym',
-                      () => Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => InviteMemberScreen(
-                            gym: widget.gym, token: widget.token),
-                      )),
-                    ),
-                    _buildActionItem(
                       Icons.campaign_outlined,
-                      const Color.fromARGB(255, 66, 0, 173),
+                      const Color(0xFF4F46E5),
                       'Announcements',
                       'Create and manage gym announcements',
                       () {},
                     ),
                     _buildActionItem(
-                      Icons.analytics_outlined,
-                      const Color.fromARGB(255, 66, 0, 173),
-                      'Analytics Dashboard',
-                      'View revenue and performance metrics',
-                      () => Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => AnalyticsScreen(
-                            token: widget.token, gymId: widget.gym.gymID),
-                      )),
+                      Icons.people_outline,
+                      const Color(0xFF4F46E5),
+                      'Member Management',
+                      'View and manage gym members',
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ClientManagementScreen(
+                                token: widget.token, gym: widget.gym),
+                          )),
+                    ),
+                    _buildActionItem(
+                      Icons.fitness_center,
+                      const Color(0xFF4F46E5),
+                      'Coach Management',
+                      'View and manage gym coaches',
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CoachManagementScreen(
+                                token: widget.token, gym: widget.gym),
+                          )),
+                    ),
+                    _buildActionItem(
+                      Icons.person_add_outlined,
+                      const Color(0xFF4F46E5),
+                      'Add New Member',
+                      'Enroll a new member to the gym',
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => InviteMemberScreen(
+                                gym: widget.gym, token: widget.token),
+                          )),
                     ),
                     _buildActionItem(
                       Icons.qr_code_scanner,
-                      const Color.fromARGB(255, 66, 0, 173),
+                      const Color(0xFF4F46E5),
                       'Attendance Tracking',
                       'View attendance records and QR codes',
-                      () => Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => AttendanceTrackingScreen(
-                            token: widget.token, gym: widget.gym),
-                      )),
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AttendanceTrackingScreen(
+                                token: widget.token, gym: widget.gym),
+                          )),
                     ),
                     _buildActionItem(
                       Icons.tune,
-                      const Color.fromARGB(255, 66, 0, 173),
+                      const Color(0xFF4F46E5),
                       'Gym Settings',
                       "Update this gym's information",
-                      () {},
+                      () => Navigator.push(context,
+                          MaterialPageRoute(
+                          builder: (_) => GymSettingsScreen(gym: widget.gym,token: widget.token,),
+                         ),
+                      ),
                     ),
                     _buildActionItem(
                       Icons.local_offer_outlined,
-                      const Color.fromARGB(255, 66, 0, 173),
+                      const Color(0xFF4F46E5),
                       'Retention Offers',
                       'Create retention offers and predictions',
                       () {},
@@ -288,12 +334,12 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
     );
   }
 
-  // ── Gym selector ──────────────────────────────────────────────────────────
   Widget _buildGymSelector() {
     return GestureDetector(
       onTap: () => Navigator.pop(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -302,7 +348,8 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
         child: Row(
           children: [
             Container(
-              width: 34, height: 34,
+              width: 34,
+              height: 34,
               decoration: BoxDecoration(
                 color: const Color(0xFFF0EFFF),
                 borderRadius: BorderRadius.circular(8),
@@ -314,47 +361,45 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Currently Managing',
-                    style: TextStyle(fontSize: 11, color: Colors.grey)),
-                Text(widget.gym.gymName,
+                const Text('Switch Gym',
                     style: const TextStyle(
                         fontSize: 15, fontWeight: FontWeight.bold)),
               ],
             ),
             const Spacer(),
-            const Icon(Icons.keyboard_arrow_down, color: Color(0xFF4F46E5)),
+            const Icon(Icons.keyboard_arrow_right,
+                color: Color(0xFF4F46E5)),
           ],
         ),
       ),
     );
   }
 
-  // ── Stat card ─────────────────────────────────────────────────────────────
-  Widget _buildStatCard(IconData icon, String value, String label, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey, fontSize: 11)),
-          ],
-        ),
+  Widget _buildStatCard(
+      IconData icon, String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 35),
+          const Spacer(),
+          Text(label,
+              style:
+                  const TextStyle(color: Colors.grey, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }
 
-  // ── Action item ───────────────────────────────────────────────────────────
   Widget _buildActionItem(
     IconData icon,
     Color color,
@@ -363,47 +408,41 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
     VoidCallback onTap, {
     bool showDivider = true,
   }) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade200),
-              borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 45,
+              height: 50,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 38, height: 38,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(subtitle,
-                          style: const TextStyle(
-                              color: Colors.grey, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
-              ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold)),
+                  Text(subtitle,
+                      style: const TextStyle(
+                          color: Colors.grey, fontSize: 12)),
+                ],
+              ),
             ),
-          ),
+            Icon(Icons.chevron_right,
+                color: Colors.grey.shade400, size: 20),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
