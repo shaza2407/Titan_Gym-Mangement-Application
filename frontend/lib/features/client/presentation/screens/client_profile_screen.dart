@@ -1,3 +1,5 @@
+// lib/features/client/presentation/screens/client_profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
@@ -31,42 +33,46 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
         builder: (context, ctrl, _) {
           if (ctrl.isLoading) {
             return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              backgroundColor: Color(0xFFF3F4F6),
+              body: Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5))),
             );
           }
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF5F5F5),
+            backgroundColor: const Color(0xFFF3F4F6), // Light theme background
             appBar: AppBar(
               backgroundColor: Colors.white,
-              elevation: 0,
+              elevation: 0.5,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
                 onPressed: () {
                   if (widget.onBack != null) {
                     widget.onBack!();
+                  } else if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/login');
                   }
                 },
               ),
               title: const Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'My Profile',
+                    'Profile Settings',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   Text(
-                    'Manage your account information',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    'Manage your account details and goals',
+                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
                   ),
                 ],
               ),
-              centerTitle: true,
-              // Logout button on RIGHT
               actions: [
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.black),
@@ -78,14 +84,14 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ── Avatar ─────────────────────────────────────
+                  // ── Avatar Card ─────────────────────────────────
                   _buildAvatarCard(ctrl),
                   const SizedBox(height: 16),
 
                   // ── Basic Information ───────────────────────────
                   _buildSection(
                     icon: Icons.person_outline,
-                    iconColor: const Color(0xFF4CAF50),
+                    iconColor: const Color(0xFF4F46E5),
                     title: 'Basic Information',
                     subtitle: 'Your personal details',
                     children: [
@@ -115,7 +121,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   // ── Fitness Goal ────────────────────────────────
                   _buildSection(
                     icon: Icons.fitness_center,
-                    iconColor: const Color(0xFF4F46E5),
+                    iconColor: const Color(0xFF6366F1),
                     title: 'Fitness Goal',
                     subtitle: 'What are you working towards?',
                     children: [
@@ -132,7 +138,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   // ── About Me ────────────────────────────────────
                   _buildSection(
                     icon: Icons.info_outline,
-                    iconColor: const Color(0xFF4CAF50),
+                    iconColor: const Color(0xFF10B981),
                     title: 'About Me',
                     subtitle: 'Tell us about yourself',
                     children: [
@@ -144,7 +150,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   // ── Emergency Contact ───────────────────────────
                   _buildSection(
                     icon: Icons.emergency_outlined,
-                    iconColor: Colors.red,
+                    iconColor: Colors.redAccent,
                     title: 'Emergency Contact',
                     subtitle: 'In case of emergency',
                     children: [
@@ -167,7 +173,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Text(
                         ctrl.errorMessage!,
-                        style: const TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                       ),
                     ),
 
@@ -188,7 +194,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                                     content: Text(
                                       'Profile updated successfully',
                                     ),
-                                    backgroundColor: Color(0xFF4CAF50),
+                                    backgroundColor: Color(0xFF10B981),
                                   ),
                                 );
                               }
@@ -208,10 +214,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: const Color(0xFF4F46E5), // Indigo Accent
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -242,12 +249,16 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+        ],
       ),
       child: Column(
         children: [
           CircleAvatar(
             radius: 44,
-            backgroundColor: const Color(0xFF4CAF50),
+            backgroundColor: const Color(0xFF4F46E5),
             child: Text(
               initials,
               style: const TextStyle(
@@ -260,9 +271,56 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
           const SizedBox(height: 12),
           Text(
             name,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
           ),
-          const Text('Client', style: TextStyle(color: Colors.grey)),
+          const SizedBox(height: 4),
+          _buildMembershipBadge(ctrl),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMembershipBadge(ClientProfileController ctrl) {
+    final stats = ctrl.dashboardStats;
+
+    String label;
+    Color color;
+    IconData icon;
+
+    if (stats == null || stats.membershipStatus == null) {
+      label = 'No Subscription';
+      color = const Color(0xFF9CA3AF);
+      icon  = Icons.cancel_outlined;
+    } else if (stats.isSuspended) {
+      label = 'Suspended';
+      color = const Color(0xFFF59E0B);
+      icon  = Icons.pause_circle_outline;
+    } else if (stats.isExpired) {
+      label = 'Expired';
+      color = const Color(0xFFEF4444);
+      icon  = Icons.error_outline;
+    } else {
+      label = 'Active Member';
+      color = const Color(0xFF4F46E5);
+      icon  = Icons.verified;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
@@ -281,6 +339,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,13 +356,15 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 2),
           Text(
             subtitle,
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
+            style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
           const SizedBox(height: 16),
           ...children,
@@ -322,7 +386,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -330,13 +394,23 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
           obscureText: obscure,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          style: const TextStyle(color: Colors.black, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint ?? label,
+            hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
             filled: true,
-            fillColor: Colors.grey[100],
+            fillColor: const Color(0xFFF9FAFB),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF4F46E5)),
             ),
           ),
         ),
@@ -351,7 +425,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       children: [
         const Text(
           'Date of Birth',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
         ),
         const SizedBox(height: 8),
         GestureDetector(
@@ -363,6 +437,19 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   : DateTime(1990),
               firstDate: DateTime(1940),
               lastDate: DateTime.now(),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: const ColorScheme.light(
+                      primary: Color(0xFF4F46E5),
+                      onPrimary: Colors.white,
+                      surface: Colors.white,
+                      onSurface: Colors.black,
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
             );
             if (picked != null) {
               ctrl.setDateOfBirth(
@@ -374,8 +461,9 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: const Color(0xFFF9FAFB),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD1D5DB)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -385,10 +473,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                   style: TextStyle(
                     color: ctrl.dateOfBirth != null
                         ? Colors.black
-                        : Colors.grey,
+                        : const Color(0xFF9CA3AF),
+                    fontSize: 14,
                   ),
                 ),
-                const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+                const Icon(Icons.calendar_today, size: 18, color: Color(0xFF4F46E5)),
               ],
             ),
           ),
@@ -404,17 +493,21 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
         ),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: const Color(0xFFF3F4F6),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
-          child: Text(value, style: const TextStyle(color: Colors.black54)),
+          child: Text(
+            value,
+            style: const TextStyle(color: Color(0xFF4B5563), fontSize: 14),
+          ),
         ),
         const SizedBox(height: 16),
       ],
@@ -475,22 +568,32 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
-          hint: Text('Select $label'),
+          initialValue: value,
+          hint: Text('Select $label', style: const TextStyle(color: Color(0xFF9CA3AF))),
+          dropdownColor: Colors.white,
+          style: const TextStyle(color: Colors.black, fontSize: 14),
           items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(color: Colors.black))))
               .toList(),
           onChanged: onChanged,
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.grey[100],
+            fillColor: const Color(0xFFF9FAFB),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF4F46E5)),
             ),
           ),
         ),

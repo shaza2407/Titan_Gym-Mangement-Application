@@ -193,8 +193,11 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
           Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(color: CoachColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.calendar_month, color: CoachColors.primary),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.calendar_month, color: Color(0xFF4F46E5)),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -212,8 +215,18 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
               Text(formatTime(c.startTime), style: const TextStyle(fontWeight: FontWeight.bold)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: capacityColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Text('${c.currentClients}/${c.maxClients}', style: TextStyle(color: capacityColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                decoration: BoxDecoration(
+                  color: capacityColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${c.currentClients}/${c.maxClients}',
+                  style: TextStyle(
+                    color: capacityColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),

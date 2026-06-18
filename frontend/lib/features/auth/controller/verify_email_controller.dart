@@ -28,7 +28,9 @@ class VerifyEmailController extends ChangeNotifier {
         email: email,
         code: codeController.text.trim(),
       );
-      Navigator.pushReplacementNamed(context, '/login');
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {

@@ -248,7 +248,7 @@ final result = await SaverGallery.saveImage(
   bytes,
   fileName: 'gym_qr_$data',
   skipIfExists: false,
-  androidRelativePath: 'Pictures',
+  // androidRelativePath: 'Pictures',
 );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
