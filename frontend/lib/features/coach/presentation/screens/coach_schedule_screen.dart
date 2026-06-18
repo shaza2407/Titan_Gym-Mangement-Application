@@ -300,280 +300,103 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
   }
 
   Widget _buildWeekDay(CoachWeeklyDayModel day) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                r.className,
-                style: const TextStyle(
-                  fontSize: 16,
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              margin: const EdgeInsets.only(top: 4, left: 4, right: 12),
+              decoration: BoxDecoration(
+                color: CoachColors.primary,
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: CoachColors.primary.withOpacity(0.3), width: 3),
+              ),
+            ),
+            Text(
+              capitalizeDay(day.day),
+              style: const TextStyle(
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                  color: Colors.black),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (day.classes.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Text(
+              'No classes scheduled',
+              style: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic),
+            ),
+          )
+        else
+          ...day.classes.map(
+            (c) => Padding(
+              padding: const EdgeInsets.only(bottom: 12, left: 20),
+              child: Container(
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
-                child: Text(
-                  r.status,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 14,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                r.isRecurring
-                    ? _capitalizeDay(r.dayOfWeek)
-                    : r.requestedDate ?? '',
-                style: const TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(width: 12),
-              const Icon(Icons.access_time, size: 14, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(
-                '${_formatTime(r.requestedTime)} (${r.duration} min)',
-                style: const TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (day.classes.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: Text('No classes scheduled', style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontStyle: FontStyle.italic)),
-            )
-          else
-            ...day.classes.map((c) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Recurring (weekly)',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                      Switch(
-                        value: c.isRecurring,
-                        onChanged: c.setRecurring,
-                        activeThumbColor: const Color(0xFF4F46E5),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Day or Date
-                  if (c.isRecurring)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Day *',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: c.selectedDay,
-                          hint: const Text('Select day'),
-                          items: c.days
-                              .map(
-                                (d) => DropdownMenuItem(
-                                  value: d,
-                                  child: Text(
-                                    d[0].toUpperCase() + d.substring(1),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: c.setDay,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    )
-                  else
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Date *',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now().add(
-                                const Duration(days: 1),
-                              ),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (picked != null) {
-                              c.setDate(
-                                '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}',
-                              );
-                            }
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  c.selectedDate ?? 'Pick a date',
-                                  style: TextStyle(
-                                    color: c.selectedDate != null
-                                        ? Colors.black
-                                        : Colors.grey,
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons.calendar_today,
-                                  size: 18,
-                                  color: Colors.grey,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+                        Text(c.title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 14)),
+                        Text('${c.currentClients}/${c.maxClients} booked',
+                            style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w600)),
                       ],
                     ),
-
-                  // Time
-                  const Text(
-                    'Time *',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (picked != null) {
-                        c.setTime(
-                          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00',
-                        );
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(top: 4, left: 4, right: 12),
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(color: CoachColors.primary, shape: BoxShape.circle, border: Border.all(color: CoachColors.primary.withOpacity(0.3), width: 3)),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            width: 2,
-                            height: 40,
-                            color: CoachColors.primary.withOpacity(0.15),
-                          ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.access_time_rounded,
+                            size: 14, color: CoachColors.primary),
+                        const SizedBox(width: 4),
+                        Text(formatTime(c.startTime),
+                            style: const TextStyle(
+                                color: CoachColors.primary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600)),
+                        if (c.gymName != null) ...[
+                          const SizedBox(width: 12),
+                          const Icon(Icons.location_on_rounded,
+                              size: 14, color: Colors.grey),
+                          const SizedBox(width: 2),
+                          Text(c.gymName!,
+                              style: const TextStyle(
+                                  color: Colors.grey, fontSize: 12)),
                         ],
-                      ),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(c.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                  Text('${c.currentClients}/${c.maxClients} booked', style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600)),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.access_time_rounded, size: 14, color: CoachColors.primary),
-                                  const SizedBox(width: 4),
-                                  Text(formatTime(c.startTime), style: const TextStyle(color: CoachColors.primary, fontSize: 12, fontWeight: FontWeight.w600)),
-                                  if (c.gymName != null) ...[
-                                    const SizedBox(width: 12),
-                                    const Icon(Icons.location_on_rounded, size: 14, color: Colors.grey),
-                                    const SizedBox(width: 2),
-                                    Text(c.gymName!, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
-        ],
-      ),
-    );
-  }
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+}
 
   Widget _buildRequests(CoachScheduleController ctrl) {
     if (ctrl.requests.isEmpty) {
