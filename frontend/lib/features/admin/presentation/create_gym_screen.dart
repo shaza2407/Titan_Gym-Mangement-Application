@@ -223,7 +223,7 @@ const SizedBox(height: 16),
                           ? null
                           : () async {
                               await controller.createGym(token: token);
-                              if (controller.errorMessage == null) {
+                              if (controller.errorMessage == null && context.mounted) {
                                 Navigator.pop(context); 
                               }
                             },

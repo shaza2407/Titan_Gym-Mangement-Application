@@ -18,7 +18,6 @@ class AnalyticsService {
   Future<AnalyticsSummary> fetchSummary() async {
     final url = '${ApiConstants.baseUrl}/admin/analytics/$gymId/summary';
     final res = await http.get(Uri.parse(url), headers: _headers);
-    print("DEBUG: Received Summary ${res.body}");
     _checkStatus(res);
     return AnalyticsSummary.fromJson(jsonDecode(res.body));
   }

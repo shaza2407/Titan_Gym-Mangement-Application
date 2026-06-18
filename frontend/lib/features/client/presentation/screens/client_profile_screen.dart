@@ -529,7 +529,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           hint: Text('Select $label', style: const TextStyle(color: Color(0xFF9CA3AF))),
           dropdownColor: Colors.white,
           style: const TextStyle(color: Colors.black, fontSize: 14),

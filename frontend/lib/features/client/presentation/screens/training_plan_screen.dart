@@ -252,14 +252,14 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             child: ElevatedButton.icon(
               onPressed: () async {
                 final success = await ctrl.generatePlan(widget.token);
-                if (success && context.mounted) {
+                if (success && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('AI training plan generated successfully!'),
                       backgroundColor: Color(0xFF10B981),
                     ),
                   );
-                } else if (!success && context.mounted) {
+                } else if (!success && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(ctrl.errorMessage ?? 'Generation failed'),
@@ -315,7 +315,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
         border: Border.all(color: const Color(0xFFD1D5DB)),
       ),
       child: DropdownButtonFormField<String>(
-        value: ctrl.selectedGoal,
+        initialValue: ctrl.selectedGoal,
         dropdownColor: Colors.white,
         icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6B7280)),
         decoration: const InputDecoration(border: InputBorder.none),
@@ -370,7 +370,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
         border: Border.all(color: const Color(0xFFD1D5DB)),
       ),
       child: DropdownButtonFormField<int>(
-        value: ctrl.selectedWeeks,
+        initialValue: ctrl.selectedWeeks,
         dropdownColor: Colors.white,
         icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6B7280)),
         decoration: const InputDecoration(border: InputBorder.none),
@@ -392,7 +392,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
         border: Border.all(color: const Color(0xFFD1D5DB)),
       ),
       child: DropdownButtonFormField<int>(
-        value: ctrl.selectedDaysPerWeek,
+        initialValue: ctrl.selectedDaysPerWeek,
         dropdownColor: Colors.white,
         icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6B7280)),
         decoration: const InputDecoration(border: InputBorder.none),
@@ -540,7 +540,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                 );
                 if (confirm == true) {
                   final success = await ctrl.completePlan(widget.token);
-                  if (success && context.mounted) {
+                  if (success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Plan completed! Congratulations!')),
                     );
@@ -906,7 +906,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                 dayIndex: dayIndex,
                 durationMinutes: mins,
               );
-              if (success && context.mounted) {
+              if (success && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Workout logged successfully! Keep it up!'),

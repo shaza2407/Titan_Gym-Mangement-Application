@@ -236,7 +236,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               barWidth: 2.5,
               dotData: FlDotData(
                 show: true,
-                getDotPainter: (_, __, ___, _____) => FlDotCirclePainter(
+                getDotPainter: (_, _, _, _) => FlDotCirclePainter(
                   radius: 4,
                   color: Colors.white,
                   strokeColor: _primary,
@@ -245,7 +245,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: _primary.withOpacity(0.08),
+                color: _primary.withValues(alpha: 0.08),
               ),
             ),
           ],
@@ -310,7 +310,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               barWidth: 2,
               dotData: FlDotData(
                 show: true,
-                getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                getDotPainter: (_, _, _, _) => FlDotCirclePainter(
                   radius: 4,
                   color: Colors.white,
                   strokeWidth: 2,

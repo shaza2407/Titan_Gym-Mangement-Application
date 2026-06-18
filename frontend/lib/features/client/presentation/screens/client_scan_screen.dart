@@ -259,20 +259,20 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                           builder: (_) => const QrScannerPage(),
                         ),
                       );
-                      if (scannedCode == null || !context.mounted) return;
+                      if (scannedCode == null || !mounted) return;
 
                       final success = await ctrl.doCheckin(
                         widget.token,
                         scannedCode,
                       );
-                      if (success && context.mounted) {
+                      if (success && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Checked in successfully!'),
                             backgroundColor: Color(0xFF10B981),
                           ),
                         );
-                      } else if (!success && context.mounted) {
+                      } else if (!success && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
