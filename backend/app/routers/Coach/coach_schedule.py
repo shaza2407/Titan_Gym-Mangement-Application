@@ -7,6 +7,7 @@ from app.database import get_session
 from app.dependencies.auth import require_coach
 from app.models.coach import Coach
 from app.schemas.coach_schemas import (
+    CoachGymLookUpResponse,
     CoachScheduleStatsResponse,
     CreateClassRequestPayload,
 )
@@ -18,7 +19,10 @@ from app.services.coach_schedule import (
     create_class_request,
     get_coach_gymID,
     remove_class,
+    remove_class_request,
+    get_coach_gyms_lookup
 )
+from app.services import coach_schedule
 
 router = APIRouter(prefix="/coach/schedule", tags=["Coach Schedule"])
 
@@ -71,7 +75,7 @@ async def class_requests(
     coach = await get_coach_or_404(current_user.userID, db)
     return await get_class_requests(coach.coachID, db)
 
-
+# - Edited: use payload.gym_id directly from selection dropdown 
 # POST /coach/schedule/requests
 @router.post("/requests", status_code=201)
 async def create_request(
@@ -80,10 +84,7 @@ async def create_request(
     db: AsyncSession = Depends(get_session)
 ):
     coach = await get_coach_or_404(current_user.userID, db)
-    gymID = await get_coach_gymID(coach.coachID, db)
-    if not gymID:
-        raise HTTPException(400, "You are not connected to any gym")
-    result = await create_class_request(coach.coachID, gymID, payload, db)
+    result = await create_class_request(coach.coachID, payload.gym_id, payload, db)
     return result
 
 
@@ -112,3 +113,20 @@ async def delete_class(
         )
 
     return {"message": "Class removed successfully"}
+
+
+# -Added: new endpoint to delete a requested class.
+@router.delete("/requests/{request_id}")
+async def delete_request(request_id: int, current_user=Depends(require_coach), db: AsyncSession = Depends(get_session)):
+    coach = await get_coach_or_404(current_user.userID, db)
+    success = await remove_class_request(coach.coachID, request_id, db)
+    if not success:
+        raise HTTPException(status_code=404, detail="Class request not found")
+    return {"message":"Request cancelled and deleted successfully"}
+
+
+# -Added: new endpoint to get gyms for a coach
+@router.get("/gyms", response_model=list[CoachGymLookUpResponse])
+async def read_coach_gyms(current_user=Depends(require_coach), db: AsyncSession=Depends(get_session)):
+    coach = await get_coach_or_404(current_user.userID, db)
+    return await get_coach_gyms_lookup(coach.coachID, db)

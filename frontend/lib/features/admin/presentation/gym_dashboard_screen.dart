@@ -84,18 +84,33 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
         ],
       ),
       actions: [
-        Stack(
-          children: [
-            Positioned(
-              right: 8, top: 8,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                child: const Text('2', style: TextStyle(color: Colors.white, fontSize: 9)),
-              ),
-            ),
-          ],
-        ),
+        SizedBox(
+  width: 48,
+  height: 48,
+  child: Stack(
+    children: [
+      // IconButton(
+      //   icon: const Icon(Icons.notifications_outlined),
+      //   onPressed: () {},
+      // ),
+      // Positioned(
+      //   right: 6,
+      //   top: 6,
+      //   child: Container(
+      //     padding: const EdgeInsets.all(3),
+      //     decoration: const BoxDecoration(
+      //       color: Colors.red,
+      //       shape: BoxShape.circle,
+      //     ),
+      //     child: const Text(
+      //       '2',
+      //       style: TextStyle(color: Colors.white, fontSize: 10),
+      //     ),
+      //   ),
+      // ),
+    ],
+  ),
+),
         IconButton(
           icon: const Icon(Icons.logout_outlined, color: Colors.black),
           onPressed: () => showLogoutDialog(context),
