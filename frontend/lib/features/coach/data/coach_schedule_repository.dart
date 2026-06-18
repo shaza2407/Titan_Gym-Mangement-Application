@@ -86,4 +86,27 @@ class CoachScheduleRepository {
       throw Exception('Failed to remove class');
     }
   }
+
+  Future<List<CoachGymLookupModel>> getGyms(String token) async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/coach/schedule/gyms'),
+      headers: _headers(token),
+    );
+    if (res.statusCode == 200) {
+      return (jsonDecode(res.body) as List)
+          .map((e) => CoachGymLookupModel.fromJson(e))
+          .toList();
+    }
+    throw Exception('Failed to load gyms');
+  }
+
+  Future<void> removeRequest(String token, int requestId) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/coach/schedule/requests/$requestId'),
+      headers: _headers(token),
+    );
+    if (res.statusCode != 200) {
+      throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to cancel request');    
+    }
+  }
 }
