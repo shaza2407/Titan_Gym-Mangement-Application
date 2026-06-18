@@ -151,7 +151,7 @@ async def get_upcoming_classes(coachID: int, db: AsyncSession, limit: int = 3) -
             })
 
     todays_classes.sort(key=lambda x: x["start_time"])
-    return todays_classes
+    return todays_classes[:limit]
 
 
 # ── Schedule Stats ────────────────────────────────────────────────────────────
@@ -347,7 +347,7 @@ async def create_class_request(
     requested_date = payload.requested_date
 
     # For one-time classes compute day automatically
-    if not payload.is_recurring and requested_date:
+    if requested_date and not day_of_week:
         day_of_week = day_names[requested_date.weekday()]
 
     # CHECK EXISTING CLASSES
@@ -437,6 +437,23 @@ async def create_class_request(
     }
 
 
+# Remove requested class
+async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
+    result = await db.execute(
+        select(ClassRequest).where(
+            ClassRequest.id == request_id,
+            ClassRequest.coach_id == coachID
+        )
+    )
+
+    request_obj = result.scalar_one_or_none()
+    if not request_obj:
+        return False
+    await db.delete(request_obj)
+    await db.commit()
+    return True
+
+
 # ── remove class ────────────────────────────────────────────────────────────
 
 async def remove_class(
@@ -469,3 +486,12 @@ async def remove_class(
     return True
 
 
+
+# Gyms lookup
+async def get_coach_gyms_lookup(coachID: int, db: AsyncSession)-> list:
+    result = await db.execute(
+        select(Gym.gymID, Gym.gymName)
+        .join(GymCoachMembership, GymCoachMembership.gymID == Gym.gymID)
+        .where(GymCoachMembership.coachID == coachID)
+    )
+    return [{"id": row.gymID, "name": row.gymName} for row in result.all()]
