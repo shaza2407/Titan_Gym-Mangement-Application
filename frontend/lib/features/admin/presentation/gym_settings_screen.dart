@@ -202,12 +202,6 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
                   hint: 'e.g. gym@example.com',
                   keyboardType: TextInputType.emailAddress,
                 ),
-                const SizedBox(height: 16),
-                _buildField(
-                  label: 'Website',
-                  controller: _websiteCtrl,
-                  hint: 'e.g. https://titangym.com',
-                ),
               ],
             ),
             const SizedBox(height: 16),
