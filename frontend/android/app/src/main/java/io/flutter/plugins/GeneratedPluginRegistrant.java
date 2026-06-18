@@ -51,6 +51,11 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin mobile_scanner, dev.steenbakker.mobile_scanner.MobileScannerPlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new com.crazecoder.openfile.OpenFilePlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin open_filex, com.crazecoder.openfile.OpenFilePlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new com.mhz.savegallery.saver_gallery.SaverGalleryPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin saver_gallery, com.mhz.savegallery.saver_gallery.SaverGalleryPlugin", e);

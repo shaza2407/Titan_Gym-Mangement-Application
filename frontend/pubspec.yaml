@@ -47,6 +47,8 @@ dependencies:
   screenshot: ^3.0.0
   saver_gallery: ^5.1.0
   mobile_scanner: ^7.2.0
+  path_provider: ^2.1.6
+  open_filex: ^4.7.0
 
 dev_dependencies:
   flutter_test:

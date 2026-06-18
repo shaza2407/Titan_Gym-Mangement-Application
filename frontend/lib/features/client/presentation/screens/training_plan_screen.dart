@@ -482,6 +482,11 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                       ),
                     ),
                     IconButton(
+                      icon: const Icon(Icons.download_rounded, color: Color(0xFF4F46E5)),
+                      onPressed: () => ctrl.downloadPlanPdf(widget.token),
+                      tooltip: 'Download PDF',
+                    ),
+                    IconButton(
                       icon: const Icon(Icons.delete_outline, color: Colors.red),
                       onPressed: () async {
                         final confirm = await _showConfirm(
@@ -543,6 +548,13 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                   if (success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Plan completed! Congratulations!')),
+                    );
+                  } else if (!success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(ctrl.errorMessage ?? 'Failed to complete plan.'),
+                        backgroundColor: Colors.red,
+                      ),
                     );
                   }
                 }
@@ -625,7 +637,23 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
   }
 
   Widget _buildDaysWorkoutsList(ClientTrainingPlanController ctrl) {
-    final week = ctrl.activePlan!.plan.firstWhere((w) => w.week == ctrl.selectedWeekNumber);
+    if (ctrl.activePlan!.plan.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            'The AI generated an incomplete or incorrectly formatted plan. Please delete this plan and generate a new one.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.red, fontSize: 14),
+          ),
+        ),
+      );
+    }
+    
+    final week = ctrl.activePlan!.plan.firstWhere(
+      (w) => w.week == ctrl.selectedWeekNumber,
+      orElse: () => ctrl.activePlan!.plan.first,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -668,10 +696,12 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                   BoxShadow(color: Color(0x05000000), blurRadius: 10, offset: Offset(0, 4))
                 ],
               ),
-              child: Theme(
-                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  collapsedIconColor: Colors.black,
+              child: Material(
+                color: Colors.transparent,
+                child: Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    collapsedIconColor: Colors.black,
                   iconColor: Colors.black,
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -849,6 +879,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                       ),
                     )
                   ],
+                  ),
                 ),
               ),
             );
@@ -911,6 +942,13 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                   const SnackBar(
                     content: Text('Workout logged successfully! Keep it up!'),
                     backgroundColor: Color(0xFF10B981),
+                  ),
+                );
+              } else if (!success && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(ctrl.errorMessage ?? 'Failed to log workout.'),
+                    backgroundColor: Colors.red,
                   ),
                 );
               }

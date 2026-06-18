@@ -1,6 +1,10 @@
 // lib/features/client/presentation/controllers/client_training_plan_controller.dart
 
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 import '../../data/training_plan_repository.dart';
 import '../../domain/training_plan_model.dart';
 
@@ -124,9 +128,12 @@ class ClientTrainingPlanController extends ChangeNotifier {
   }
 
   Future<bool> toggleExerciseCompletion(int dayIndex, int exerciseIndex) async {
-    if (activePlan == null) return false;
+    if (activePlan == null || activePlan!.plan.isEmpty) return false;
     
-    final week = activePlan!.plan.firstWhere((w) => w.week == selectedWeekNumber);
+    final week = activePlan!.plan.firstWhere(
+      (w) => w.week == selectedWeekNumber,
+      orElse: () => activePlan!.plan.first,
+    );
     final day = week.days[dayIndex];
     final exercise = day.exercises[exerciseIndex];
     
@@ -146,20 +153,23 @@ class ClientTrainingPlanController extends ChangeNotifier {
     required int dayIndex,
     required int durationMinutes,
   }) async {
-    if (activePlan == null) return false;
+    if (activePlan == null || activePlan!.plan.isEmpty) return false;
 
     try {
-      final week = activePlan!.plan.firstWhere((w) => w.week == selectedWeekNumber);
+      final week = activePlan!.plan.firstWhere(
+        (w) => w.week == selectedWeekNumber,
+        orElse: () => activePlan!.plan.first,
+      );
       final day = week.days[dayIndex];
       final total = day.exercises.length;
       final completed = day.exercises.where((e) => e.isCompleted).length;
 
       // Call API
-      final todayStr = DateTime.now().toIso8601String().split('T')[0];
       await _repo.completeDay(
         token: token,
         planId: activePlan!.planID,
-        trackingDate: todayStr,
+        weekNumber: selectedWeekNumber,
+        dayNumber: dayIndex + 1,
         completedExercises: completed,
         totalExercises: total,
         durationMinutes: durationMinutes,
@@ -210,6 +220,35 @@ class ClientTrainingPlanController extends ChangeNotifier {
     } catch (e) {
       errorMessage = e.toString();
       return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> downloadPlanPdf(String token) async {
+    if (activePlan == null) return;
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      final res = await http.get(
+        Uri.parse('http://127.0.0.1:8000/training-plans/${activePlan!.planID}/pdf'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (res.statusCode == 200) {
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/training_plan_${activePlan!.planID}.pdf');
+        await file.writeAsBytes(res.bodyBytes);
+        await OpenFilex.open(file.path);
+      } else {
+        errorMessage = 'Failed to download PDF.';
+      }
+    } catch (e) {
+      errorMessage = 'Error saving PDF: $e';
     } finally {
       isLoading = false;
       notifyListeners();
