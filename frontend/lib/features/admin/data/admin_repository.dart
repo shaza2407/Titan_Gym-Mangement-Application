@@ -252,6 +252,39 @@ static Future<void> updateAdminProfile({
     throw Exception(detail);
   }
 }
+
+static Future<void> updateGym({
+  required int gymId,
+  required String token,
+  required String gymName,
+  required String gymType,
+  required String location,
+  required String openingHours,
+  required String closingHours,
+  required double subscriptionPrice,
+  double? yearlySubscriptionPrice,
+}) async {
+  final res = await http.patch(
+    Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'gymName': gymName,
+      'gymType': gymType,
+      'location': location,
+      'openingHours': openingHours,
+      'closingHours': closingHours,
+      'subscriptionPrice': subscriptionPrice,
+      'yearlySubscriptionPrice': yearlySubscriptionPrice,
+    }),
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to update gym');
+  }
+}
+
 }
 
 //admin profile models

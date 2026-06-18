@@ -357,15 +357,18 @@ class _ClientCard extends StatelessWidget {
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     Row(
-                      children: [
-                        const Icon(Icons.email_outlined,
-                            size: 12, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(member.email,
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 12)),
-                      ],
-                    ),
+  children: [
+    const Icon(Icons.email_outlined, size: 12, color: Colors.grey),
+    const SizedBox(width: 4),
+    Flexible(
+      child: Text(
+        member.email,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(color: Colors.grey, fontSize: 12),
+      ),
+    ),
+  ],
+),
                     Row(
                       children: [
                         const Icon(Icons.phone_outlined,
