@@ -230,7 +230,24 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                     }
                   }
                 },
-                child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+              ),
+
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: capacityColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.people, color: capacityColor, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${c.currentClients}/${c.maxClients}',
+                      style: TextStyle(color: capacityColor, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -290,9 +307,56 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
         children: [
           Row(
             children: [
-              Text(day.label.split(' ')[0], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black)),
-              const SizedBox(width: 6),
-              Text(day.label.replaceFirst(day.label.split(' ')[0], ''), style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.grey.shade500)),
+              Text(
+                r.className,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  r.status,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 14,
+                color: Colors.grey,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                r.isRecurring
+                    ? _capitalizeDay(r.dayOfWeek)
+                    : r.requestedDate ?? '',
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+              const SizedBox(width: 12),
+              const Icon(Icons.access_time, size: 14, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                '${_formatTime(r.requestedTime)} (${r.duration} min)',
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -307,7 +371,155 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
+                      const Text(
+                        'Recurring (weekly)',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Switch(
+                        value: c.isRecurring,
+                        onChanged: c.setRecurring,
+                        activeThumbColor: const Color(0xFF4F46E5),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Day or Date
+                  if (c.isRecurring)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Day *',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          initialValue: c.selectedDay,
+                          hint: const Text('Select day'),
+                          items: c.days
+                              .map(
+                                (d) => DropdownMenuItem(
+                                  value: d,
+                                  child: Text(
+                                    d[0].toUpperCase() + d.substring(1),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: c.setDay,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Date *',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now().add(
+                                const Duration(days: 1),
+                              ),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
+                            );
+                            if (picked != null) {
+                              c.setDate(
+                                '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}',
+                              );
+                            }
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  c.selectedDate ?? 'Pick a date',
+                                  style: TextStyle(
+                                    color: c.selectedDate != null
+                                        ? Colors.black
+                                        : Colors.grey,
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.calendar_today,
+                                  size: 18,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+
+                  // Time
+                  const Text(
+                    'Time *',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                      );
+                      if (picked != null) {
+                        c.setTime(
+                          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00',
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
                             margin: const EdgeInsets.only(top: 4, left: 4, right: 12),

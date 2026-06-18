@@ -149,9 +149,9 @@ class AdminApiService {
     }
   }
 
-  static Future<void> suspendClient(int gymId, int ClientId, String token) async {
+  static Future<void> suspendClient(int gymId, int clientId, String token) async {
     final res = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$ClientId/suspend'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$clientId/suspend'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

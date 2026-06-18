@@ -152,7 +152,7 @@ class GeminiTrainingAgent:
                     config={
                         "response_mime_type": "application/json",
                         "temperature": 0.7,
-                        "max_output_tokens": 8192,
+                        "max_output_tokens": 16384,
                     },
                 )
 
@@ -247,6 +247,12 @@ class GeminiTrainingAgent:
                 )
 
         plan_dict = _safe_parse_json(raw_text)
+        if not plan_dict.get("plan"):
+            logger.warning("Gemini JSON had no usable plan data, using fallback")
+            return await self._create_fallback_response(
+                client_id, req, client_obj, user_obj, db
+            )
+
         training_plan = TrainingPlan(
             clientID=client_id,
             title=plan_dict.get("title", f"{req.fitness_goal.title()} Plan"),
@@ -337,40 +343,97 @@ class GeminiTrainingAgent:
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _safe_parse_json(text: str) -> dict:
-    # 1. Strip basic markdown
+    """Parse Gemini JSON, aggressively repairing truncated output."""
+    # 1. Strip markdown fences
     text = text.replace("```json", "").replace("```", "").strip()
-    
-    # 2. Isolate the JSON object to ignore any conversational text
+
+    # 2. Isolate the JSON object
     start_idx = text.find("{")
     end_idx = text.rfind("}")
-    
-    if start_idx != -1 and end_idx != -1:
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
         text = text[start_idx : end_idx + 1]
-        
+    elif start_idx != -1:
+        text = text[start_idx:]
+
+    # 3. Try direct parse first
     try:
         return json.loads(text)
     except json.JSONDecodeError as e:
-        logger.error("JSON parse failed: %s | Text snippet: %s", e, text[:250])
-        
-        # 3. Try to repair if it was truncated
-        text = _try_repair_truncated_json(text)
-        try:
-            return json.loads(text)
-        except json.JSONDecodeError:
-            logger.error("JSON repair also failed")
-            return {"title": "Parse error", "plan": []}
+        logger.warning("JSON parse failed (will attempt repair): %s | snippet: %s", e, text[:250])
+
+    # 4. Aggressive repair for truncated responses
+    repaired = _try_repair_truncated_json(text)
+    try:
+        result = json.loads(repaired)
+        weeks = result.get("plan", [])
+        if weeks:
+            logger.info("JSON repair succeeded — salvaged %d week(s)", len(weeks))
+        return result
+    except json.JSONDecodeError as repair_err:
+        logger.error("JSON repair also failed: %s", repair_err)
+        return {"title": "Plan (partial – AI response was truncated)", "plan": []}
 
 
 def _try_repair_truncated_json(text: str) -> str:
-    text = text.rstrip(",")
-    if not text.endswith("}"):
-        text += "}"
-    open_braces = text.count("{")
-    close_braces = text.count("}")
-    text += "}" * (open_braces - close_braces)
-    open_brackets = text.count("[")
-    close_brackets = text.count("]")
-    text += "]" * (open_brackets - close_brackets)
+    """Aggressively repair truncated JSON from Gemini by stripping the
+    incomplete tail and properly closing all open brackets / braces."""
+    import re
+
+    # ── Step 1: Strip any trailing incomplete string value ──────────────────
+    # If the text ends mid-string (no closing quote), remove back to the
+    # last complete key-value or array element.
+    # Count unescaped quotes – odd means we're inside a string
+    quote_count = 0
+    i = 0
+    while i < len(text):
+        if text[i] == '"' and (i == 0 or text[i - 1] != '\\'):
+            quote_count += 1
+        i += 1
+    if quote_count % 2 == 1:  # inside an unclosed string
+        last_quote = text.rfind('"')
+        text = text[:last_quote]  # chop the opening quote of the broken string
+
+    # ── Step 2: Strip trailing partial tokens ──────────────────────────────
+    # Remove trailing chars that can't end a valid JSON value
+    text = re.sub(r'[,:\s"]+$', '', text)
+
+    # ── Step 3: Remove the last incomplete object/array element ────────────
+    # Walk backwards and remove any dangling key-only or partial entry
+    # e.g.  {"name": "Push-ups", "sets":   ← remove the broken element
+    # Strategy: repeatedly strip trailing junk until the tail is a valid
+    # JSON closing char (}, ], digit, true, false, null, or quoted string)
+    for _ in range(10):  # safety bound
+        stripped = text.rstrip()
+        if not stripped:
+            break
+        last_char = stripped[-1]
+        if last_char in ('}', ']', '"') or stripped[-4:] in ('true', 'null') or stripped[-5:] == 'false' or last_char.isdigit():
+            break
+        # Remove the last token (key, colon, comma, partial value)
+        text = re.sub(r'[,}\]]*\s*[^,}\]\[{]*$', '', stripped, count=1)
+
+    # ── Step 4: Remove any trailing commas before we close ─────────────────
+    text = re.sub(r',\s*$', '', text)
+
+    # ── Step 5: Balance brackets and braces ────────────────────────────────
+    open_braces = text.count('{') - text.count('}')
+    open_brackets = text.count('[') - text.count(']')
+
+    # Close innermost structures first: ] then }
+    # We interleave based on what was opened last
+    closers = []
+    stack = []
+    for ch in text:
+        if ch == '{':
+            stack.append('}')
+        elif ch == '[':
+            stack.append(']')
+        elif ch in ('}', ']') and stack:
+            stack.pop()
+
+    # stack now has the closers we need, in order (innermost last)
+    text += ''.join(reversed(stack))
+
     return text
 
 

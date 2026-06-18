@@ -289,7 +289,8 @@ async def complete_day(
     current_user=Depends(require_client),
     db: AsyncSession = Depends(get_session),
 ):
-    tracking_date = request.tracking_date
+    week_number = request.week_number
+    day_number = request.day_number
     completed_exercises = request.completed_exercises
     total_exercises = request.total_exercises
     duration_minutes = request.duration_minutes
@@ -306,24 +307,19 @@ async def complete_day(
         select(TrainingPlanTracking).where(
             TrainingPlanTracking.clientID      == client_id,
             TrainingPlanTracking.planID        == plan_id,
-            TrainingPlanTracking.tracking_date == tracking_date,
+            TrainingPlanTracking.week_number   == week_number,
+            TrainingPlanTracking.day_number    == day_number,
         )
     )
     tracking = res.scalar_one_or_none()
 
     if not tracking:
-        # Derive week / day numbers from plan start date
-        start_date   = plan.created_at.date()
-        days_elapsed = (tracking_date - start_date).days
-        week_num     = (days_elapsed // 7) + 1
-        day_num      = (days_elapsed % 7) + 1
-
         tracking = TrainingPlanTracking(
             clientID              = client_id,
             planID                = plan_id,
-            tracking_date         = tracking_date,
-            week_number           = week_num,
-            day_number            = day_num,
+            tracking_date         = datetime.now(timezone.utc).date(),
+            week_number           = week_number,
+            day_number            = day_number,
             planned_exercises     = total_exercises,
             completed_exercises   = completed_exercises,
             completion_percentage = completion,
@@ -333,6 +329,7 @@ async def complete_day(
         )
         db.add(tracking)
     else:
+        tracking.tracking_date         = datetime.now(timezone.utc).date()
         tracking.completed_exercises   = completed_exercises
         tracking.completion_percentage = completion
         tracking.status                = WorkoutStatus.COMPLETED if completion >= 80 else WorkoutStatus.PARTIAL
