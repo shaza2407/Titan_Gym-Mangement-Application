@@ -144,7 +144,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: _notifications.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final n = _notifications[index];
                       final isRead = n['is_read'] as bool;
@@ -159,12 +159,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           decoration: BoxDecoration(
                             color: isRead
                                 ? Colors.white
-                                : accentColor.withOpacity(0.05),
+                                : accentColor.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: isRead
                                   ? Colors.transparent
-                                  : accentColor.withOpacity(0.2),
+                                  : accentColor.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Row(
@@ -172,7 +172,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: accentColor.withOpacity(0.1),
+                                  color: accentColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(_iconForType(type),

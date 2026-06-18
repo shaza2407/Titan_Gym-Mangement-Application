@@ -266,7 +266,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                     c.id,
                     c.nextDate ?? '',
                   );
-                  if (success && context.mounted) {
+                  if (success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Unenrolled successfully')),
                     );
@@ -494,14 +494,14 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                         c.id,
                         c.nextDate ?? '',
                       );
-                      if (success && context.mounted) {
+                      if (success && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Enrolled in ${c.title}!'),
                             backgroundColor: const Color(0xFF10B981),
                           ),
                         );
-                      } else if (!success && context.mounted) {
+                      } else if (!success && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(ctrl.errorMessage ?? 'Enroll failed'),

@@ -28,9 +28,7 @@ class AuthRepository {
 
     if (response.statusCode == 200) {
       return UserModel.fromJson(jsonDecode(response.body));
-    } else { print('STATUS: ${response.statusCode}');
-        print('STATUS: ${response.statusCode}');
-        print('BODY: ${response.body}');
+    } else {
         throw Exception(jsonDecode(response.body)['detail'] ?? jsonDecode(response.body)['message']);
     }
   }
