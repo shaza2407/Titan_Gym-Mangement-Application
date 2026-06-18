@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/auth/presentation/login_screen.dart';
@@ -18,13 +20,27 @@ import 'features/Services/notification_service.dart';
 // import 'features/admin/presentation/invite_member_screen.dart';
 
 
-void main() async{
+import 'package:flutter/foundation.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConstants.initialize();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
-  await NotificationService.init();  
+
+  if (!kIsWeb && !Platform.isLinux) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await NotificationService.init();
+  }
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    if (details.exception.toString().contains('parentDataDirty')) {
+      return; // swallow this specific known-framework-bug assertion
+    }
+    FlutterError.presentError(details);
+  };
+
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
