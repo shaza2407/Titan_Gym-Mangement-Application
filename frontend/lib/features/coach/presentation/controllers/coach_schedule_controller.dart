@@ -9,12 +9,15 @@ class CoachScheduleController extends ChangeNotifier {
   List<CoachWeeklyDayModel> weekly = [];
   List<CoachClassModel> myClasses = [];
   List<CoachClassRequestModel> requests = [];
+  List<CoachGymLookupModel> gyms = [];
 
   bool isLoading = false;
   bool isSubmitting = false;
+  bool isLoadingGyms = false;
   String? errorMessage;
 
   int selectedTab = 0; // 0=Schedule, 1=MyClasses, 2=Requests
+  int? selectedGymId;
 
   // Request form fields
   final classNameController = TextEditingController();
@@ -48,6 +51,7 @@ class CoachScheduleController extends ChangeNotifier {
       requests = await _repo.getRequests(token);
     } catch (e) {
       errorMessage = e.toString();
+      print('Debug load all error: $e');
     } finally {
       isLoading = false;
       notifyListeners();
@@ -55,7 +59,7 @@ class CoachScheduleController extends ChangeNotifier {
   }
 
   Future<bool> submitRequest(String token) async {
-    if (classNameController.text.trim().isEmpty || selectedTime == null) {
+    if (classNameController.text.trim().isEmpty || selectedTime == null || selectedGymId == null) {
       errorMessage = 'Please fill all required fields';
       notifyListeners();
       return false;
@@ -67,8 +71,8 @@ class CoachScheduleController extends ChangeNotifier {
       return false;
     }
 
-    if (!isRecurring && selectedDate == null) {
-      errorMessage = 'Please select a date for one-time class';
+    if (selectedDate == null) {
+      errorMessage = 'Please pick a start date from the calendar';
       notifyListeners();
       return false;
     }
@@ -80,9 +84,10 @@ class CoachScheduleController extends ChangeNotifier {
     try {
       final data = {
         'class_name': classNameController.text.trim(),
+        'gym_id': selectedGymId,
         'is_recurring': isRecurring,
-        'day_of_week': isRecurring ? selectedDay : null,
-        'requested_date': !isRecurring ? selectedDate : null,
+        'day_of_week': null,  //backend handles this 
+        'requested_date':  selectedDate,
         'requested_time': selectedTime,
         'duration': int.tryParse(durationController.text.trim()) ?? 45,
         'max_capacity': int.tryParse(maxCapacityController.text.trim()) ?? 20,
@@ -109,6 +114,7 @@ class CoachScheduleController extends ChangeNotifier {
     durationController.clear();
     maxCapacityController.clear();
     reasonController.clear();
+    selectedGymId = null;
     selectedDay = null;
     selectedDate = null;
     selectedTime = null;
@@ -160,4 +166,41 @@ class CoachScheduleController extends ChangeNotifier {
       return false;
     }
   }
+
+  // -Added method to load gyms for request form-
+  Future<void> loadGyms(String token) async {
+    isLoadingGyms = true;
+    errorMessage = null;
+    notifyListeners();
+    try{
+      gyms = await _repo.getGyms(token);
+    } catch (e) {
+      errorMessage = e.toString();
+    }
+    finally {
+      isLoadingGyms = false;
+      notifyListeners();
+    }
+  }
+
+  // -Added method to set selected gym for request form-
+  void selectGym(int? gymId) {
+    selectedGymId = gymId;
+    notifyListeners();
+  }
+
+  // -Added method to delete a class request-
+  Future<bool> deleteRequest(String token, int requestId) async{
+    try{
+      await _repo.removeRequest(token, requestId);
+      requests.removeWhere((r) => r.id == requestId);
+      await loadAll(token);
+      return true;
+    }catch(e){
+      errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
 }
