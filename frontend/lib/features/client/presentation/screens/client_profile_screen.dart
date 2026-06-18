@@ -274,9 +274,52 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Active Member',
-            style: TextStyle(color: Color(0xFF4F46E5), fontSize: 12, fontWeight: FontWeight.bold),
+          _buildMembershipBadge(ctrl),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMembershipBadge(ClientProfileController ctrl) {
+    final stats = ctrl.dashboardStats;
+
+    String label;
+    Color color;
+    IconData icon;
+
+    if (stats == null || stats.membershipStatus == null) {
+      label = 'No Subscription';
+      color = const Color(0xFF9CA3AF);
+      icon  = Icons.cancel_outlined;
+    } else if (stats.isSuspended) {
+      label = 'Suspended';
+      color = const Color(0xFFF59E0B);
+      icon  = Icons.pause_circle_outline;
+    } else if (stats.isExpired) {
+      label = 'Expired';
+      color = const Color(0xFFEF4444);
+      icon  = Icons.error_outline;
+    } else {
+      label = 'Active Member';
+      color = const Color(0xFF4F46E5);
+      icon  = Icons.verified;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ],
       ),

@@ -154,35 +154,12 @@ class LoginScreen extends StatelessWidget {
                         }
 
                         if (role == 'client') {
-                          // Step 3 — Check if connected to gym
-                          final meRes = await http.get(
-                            Uri.parse('${ApiConstants.baseUrl}/client/me'),
-                            headers: {
-                              'Content-Type': 'application/json',
-                              'Authorization': 'Bearer $token',
-                            },
-                          );
-
-                          if (meRes.statusCode == 200) {
-                            final meData = jsonDecode(meRes.body);
-                            final isConnected = meData['is_connected'] as bool;
-
-                            if (context.mounted) {
-                              if (isConnected) {
-                                Navigator.pushReplacementNamed(context, '/client-dashboard', arguments: token);
-                              } else {
-                                Navigator.pushReplacementNamed(context, '/client-profile-only', arguments: token);
-                              }
-                            }
-                          } else {
-                            // Fallback if /client/me fails
-                            if (context.mounted) {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/client-dashboard',
-                                arguments: token,
-                              );
-                            }
+                          if (context.mounted) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/client-dashboard',
+                              arguments: token,
+                            );
                           }
                           return;
                         }

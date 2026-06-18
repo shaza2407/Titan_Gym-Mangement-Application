@@ -28,60 +28,91 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _ctrl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF3F4F6),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0.5,
-          leading: widget.onBack != null
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
-                  onPressed: widget.onBack,
-                )
-              : const BackButton(color: Colors.black),
-          title: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'My Badges',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+      child: DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          backgroundColor: const Color(0xFFF3F4F6),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0.5,
+            leading: widget.onBack != null
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: widget.onBack,
+                  )
+                : const BackButton(color: Colors.black),
+            title: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'My Badges',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-              ),
-              Text(
-                'Track your fitness milestones',
-                style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
-              ),
-            ],
+                Text(
+                  'Track your fitness milestones',
+                  style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
+                ),
+              ],
+            ),
+            bottom: const TabBar(
+              labelColor: Color(0xFF4F46E5),
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Color(0xFF4F46E5),
+              tabs: [
+                Tab(text: 'All'),
+                Tab(text: 'Earned'),
+                Tab(text: 'Locked'),
+              ],
+            ),
+          ),
+          body: Consumer<ClientAchievementController>(
+            builder: (context, ctrl, _) {
+              if (ctrl.isLoading) {
+                return const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)));
+              }
+
+              if (ctrl.errorMessage != null) {
+                return Center(child: Text(ctrl.errorMessage!, style: const TextStyle(color: Colors.red)));
+              }
+
+              if (ctrl.achievements.isEmpty) {
+                return const Center(child: Text('No achievements available.', style: TextStyle(color: Color(0xFF6B7280))));
+              }
+
+              final unlocked = ctrl.achievements.where((a) => a.isUnlocked).toList();
+              final locked = ctrl.achievements.where((a) => !a.isUnlocked).toList();
+
+              return TabBarView(
+                children: [
+                  _buildList(ctrl.achievements),
+                  _buildList(unlocked),
+                  _buildList(locked),
+                ],
+              );
+            },
           ),
         ),
-        body: Consumer<ClientAchievementController>(
-          builder: (context, ctrl, _) {
-            if (ctrl.isLoading) {
-              return const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)));
-            }
-
-            if (ctrl.errorMessage != null) {
-              return Center(child: Text(ctrl.errorMessage!, style: const TextStyle(color: Colors.red)));
-            }
-
-            if (ctrl.achievements.isEmpty) {
-              return const Center(child: Text('No achievements available.', style: TextStyle(color: Color(0xFF6B7280))));
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: ctrl.achievements.length,
-              itemBuilder: (context, index) {
-                return _buildAchievementCard(ctrl.achievements[index]);
-              },
-            );
-          },
-        ),
       ),
+    );
+  }
+
+  Widget _buildList(List<AchievementModel> list) {
+    if (list.isEmpty) {
+      return const Center(
+        child: Text('No achievements found here.', style: TextStyle(color: Color(0xFF6B7280))),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        return _buildAchievementCard(list[index]);
+      },
     );
   }
 
@@ -113,9 +144,22 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Text(
-                ach.icon,
-                style: TextStyle(fontSize: 32, color: isUnlocked ? null : Colors.grey),
+              child: ColorFiltered(
+                colorFilter: isUnlocked
+                    ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
+                    : const ColorFilter.matrix(<double>[
+                        0.2126, 0.7152, 0.0722, 0, 0,
+                        0.2126, 0.7152, 0.0722, 0, 0,
+                        0.2126, 0.7152, 0.0722, 0, 0,
+                        0, 0, 0, 1, 0,
+                      ]),
+                child: Opacity(
+                  opacity: isUnlocked ? 1.0 : 0.4,
+                  child: Text(
+                    ach.icon,
+                    style: const TextStyle(fontSize: 32),
+                  ),
+                ),
               ),
             ),
           ),

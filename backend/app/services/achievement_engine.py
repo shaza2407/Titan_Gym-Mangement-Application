@@ -300,12 +300,8 @@ class AchievementEngine:
 
         result = await db.execute(
             select(func.count(TrainingPlan.planID))
-            .join(
-                GymClientMembership,
-                TrainingPlan.membershipID == GymClientMembership.id,
-            )
             .where(
-                GymClientMembership.clientID == client_id,
+                TrainingPlan.clientID == client_id,
                 TrainingPlan.status == PlanStatus.COMPLETED,
                 TrainingPlan.is_active == True,
             )

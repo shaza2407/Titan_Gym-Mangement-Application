@@ -72,13 +72,15 @@ class TrainingPlanRepository {
   Future<void> completeDay({
     required String token,
     required int planId,
-    required String trackingDate, // "YYYY-MM-DD"
+    required int weekNumber,
+    required int dayNumber,
     required int completedExercises,
     required int totalExercises,
     required int durationMinutes,
   }) async {
     final body = {
-      'tracking_date': trackingDate,
+      'week_number': weekNumber,
+      'day_number': dayNumber,
       'completed_exercises': completedExercises,
       'total_exercises': totalExercises,
       'duration_minutes': durationMinutes,
