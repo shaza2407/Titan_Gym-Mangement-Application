@@ -62,6 +62,7 @@ class CoachWeekDay(BaseModel):
 
 class CreateClassRequestPayload(BaseModel):
     class_name:     str
+    gym_id:         int
     is_recurring:   bool = True
     day_of_week:    Optional[str]  = None
     requested_date: Optional[date] = None
@@ -144,3 +145,11 @@ class CoachListResponse(BaseModel):
     active:  int
     pending: int
     coaches: list[CoachListItem]
+
+
+class CoachGymLookUpResponse(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
