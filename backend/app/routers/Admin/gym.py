@@ -62,3 +62,4 @@ async def update_gym_endpoint(
 
     gym = await update_gym(db, gym_id, body, admin.adminID)
     return {"message": "Gym updated successfully."}
+

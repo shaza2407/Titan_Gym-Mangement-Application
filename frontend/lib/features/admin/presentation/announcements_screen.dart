@@ -1,4 +1,15 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import '../../shared/api_constants.dart';
+import 'package:http/http.dart' as http;
+import 'create_announcement_screen.dart';
+
+// Color cycle for cards coming from backend
+const _cardColors = [
+  Color(0xFFE9ECFF),
+  Color(0xFFFFF3E0),
+  Color(0xFFE6F7EF),
+];
 
 class Announcement {
   final String id;
@@ -14,6 +25,16 @@ class Announcement {
     required this.date,
     required this.color,
   });
+
+  factory Announcement.fromJson(Map<String, dynamic> json, int index) {
+    return Announcement(
+      id: json['announce_id'].toString(),
+      title: json['title'],
+      body: json['content'],
+      date: DateTime.parse(json['created_at']),
+      color: _cardColors[index % _cardColors.length],
+    );
+  }
 }
 
 class AnnouncementsScreen extends StatefulWidget {
@@ -31,141 +52,51 @@ class AnnouncementsScreen extends StatefulWidget {
 }
 
 class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
-  // TODO: replace with real data fetched from backend
-  final List<Announcement> _announcements = [
-    Announcement(
-      id: '1',
-      title: 'New Yoga Classes Starting Next Week!',
-      body:
-          'Join our new morning yoga sessions every Monday and Wednesday at 7:00 AM.',
-      date: DateTime(2026, 2, 5),
-      color: const Color(0xFFE9ECFF),
-    ),
-    Announcement(
-      id: '2',
-      title: 'Gym Maintenance on Feb 15',
-      body:
-          'The gym will be closed for maintenance from 2:00 PM to 6:00 PM on February 15th.',
-      date: DateTime(2026, 2, 3),
-      color: const Color(0xFFFFF3E0),
-    ),
-    Announcement(
-      id: '3',
-      title: 'Monthly Fitness Challenge',
-      body:
-          'Participate in our February challenge! Attend 20 classes this month and win a free supplement package.',
-      date: DateTime(2026, 2, 1),
-      color: const Color(0xFFE6F7EF),
-    ),
-  ];
+  List<Announcement> _announcements = [];
+  bool _loading = true;
 
-  bool _loading = false;
-
-  Future<void> _deleteAnnouncement(String id) async {
-    setState(() => _announcements.removeWhere((a) => a.id == id));
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Announcement deleted')),
-      );
-    }
-    // TODO: call backend DELETE endpoint here
+  @override
+  void initState() {
+    super.initState();
+    _fetchAnnouncements();
   }
 
-  void _openCreateAnnouncementSheet() {
-    final titleController = TextEditingController();
-    final bodyController = TextEditingController();
+  // ── GET ──────────────────────────────────────────────────────────────────
+  Future<void> _fetchAnnouncements() async {
+    setState(() => _loading = true);
+    try {
+      final res = await http.get(
+        Uri.parse(
+            '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/announcements'),
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      );
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'New Announcement',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  hintText: 'Title',
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: bodyController,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  hintText: 'Message',
-                  filled: true,
-                  fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    final title = titleController.text.trim();
-                    final body = bodyController.text.trim();
-                    if (title.isEmpty || body.isEmpty) return;
+      if (!mounted) return;
 
-                    setState(() {
-                      _announcements.insert(
-                        0,
-                        Announcement(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          title: title,
-                          body: body,
-                          date: DateTime.now(),
-                          color: const Color(0xFFE9ECFF),
-                        ),
-                      );
-                    });
+      if (res.statusCode == 200) {
+        final List data = jsonDecode(res.body);
+        setState(() {
+          _announcements = data
+              .asMap()
+              .entries
+              .map((e) => Announcement.fromJson(e.value, e.key))
+              .toList();
+        });
+      } else {
+        _showError('Failed to load announcements');
+      }
+    } catch (e) {
+      if (mounted) _showError('Error: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
-                    Navigator.pop(sheetContext);
-                    // TODO: call backend POST endpoint here
-                  },
-                  child: const Text('Publish',
-                      style: TextStyle(color: Colors.white)),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _formatDate(DateTime date) {
@@ -176,6 +107,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
+  // ── BUILD ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -202,94 +134,104 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _openCreateAnnouncementSheet,
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('Create Announcement',
-                        style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          : RefreshIndicator(                          // pull-to-refresh bonus
+              onRefresh: _fetchAnnouncements,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final created = await Navigator.push<bool>(context,
+                      MaterialPageRoute(
+                        builder: (_) => CreateAnnouncementScreen(token: widget.token,gymId: widget.gymId,
+                        ),
+                       ),
+                      );
+                      if (created == true) {
+                         _fetchAnnouncements();
+                         }
+                      },
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: const Text('Create Announcement',
+                          style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                if (_announcements.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 40),
-                    child: Center(
-                      child: Text('No announcements yet',
-                          style: TextStyle(color: Colors.grey)),
-                    ),
-                  )
-                else
-                  ..._announcements.map((a) => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: a.color,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.notifications_outlined,
-                                    size: 18, color: Colors.black87),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    a.title,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14),
+                  const SizedBox(height: 16),
+                  if (_announcements.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: Center(
+                        child: Text('No announcements yet',
+                            style: TextStyle(color: Colors.grey)),
+                      ),
+                    )
+                  else
+                    ..._announcements.map((a) => Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: a.color,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.notifications_outlined,
+                                      size: 18, color: Colors.black87),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      a.title,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              a.body,
-                              style: const TextStyle(
-                                  color: Colors.black87, fontSize: 13),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              _formatDate(a.date),
-                              style: const TextStyle(
-                                  color: Colors.grey, fontSize: 12),
-                            ),
-                            const SizedBox(height: 10),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: OutlinedButton.icon(
-                                onPressed: () => _deleteAnnouncement(a.id),
-                                icon: const Icon(Icons.delete_outline,
-                                    size: 16, color: Colors.black),
-                                label: const Text('Delete',
-                                    style: TextStyle(color: Colors.black)),
-                                style: OutlinedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  side: BorderSide(color: Colors.grey.shade300),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                      )),
-              ],
+                              const SizedBox(height: 8),
+                              Text(a.body,
+                                  style: const TextStyle(
+                                      color: Colors.black87, fontSize: 13)),
+                              const SizedBox(height: 10),
+                              Text(_formatDate(a.date),
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 12)),
+                              const SizedBox(height: 10),
+                              // Align(
+                              //   alignment: Alignment.centerRight,
+                              //   child: OutlinedButton.icon(
+                              //     onPressed: () => _deleteAnnouncement(a.id),
+                              //     icon: const Icon(Icons.delete_outline,
+                              //         size: 16, color: Colors.black),
+                              //     label: const Text('Delete',
+                              //         style: TextStyle(color: Colors.black)),
+                              //     style: OutlinedButton.styleFrom(
+                              //       backgroundColor: Colors.white,
+                              //       side: BorderSide(
+                              //           color: Colors.grey.shade300),
+                              //       shape: RoundedRectangleBorder(
+                              //         borderRadius: BorderRadius.circular(10),
+                              //       ),
+                              //     ),
+                              //   ),
+                              // ),
+                            ],
+                          ),
+                        )),
+                ],
+              ),
             ),
     );
   }
