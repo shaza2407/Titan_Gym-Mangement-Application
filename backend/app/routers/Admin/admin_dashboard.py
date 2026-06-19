@@ -14,8 +14,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 @router.get("/profile")
 async def get_admin_profile(
     db: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),
-):
+    current_user: User = Depends(get_current_user),):
     admin_result = await db.execute(
         select(Admin).where(Admin.userID == current_user.userID)
     )

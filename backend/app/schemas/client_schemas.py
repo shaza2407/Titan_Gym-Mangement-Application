@@ -3,7 +3,9 @@ from typing import Optional
 from datetime import datetime, date
 
 class InviteClientRequest(BaseModel):
-    email: EmailStr
+    email: str
+    subscription_type: str = "monthly"   # "monthly" | "yearly"
+    subscription_months: int = 1 
 
 class InviteClientResponse(BaseModel):
     message: str

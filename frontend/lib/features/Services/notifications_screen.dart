@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../shared/api_constants.dart';
+import 'package:frontend/features/shared/api_constants.dart';
+import 'package:frontend/features/shared/invitation_accept_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final int userId;
@@ -75,6 +76,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return Icons.fitness_center;
       case 'gym_invite_coach':
         return Icons.sports_gymnastics;
+      case 'coach_class_request':    
+        return Icons.calendar_today;  
       default:
         return Icons.notifications;
     }
@@ -152,19 +155,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          if (!isRead) _markAsRead(n['id'], index);
-                        },
+  if (!isRead) _markAsRead(n['id'], index);
+    if (type == 'gym_invite_client' || type == 'gym_invite_coach') {
+    final data = n['data'] as Map<String, dynamic>? ?? {};
+    final gymId = int.tryParse(data['gym_id']?.toString() ?? '');
+    final inviteToken = data['invite_token']?.toString() ?? '';
+    final gymName = data['gym_name']?.toString() ?? 'Gym';
+
+    if (gymId != null && inviteToken.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InvitationScreen(
+            gymId: gymId,
+            inviteToken: inviteToken,
+            gymName: gymName,
+            authToken: widget.token,
+            role: type == 'gym_invite_coach' ? 'coach' : 'client'
+          ),
+        ),
+      );
+    }
+  }
+},
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: isRead
                                 ? Colors.white
-                                : accentColor.withOpacity(0.05),
+                                : accentColor.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: isRead
                                   ? Colors.transparent
-                                  : accentColor.withOpacity(0.2),
+                                  : accentColor.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Row(
@@ -172,7 +196,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: accentColor.withOpacity(0.1),
+                                  color: accentColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(_iconForType(type),

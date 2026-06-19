@@ -32,36 +32,38 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         builder: (context, ctrl, _) {
           if (ctrl.isLoading) {
             return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              backgroundColor: Color(0xFFF3F4F6),
+              body: Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5))),
             );
           }
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF5F5F5),
+            backgroundColor: const Color(0xFFF3F4F6), // Light theme
             appBar: AppBar(
               backgroundColor: Colors.white,
-              elevation: 0,
+              elevation: 0.5,
               automaticallyImplyLeading: false,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {
-                  if (widget.onBack != null) widget.onBack!();
-                },
-              ),
+              leading: widget.onBack != null
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.black),
+                      onPressed: widget.onBack,
+                    )
+                  : null,
               title: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'My Schedule',
+                    'Gym Timetable',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   Text(
-                    'View and manage your classes',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    'View and enroll in active gym sessions',
+                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
                   ),
                 ],
               ),
@@ -100,15 +102,15 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         _buildStatCard(
           Icons.calendar_today_outlined,
           '${ctrl.stats?.enrolled ?? 0}',
-          'Enrolled',
-          const Color(0xFF4CAF50),
+          'Enrolled Classes',
+          const Color(0xFF4F46E5),
         ),
         const SizedBox(width: 12),
         _buildStatCard(
           Icons.check_circle_outline,
           '${ctrl.stats?.classesThisMonth ?? 0}',
-          'Past Classes\nThis Month',
-          const Color(0xFF4F46E5),
+          'Completed\nThis Month',
+          const Color(0xFF10B981),
         ),
       ],
     );
@@ -126,6 +128,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
         ),
         child: Column(
           children: [
@@ -133,11 +136,13 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
             const SizedBox(height: 8),
             Text(
               value,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
             ),
+            const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(color: Colors.grey, fontSize: 11),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 10),
             ),
           ],
         ),
@@ -150,13 +155,13 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: const Color(0xFFE5E7EB),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           _buildTab(ctrl, 0, 'My Classes'),
-          _buildTab(ctrl, 1, 'Browse'),
+          _buildTab(ctrl, 1, 'Browse All'),
         ],
       ),
     );
@@ -177,9 +182,9 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              fontWeight: FontWeight.bold,
               fontSize: 13,
-              color: selected ? Colors.black : Colors.grey,
+              color: selected ? const Color(0xFF4F46E5) : const Color(0xFF6B7280),
             ),
           ),
         ),
@@ -190,7 +195,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
   // ── My Classes ────────────────────────────────────────────────────────────
   Widget _buildMyClasses(ClientScheduleController ctrl) {
     if (ctrl.myClasses.isEmpty) {
-      return _buildEmpty('No classes enrolled yet', 'Browse classes to enroll');
+      return _buildEmpty('No classes enrolled yet', 'Browse active timetable to sign up');
     }
     return Column(
       children: ctrl.myClasses.map((c) => _buildMyClassCard(ctrl, c)).toList(),
@@ -204,21 +209,24 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             c.title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
           ),
+          const SizedBox(height: 4),
           Text(
-            c.coachName ?? '',
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
+            c.coachName != null ? 'Coach: ${c.coachName}' : 'Gym Class',
+            style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
+            runSpacing: 8,
             children: [
               _buildChip(_capitalizeDay(c.dayOfWeek) ?? c.date ?? ''),
               _buildChip(_formatTime(c.startTime)),
@@ -226,30 +234,31 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
             ],
           ),
           if (c.nextDate != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 10),
             Row(
               children: [
                 const Icon(
                   Icons.calendar_today_outlined,
                   size: 14,
-                  color: Colors.grey,
+                  color: Color(0xFF4F46E5),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 Text(
-                  'Next: ${c.nextDate}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  'Next Session: ${c.nextDate}',
+                  style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
                 ),
               ],
             ),
           ],
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
+            height: 44,
             child: OutlinedButton.icon(
               onPressed: () async {
                 final confirm = await _showConfirm(
                   'Unenroll',
-                  'Are you sure you want to unenroll from ${c.title}?',
+                  'Are you sure you want to cancel your enrollment in ${c.title}?',
                 );
                 if (confirm == true) {
                   final success = await ctrl.unenroll(
@@ -257,7 +266,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                     c.id,
                     c.nextDate ?? '',
                   );
-                  if (success && context.mounted) {
+                  if (success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Unenrolled successfully')),
                     );
@@ -266,8 +275,8 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
               },
               icon: const Icon(Icons.close, size: 16, color: Colors.red),
               label: const Text(
-                'Unenroll',
-                style: TextStyle(color: Colors.red),
+                'Cancel Enrollment',
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.red),
@@ -292,7 +301,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: ctrl.days.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (_, i) {
               final day = ctrl.days[i];
               final selected = (ctrl.selectedDay ?? 'All') == day;
@@ -304,10 +313,10 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: selected ? Colors.black : Colors.white,
+                    color: selected ? const Color(0xFF4F46E5) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: selected ? Colors.black : Colors.grey.shade300,
+                      color: selected ? const Color(0xFF4F46E5) : const Color(0xFFD1D5DB),
                     ),
                   ),
                   child: Text(
@@ -317,9 +326,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                     style: TextStyle(
                       color: selected ? Colors.white : Colors.black,
                       fontSize: 13,
-                      fontWeight: selected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -330,9 +337,9 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
         const SizedBox(height: 16),
 
         if (ctrl.isBrowseLoading)
-          const Center(child: CircularProgressIndicator())
+          const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)))
         else if (ctrl.browseClasses.isEmpty)
-          _buildEmpty('No classes available', 'Try a different day')
+          _buildEmpty('No classes scheduled', 'Try searching for another day')
         else
           ...ctrl.browseClasses.map((c) => _buildBrowseCard(ctrl, c)),
       ],
@@ -340,11 +347,12 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
   }
 
   Widget _buildBrowseCard(ClientScheduleController ctrl, ClassModel c) {
+    final ratio = c.maxClients > 0 ? (c.currentClients / c.maxClients) : 0.0;
     final capacityColor = c.isFull
         ? Colors.red
-        : c.currentClients / c.maxClients > 0.8
+        : ratio > 0.8
         ? Colors.orange
-        : const Color(0xFF4CAF50);
+        : const Color(0xFF10B981);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -352,6 +360,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,36 +374,17 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
               ),
-              if (c.isEnrolled)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4F46E5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.white, size: 12),
-                      SizedBox(width: 4),
-                      Text(
-                        'Enrolled',
-                        style: TextStyle(color: Colors.white, fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: capacityColor.withOpacity(0.1),
+                  color: capacityColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: capacityColor.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -402,7 +392,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                     const SizedBox(width: 4),
                     Text(
                       '${c.currentClients}/${c.maxClients}',
-                      style: TextStyle(color: capacityColor, fontSize: 12),
+                      style: TextStyle(color: capacityColor, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -420,25 +410,25 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
               const SizedBox(width: 4),
               Text(
                 _capitalizeDay(c.dayOfWeek) ?? '',
-                style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 13),
+                style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 12, fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 12),
-              const Icon(Icons.access_time, size: 14, color: Color(0xFF4F46E5)),
+              const Icon(Icons.access_time, size: 14, color: Color(0xFF6B7280)),
               const SizedBox(width: 4),
               Text(
                 '${_formatTime(c.startTime)} (${c.duration} min)',
-                style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 13),
+                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Row(
             children: [
-              const Icon(Icons.person_outline, size: 14, color: Colors.grey),
+              const Icon(Icons.person_outline, size: 14, color: Color(0xFF6B7280)),
               const SizedBox(width: 4),
               Text(
-                'Coach: ${c.coachName ?? ''}',
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                'Coach: ${c.coachName ?? 'Gym Instructor'}',
+                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
               ),
             ],
           ),
@@ -446,34 +436,35 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.event_outlined, size: 14, color: Colors.grey),
+                const Icon(Icons.event_outlined, size: 14, color: Color(0xFF6B7280)),
                 const SizedBox(width: 4),
                 Text(
-                  'Next: ${c.nextDate}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  'Next Session: ${c.nextDate}',
+                  style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
                 ),
               ],
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
+            height: 44,
             child: c.isFull && !c.isEnrolled
                 ? ElevatedButton(
                     onPressed: null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey,
+                      backgroundColor: const Color(0xFFE5E7EB),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     child: const Text(
-                      'Full',
-                      style: TextStyle(color: Colors.white),
+                      'Session Full',
+                      style: TextStyle(color: Color(0xFF9CA3AF), fontWeight: FontWeight.bold),
                     ),
                   )
                 : c.isEnrolled
-                ? OutlinedButton(
+                ? OutlinedButton.icon(
                     onPressed: () async {
                       final confirm = await _showConfirm(
                         'Unenroll',
@@ -487,12 +478,14 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                         );
                       }
                     },
+                    icon: const Icon(Icons.check, size: 16, color: Color(0xFF4F46E5)),
+                    label: const Text('Enrolled (Cancel?)', style: TextStyle(color: Color(0xFF4F46E5))),
                     style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFF4F46E5)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text('Unenroll'),
                   )
                 : ElevatedButton(
                     onPressed: () async {
@@ -501,14 +494,14 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                         c.id,
                         c.nextDate ?? '',
                       );
-                      if (success && context.mounted) {
+                      if (success && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Enrolled in ${c.title}!'),
-                            backgroundColor: const Color(0xFF4CAF50),
+                            backgroundColor: const Color(0xFF10B981),
                           ),
                         );
-                      } else if (!success && context.mounted) {
+                      } else if (!success && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(ctrl.errorMessage ?? 'Enroll failed'),
@@ -518,14 +511,14 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: const Color(0xFF4F46E5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     child: const Text(
-                      'Enroll',
-                      style: TextStyle(color: Colors.white),
+                      'Book Session',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
           ),
@@ -545,26 +538,28 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'This Week\'s Schedule',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                'This Week\'s Timetable',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
               ),
               const Text(
-                'Your class calendar for the next 7 days',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+                'Weekly overview of your registered workouts',
+                style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
               ),
               const SizedBox(height: 16),
-              if (ctrl.isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (ctrl.weekly.isEmpty)
+              if (ctrl.weekly.isEmpty)
                 const Center(
-                  child: Text(
-                    'No classes this week',
-                    style: TextStyle(color: Colors.grey),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20.0),
+                    child: Text(
+                      'No bookings this week',
+                      style: TextStyle(color: Color(0xFF9CA3AF)),
+                    ),
                   ),
                 )
               else
@@ -581,7 +576,8 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
+        color: const Color(0xFFF9FAFB),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -590,14 +586,14 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
             width: 80,
             child: Text(
               day.label,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF4F46E5)),
             ),
           ),
           Expanded(
             child: day.classes.isEmpty
                 ? const Text(
-                    'No classes',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    'Rest Day',
+                    style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12, fontStyle: FontStyle.italic),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,7 +601,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                         .map(
                           (c) => Text(
                             '${_formatTime(c.startTime)} - ${c.title}',
-                            style: const TextStyle(fontSize: 13),
+                            style: const TextStyle(fontSize: 12, color: Colors.black87),
                           ),
                         )
                         .toList(),
@@ -621,13 +617,13 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: const Color(0xFFF3F4F6),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
       ),
     );
   }
@@ -639,22 +635,24 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Column(
         children: [
           const Icon(
             Icons.calendar_today_outlined,
-            size: 48,
-            color: Colors.grey,
+            size: 40,
+            color: Color(0xFF9CA3AF),
           ),
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black),
           ),
+          const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
+            style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
           ),
         ],
       ),
@@ -665,57 +663,28 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         content: Text(
           message,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.grey, fontSize: 15),
+          style: const TextStyle(color: Colors.black87),
         ),
-        actionsAlignment: MainAxisAlignment.center,
         actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 28,
-                    vertical: 14,
-                  ),
-                ),
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
-          const SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Unenroll', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          )
         ],
       ),
     );

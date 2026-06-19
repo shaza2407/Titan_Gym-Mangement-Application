@@ -10,6 +10,9 @@ import '../../domain/dashboard_model.dart';
 import 'client_schedule_screen.dart';
 import '../../../Services/token_helper.dart';
 import '../../../Services/notifications_screen.dart';
+import 'training_plan_screen.dart';
+import 'client_achievement_screen.dart';
+import '../controllers/client_achievement_controller.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
@@ -22,18 +25,25 @@ class ClientDashboardScreen extends StatefulWidget {
 class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   int _currentIndex = 0;
   late ClientDashboardController _ctrl;
+  late ClientAchievementController _achievementCtrl;
 
   @override
   void initState() {
     super.initState();
     _ctrl = ClientDashboardController();
     _ctrl.loadStats(widget.token);
+    
+    _achievementCtrl = ClientAchievementController();
+    _achievementCtrl.loadAchievements(widget.token);
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _ctrl,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: _ctrl),
+        ChangeNotifierProvider.value(value: _achievementCtrl),
+      ],
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         appBar: _currentIndex == 0
@@ -256,19 +266,35 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                     Icons.notifications_outlined,
                     'My Gym${stats?.gymName != null ? ' - ${stats!.gymName}' : ''}',
                     'View announcements and enroll in classes',
-                    () {},
+                    () {
+                      setState(() => _currentIndex = 1);
+                    },
                   ),
                   _buildActionItem(
                     Icons.track_changes_outlined,
                     'Training Plans',
                     'Generate personalized workout plans',
-                    () {},
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TrainingPlanScreen(token: widget.token),
+                        ),
+                      );
+                    },
                   ),
                   _buildActionItem(
                     Icons.emoji_events_outlined,
                     'My Badges',
                     'View your achievements',
-                    () {},
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ClientAchievementScreen(token: widget.token),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -294,19 +320,39 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                     style: TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.2,
-                    children: [
-                      _buildBadge('🎉', 'First Timer', true),
-                      _buildBadge('💪', '3 Day Warrior', true),
-                      _buildBadge('🔥', 'Weekly Streak', true),
-                      _buildBadge('🏆', 'Monthly Champion', false),
-                    ],
+                  Consumer<ClientAchievementController>(
+                    builder: (context, achCtrl, _) {
+                      if (achCtrl.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      if (achCtrl.achievements.isEmpty) {
+                        return const Text('No badges available.', style: TextStyle(color: Colors.grey));
+                      }
+
+                      // Pick 4 achievements to show on the dashboard.
+                      // Let's pick up to 4 unlocked ones first. If not enough, pad with locked ones.
+                      final unlocked = achCtrl.achievements.where((a) => a.isUnlocked).toList();
+                      final locked = achCtrl.achievements.where((a) => !a.isUnlocked).toList();
+                      final displayAch = [...unlocked, ...locked].take(4).toList();
+
+                      return GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 1.2,
+                        children: displayAch.map((a) {
+                          String shortName = a.name;
+                          if (shortName.contains('—')) {
+                            // Example "Gym Rat — Bronze" -> "Gym Rat"
+                            shortName = shortName.split('—').first.trim();
+                          }
+                          return _buildBadge(a.icon, shortName, a.isUnlocked);
+                        }).toList(),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -356,7 +402,9 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         ? 'Your subscription is suspended — contact your gym'
         : isExpired
         ? 'Expired on ${stats.subscriptionEnd ?? ''} — Please renew'
-        : 'Expires ${stats.subscriptionEnd ?? ''} (${stats.daysRemaining} days)';
+        : stats.daysRemaining != null
+            ? 'Expires ${stats.subscriptionEnd ?? ''} (${stats.daysRemaining} days)'
+            : 'No active subscription';
 
     return Container(
       width: double.infinity,
@@ -495,11 +543,21 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            earned ? emoji : '🏆',
-            style: TextStyle(
-              fontSize: 32,
-              color: earned ? null : Colors.grey.shade400,
+          ColorFiltered(
+            colorFilter: earned
+                ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
+                : const ColorFilter.matrix(<double>[
+                    0.2126, 0.7152, 0.0722, 0, 0,
+                    0.2126, 0.7152, 0.0722, 0, 0,
+                    0.2126, 0.7152, 0.0722, 0, 0,
+                    0, 0, 0, 1, 0,
+                  ]),
+            child: Opacity(
+              opacity: earned ? 1.0 : 0.4,
+              child: Text(
+                emoji,
+                style: const TextStyle(fontSize: 32),
+              ),
             ),
           ),
           const SizedBox(height: 8),
