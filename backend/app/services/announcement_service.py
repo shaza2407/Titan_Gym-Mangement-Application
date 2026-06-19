@@ -15,6 +15,7 @@ async def get_announcements(gym_id: int, db: AsyncSession) -> list[Announcement]
     return result.scalars().all()
 
 
+
 async def create_announcement(
     gym_id: int, payload: CreateAnnouncementRequest, db: AsyncSession
 ) -> Announcement:
@@ -22,34 +23,32 @@ async def create_announcement(
         gymID=gym_id,
         title=payload.title.strip(),
         content=payload.content.strip(),
+        reciever=payload.reciever,
     )
     db.add(announcement)
     await db.commit()
     await db.refresh(announcement)
 
-    # Notify all active gym members
-    await notify_gym_clients(
-        db=db,
-        gym_id=gym_id,
-        title=payload.title.strip(),
-        body=payload.content.strip(),
-        type="announcement",
-        data={
-            "gym_id": str(gym_id),
-            "announce_id": str(announcement.announce_id),
-        },
-    )
-    await notify_gym_coaches(
-        db=db,
-        gym_id=gym_id,
-        title=payload.title.strip(),
-        body=payload.content.strip(),
-        type="announcement",
-        data={
-            "gym_id": str(gym_id),
-            "announce_id": str(announcement.announce_id),
-        },
-    )
+    notify_data = {
+        "gym_id": str(gym_id),
+        "announce_id": str(announcement.announce_id),
+    }
+    print(payload.reciever)
+
+    if payload.reciever in ('Clients only', 'Clients and Coaches'):  # ← fixed
+        await notify_gym_clients(
+            db=db, gym_id=gym_id,
+            title=payload.title.strip(),
+            body=payload.content.strip(),
+            type="announcement", data=notify_data,
+        )
+
+    if payload.reciever in ('Coaches only', 'Clients and Coaches'): 
+        await notify_gym_coaches(
+            db=db, gym_id=gym_id,
+            title=payload.title.strip(),
+            body=payload.content.strip(),
+            type="announcement", data=notify_data,
+        )
 
     return announcement
-

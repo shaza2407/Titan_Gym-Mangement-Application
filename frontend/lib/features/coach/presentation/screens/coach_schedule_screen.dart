@@ -204,81 +204,124 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
     );
   }
 
-  Widget _buildCompactClassCard(CoachClassModel c, CoachScheduleController ctrl) {
-    final isFull = c.currentClients >= c.maxClients;
-    final capacityColor = isFull ? CoachColors.danger : CoachColors.success;
+Widget _buildCompactClassCard(CoachClassModel c, CoachScheduleController ctrl) {
+  final isFull = c.currentClients >= c.maxClients;
+  final capacityColor = isFull ? CoachColors.danger : CoachColors.success;
 
-    return Container(
-      width: 260,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.grey.shade200), borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: Text(c.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-              GestureDetector(
-                onTap: () async {
-                  final confirm = await showConfirmDialog(context, title: 'Delete Class', content: 'Remove this class from the schedule?');
-                  if (confirm == true) {
-                    final success = await ctrl.deleteClass(widget.token, c.id);
-                    if (success && mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Class deleted'), backgroundColor: Colors.green));
-                    }
+  return Container(
+    width: 300,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: Colors.grey.shade200),
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min, // ← shrink to content
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                c.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            GestureDetector(
+              onTap: () async {
+                final confirm = await showConfirmDialog(context,
+                    title: 'Delete Class',
+                    content: 'Remove this class from the schedule?');
+                if (confirm == true) {
+                  final success = await ctrl.deleteClass(widget.token, c.id);
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Class deleted'),
+                          backgroundColor: Colors.green),
+                    );
                   }
-                },
+                }
+              },
+              child: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent), // ← was missing child
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: capacityColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: capacityColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.people, color: capacityColor, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${c.currentClients}/${c.maxClients}',
-                      style: TextStyle(color: capacityColor, fontSize: 12),
-                    ),
-                  ],
-                ),
+              child: Row(
+                children: [
+                  Icon(Icons.people, color: capacityColor, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${c.currentClients}/${c.maxClients}',
+                    style: TextStyle(color: capacityColor, fontSize: 12),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey.shade600),
-              const SizedBox(width: 6),
-              Text(c.isRecurring ? capitalizeDay(c.dayOfWeek) : c.date ?? '', style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
-              const SizedBox(width: 12),
-              Icon(Icons.access_time, size: 14, color: Colors.grey.shade600),
-              const SizedBox(width: 6),
-              Text(formatTime(c.startTime), style: TextStyle(color: Colors.grey.shade700, fontSize: 13, fontWeight: FontWeight.w600)),
-            ],
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(child: Text(c.gymName ?? '', overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.grey.shade500, fontSize: 12))),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: capacityColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Text('${c.currentClients} / ${c.maxClients}', style: TextStyle(color: capacityColor, fontSize: 11, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey.shade600),
+            const SizedBox(width: 6),
+            Text(
+              c.isRecurring ? capitalizeDay(c.dayOfWeek) : c.date ?? '',
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+            ),
+            const SizedBox(width: 12),
+            Icon(Icons.access_time, size: 14, color: Colors.grey.shade600),
+            const SizedBox(width: 6),
+            Text(
+              formatTime(c.startTime),
+              style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12), // ← replaces Spacer
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                c.gymName ?? '',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: capacityColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${c.currentClients} / ${c.maxClients}',
+                style: TextStyle(
+                    color: capacityColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildWeekly(CoachScheduleController ctrl) {
     if (ctrl.weekly.isEmpty) return const SizedBox.shrink();
