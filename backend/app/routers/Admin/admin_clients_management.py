@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select , func
 import secrets
+from datetime import timezone
 from datetime import datetime, timedelta, date
 from app.services.notification_service import notify_invite
-
+from dateutil.relativedelta import relativedelta
 from app.database import get_session
 from app.dependencies.auth import get_current_user
 from app.models import User , Admin
@@ -160,10 +161,20 @@ async def invite_member(body: InviteClientRequest,
         )
     )).scalar_one_or_none()
 
+    now = datetime.now(timezone.utc)
+    if body.subscription_type == "yearly":
+        subscription_label = f"{body.subscription_months} year{'s' if body.subscription_months > 1 else ''}"
+        subscription_end = (now + relativedelta(years=body.subscription_months)).date()
+    else:
+        subscription_label = f"{body.subscription_months} month{'s' if body.subscription_months > 1 else ''}"
+        subscription_end = (now + relativedelta(months=body.subscription_months)).date()
+
     if existing_inv:
         existing_inv.token = secrets.token_urlsafe(32)
-        existing_inv.sent_at = datetime.utcnow()
-        existing_inv.expires_at = datetime.utcnow() + timedelta(days=3)
+        existing_inv.sent_at = datetime.now(timezone.utc)
+        existing_inv.expires_at = datetime.now(timezone.utc) + timedelta(days=3)
+        existing_inv.subscription = subscription_label
+        existing_inv.subscription_end = subscription_end
         inv = existing_inv
     else:
         inv = MemberInvitation(
@@ -172,13 +183,20 @@ async def invite_member(body: InviteClientRequest,
             invited_as="client",
             token=secrets.token_urlsafe(32),
             status=InvitationStatus.pending,
-            expires_at=datetime.utcnow() + timedelta(days=3),
+            expires_at=datetime.now(timezone.utc)+ timedelta(days=3),
+            subscription=subscription_label,          
+            subscription_end=subscription_end,        
         )
         db.add(inv)
+
     await db.commit()
     await send_invitation_email(body.email, gym.gymName, inv.token)
-    await notify_invite(db, body.email, gym.gymName, "client")
+    await notify_invite(db, body.email, gym.gymName, "client",
+                        gym_id=gym.gymID, token=inv.token)
+
     return InviteClientResponse(message="Invitation sent successfully.", email=body.email)
+
+
 
 ## POST /admin/gyms/{gym_id}/clients/{member_id}/suspend
 @router.post("/{gym_id}/clients/{member_id}/suspend")
@@ -219,3 +237,117 @@ async def get_total_members(db: AsyncSession = Depends(get_session), current_use
         .where(Gym.adminID == admin.adminID)
     )
     return {"total": result.scalar()}
+
+
+
+#POST /admin/gyms/{gym_id}/invitations/accept
+@router.post("/{gym_id}/invitations/accept")
+async def accept_invitation(
+    gym_id: int,
+    token: str,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    # 1. Find invitation
+    inv = (await db.execute(
+        select(MemberInvitation).where(
+            MemberInvitation.token == token,
+            MemberInvitation.gymID == gym_id,
+            MemberInvitation.status == InvitationStatus.pending,
+        )
+    )).scalar_one_or_none()
+
+    if not inv:
+        raise HTTPException(404, "Invitation not found or already used.")
+
+    if inv.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(400, "Invitation has expired.")
+
+    if inv.email.lower() != current_user.email.lower():
+        raise HTTPException(403, "This invitation is not for your account.")
+
+    # 2. Get client record
+    client = (await db.execute(
+        select(Client).where(Client.userID == current_user.userID)
+    )).scalar_one_or_none()
+
+    if not client:
+        raise HTTPException(404, "Client profile not found.")
+
+    # 3. Check not already a member
+    already = (await db.execute(
+        select(GymClientMembership).where(
+            GymClientMembership.clientID == client.clientID,
+            GymClientMembership.gymID == gym_id,
+        )
+    )).scalar_one_or_none()
+
+    if already:
+        raise HTTPException(400, "Already a member of this gym.")
+
+    # 4.Create membership using pre-calculated values from invitation
+    membership = GymClientMembership(
+        clientID=client.clientID,
+        gymID=gym_id,
+        status=ClientMembershipStatus.active,
+        subscription=inv.subscription,         
+        subscription_end=inv.subscription_end,  
+    )
+    db.add(membership)
+
+    # 5.mark invitation as accepted
+    inv.status = InvitationStatus.accepted
+
+    await db.commit()
+    return {"message": "Invitation accepted. You are now a member!"}
+
+
+
+@router.post("/{gym_id}/invitations/decline")
+async def decline_invitation(
+    gym_id: int,
+    token: str,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    inv = (await db.execute(
+        select(MemberInvitation).where(
+            MemberInvitation.token == token,
+            MemberInvitation.gymID == gym_id,
+            MemberInvitation.status == InvitationStatus.pending,
+        )
+    )).scalar_one_or_none()
+
+    if not inv:
+        raise HTTPException(404, "Invitation not found.")
+
+    if inv.email.lower() != current_user.email.lower():
+        raise HTTPException(403, "This invitation is not for your account.")
+
+    inv.status = InvitationStatus.declined
+    await db.commit()
+    return {"message": "Invitation declined."}
+
+
+@router.get("/{gym_id}/invitations/pending")
+async def get_pending_invitation(
+    gym_id: int,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    inv = (await db.execute(
+        select(MemberInvitation).where(
+            MemberInvitation.gymID == gym_id,
+            MemberInvitation.email == current_user.email,
+            MemberInvitation.status == InvitationStatus.pending,
+        )
+    )).scalar_one_or_none()
+
+    if not inv:
+        raise HTTPException(404, "No pending invitation found.")
+
+    return {
+        "token": inv.token,
+        "gym_id": inv.gymID,
+        "expires_at": inv.expires_at,
+    }

@@ -6,6 +6,8 @@ import '../controllers/coach_dashboard_controller.dart';
 import '../../domain/coach_dashboard_model.dart';
 import 'coach_schedule_screen.dart';
 import 'coach_profile_screen.dart';
+import '../../../Services/token_helper.dart';
+import '../../../Services//notifications_screen.dart';
 
 class CoachDashboardScreen extends StatefulWidget {
   final String token;
@@ -137,16 +139,17 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
           children: [
             Stack(
               children: [
-                IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () {}),
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                    child: const Text('2', style: TextStyle(color: Colors.white, fontSize: 10)),
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(
+                    builder: (_) => NotificationsScreen(
+                      userId: getUserIdFromToken(widget.token),
+                      token: widget.token,
+                    ),
                   ),
                 ),
+              ),
               ],
             ),
             IconButton(icon: const Icon(Icons.logout_outlined), onPressed: () => showLogoutDialog(context)),

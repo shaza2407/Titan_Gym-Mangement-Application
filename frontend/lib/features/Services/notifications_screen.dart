@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../shared/api_constants.dart';
+import 'package:frontend/features/shared/api_constants.dart';
+import 'package:frontend/features/shared/invitation_accept_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final int userId;
@@ -144,7 +145,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: _notifications.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final n = _notifications[index];
                       final isRead = n['is_read'] as bool;
@@ -152,8 +153,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                       return GestureDetector(
                         onTap: () {
-                          if (!isRead) _markAsRead(n['id'], index);
-                        },
+  if (!isRead) _markAsRead(n['id'], index);
+    if (type == 'gym_invite_client' || type == 'gym_invite_coach') {
+    final data = n['data'] as Map<String, dynamic>? ?? {};
+    final gymId = int.tryParse(data['gym_id']?.toString() ?? '');
+    final inviteToken = data['invite_token']?.toString() ?? '';
+    final gymName = data['gym_name']?.toString() ?? 'Gym';
+
+    if (gymId != null && inviteToken.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InvitationScreen(
+            gymId: gymId,
+            inviteToken: inviteToken,
+            gymName: gymName,
+            authToken: widget.token,
+            role: type == 'gym_invite_coach' ? 'coach' : 'client'
+          ),
+        ),
+      );
+    }
+  }
+},
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(

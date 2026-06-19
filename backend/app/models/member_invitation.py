@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum , Date
 from sqlalchemy.sql import func
 import enum
+
 from app.database import Base
 
 class InvitationStatus(str, enum.Enum):
@@ -19,3 +20,5 @@ class MemberInvitation(Base):
     sent_at = Column(DateTime(timezone=True), server_default=func.now())
     invited_as = Column(String, nullable=False, default="client")  # "client" | "coach"
     expires_at = Column(DateTime(timezone=True), nullable=True)
+    subscription = Column(String, nullable=True)        # "1 month" | "1 year" months or years
+    subscription_end = Column(Date, nullable=True)

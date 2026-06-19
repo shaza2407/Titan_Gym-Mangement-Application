@@ -36,37 +36,42 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
   }
 
   Future<void> _send() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      setState(() => _error = 'Please enter an email address');
-      return;
-    }
-
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      if (_isCoach) {
-        await AdminApiService.inviteCoach(
-            widget.gym.gymID, email, widget.token);
-      } else {
-        await AdminApiService.inviteClient(
-            widget.gym.gymID, email, widget.token);
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invitation sent successfully')),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  final email = _emailController.text.trim();
+  if (email.isEmpty) {
+    setState(() => _error = 'Please enter an email address');
+    return;
   }
+
+  setState(() {
+    _loading = true;
+    _error = null;
+  });
+
+  try {
+    if (_isCoach) {
+      await AdminApiService.inviteCoach(
+          widget.gym.gymID, email, widget.token);
+    } else {
+      await AdminApiService.inviteClient(
+        widget.gym.gymID,
+        email,
+        widget.token,
+        subscriptionType: _subscriptionType,       // ✅ "monthly" | "yearly"
+        subscriptionMonths: int.tryParse(_monthsController.text) ?? 1, // ✅
+      );
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invitation sent successfully')),
+      );
+      Navigator.pop(context);
+    }
+  } catch (e) {
+    setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+  } finally {
+    if (mounted) setState(() => _loading = false);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
