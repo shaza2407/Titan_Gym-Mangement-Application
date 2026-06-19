@@ -105,20 +105,6 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                     color: Colors.black),
                 onPressed: () {},
               ),
-              Positioned(
-                right: 6,
-                top: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text('2',
-                      style:
-                          TextStyle(color: Colors.white, fontSize: 10)),
-                ),
-              ),
             ],
           ),
         ),
