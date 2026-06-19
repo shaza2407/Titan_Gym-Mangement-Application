@@ -19,7 +19,7 @@ class GymSettingsScreen extends StatefulWidget {
 class _GymSettingsScreenState extends State<GymSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
-  bool _saved = false;
+  bool saved = false;
 
   // Basic Info
   late final TextEditingController _gymNameCtrl;
@@ -58,7 +58,8 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
     _monthlyCtrl =
         TextEditingController(text: g.subscriptionPrice.toStringAsFixed(0));
     _yearlyCtrl = TextEditingController(
-        text: g.yearlySubscriptionPrice?.toStringAsFixed(0) ?? '');
+        text: g.yearlySubscriptionPrice?.toStringAsFixed(0) ?? ''
+        );
   }
 
   @override
@@ -93,7 +94,7 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
         yearlySubscriptionPrice: double.tryParse(_yearlyCtrl.text),
       );
 
-      setState(() => _saved = true);
+      setState(() => saved = true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
