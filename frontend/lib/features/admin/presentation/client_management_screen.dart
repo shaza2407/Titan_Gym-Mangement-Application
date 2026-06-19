@@ -443,11 +443,9 @@ class _ClientCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-
-          // Action Buttons
           Row(
             children: [
-              Expanded(
+                Expanded(
                 child: OutlinedButton(
                   onPressed: onViewDetails,
                   style: OutlinedButton.styleFrom(
@@ -457,6 +455,24 @@ class _ClientCard extends StatelessWidget {
                   child: const Text('View Details'),
                 ),
               ),
+          ],
+          ),
+          const SizedBox(height: 8),
+
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: (){},
+                    icon: const Icon(Icons.restart_alt, size: 16),
+                    label: const Text('Renew'),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
               if (!isPending) ...[
                 const SizedBox(width: 8),
                 Expanded(
@@ -471,6 +487,7 @@ class _ClientCard extends StatelessWidget {
                   ),
                 ),
               ],
+              
             ],
           ),
         ],
