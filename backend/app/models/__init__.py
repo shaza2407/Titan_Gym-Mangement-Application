@@ -19,7 +19,9 @@ from app.models.training_plan import TrainingPlan , DayStatus , PlanStatus , Wor
 from app.models.class_enrollment import ClassEnrollment
 from app.models.notification import Notification, FcmToken
 
+from app.models.retention_offer import RetentionOffer
+
 __all__ = [User, Client, Coach, Admin,ClassSession,ClassRequest ,Gym, GymMachineInventory,
            GymClientMembership, GymCoachMembership, MemberInvitation, Attendance,
            Achievement , AchievementCategory , AchievementDifficulty , ClientAchievement , TrainingPlan,
-           DayStatus , PlanStatus , WorkoutStatus, ClassEnrollment, Notification, FcmToken]
+           DayStatus , PlanStatus , WorkoutStatus, ClassEnrollment, Notification, FcmToken, RetentionOffer]

@@ -101,18 +101,34 @@ async def get_client_gymID(clientID: int, db: AsyncSession) -> int | None:
 # ── Stats ─────────────────────────────────────────────────────────────────────
 
 async def get_client_schedule_stats(clientID: int, db: AsyncSession) -> dict:
-    today = date.today()
+    from datetime import datetime
+    now = datetime.now()
+    today = now.date()
     start_of_month = today.replace(day=1)
+    current_time = now.time()
 
-    # Active enrollments — future class_dates only
-    active_result = await db.scalar(
-        select(func.count(ClassEnrollment.id)).where(
+    # Pull all future enrollments (date > today, or date == today)
+    future_enrollments_result = await db.execute(
+        select(ClassEnrollment, ClassSession)
+        .join(ClassSession, ClassSession.id == ClassEnrollment.session_id)
+        .where(
             ClassEnrollment.clientID == clientID,
             ClassEnrollment.class_date >= today,
         )
-    ) or 0
+    )
+    rows = future_enrollments_result.all()
 
-    # Classes this month — past class_dates this month
+    # Filter out today's classes that have already passed by time
+    active_count = 0
+    for enrollment, session in rows:
+        if enrollment.class_date > today:
+            active_count += 1
+        elif enrollment.class_date == today:
+            # Only count if class hasn't started yet
+            if session.start_time > current_time:
+                active_count += 1
+
+    # Classes completed this month — past class_dates this month
     past_month_result = await db.scalar(
         select(func.count(ClassEnrollment.id)).where(
             ClassEnrollment.clientID == clientID,
@@ -122,7 +138,7 @@ async def get_client_schedule_stats(clientID: int, db: AsyncSession) -> dict:
     ) or 0
 
     return {
-        "enrolled":     active_result,
+        "enrolled":     active_count,
         "upcoming":     past_month_result,
         "minutes_week": 0,
     }
