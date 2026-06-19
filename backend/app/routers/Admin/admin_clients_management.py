@@ -18,7 +18,6 @@ from app.schemas.client_schemas import (
     InviteClientRequest, InviteClientResponse,
     ClientListResponse, ClientListItem,
 )
-from app.email_utils import send_invitation_email
 from app.dependencies.gym_member_managment import get_admin_gym
 from app.models import Attendance
 
@@ -190,7 +189,7 @@ async def invite_member(body: InviteClientRequest,
         db.add(inv)
 
     await db.commit()
-    await send_invitation_email(body.email, gym.gymName, inv.token)
+    # await send_invitation_email(body.email, gym.gymName, inv.token)
     await notify_invite(db, body.email, gym.gymName, "client",
                         gym_id=gym.gymID, token=inv.token)
 

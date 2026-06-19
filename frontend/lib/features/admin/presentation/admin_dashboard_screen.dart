@@ -5,10 +5,15 @@ import '../controller/admin_gym_controller.dart';
 import '../data/gym_repository.dart';
 import './create_gym_screen.dart';
 import '../../shared/logout_button.dart';
+import 'package:frontend/features/Services/notifications_screen.dart';
+import 'package:frontend/features/Services/token_helper.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   final String token;
-  const AdminDashboardScreen({super.key, required this.token});
+  const AdminDashboardScreen({
+    super.key, 
+    required this.token
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +124,20 @@ class AdminDashboardScreen extends StatelessWidget {
               ),
               Row(
                 children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                      ),
+                      onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(
+                        builder: (_) => NotificationsScreen(
+                          userId: getUserIdFromToken(token),
+                          token: token,
+                        ),
+                      ),
+                   ),
+                ),
                   IconButton(
                     icon: const Icon(Icons.logout, color: Colors.white),
                     onPressed: () => showLogoutDialog(context),

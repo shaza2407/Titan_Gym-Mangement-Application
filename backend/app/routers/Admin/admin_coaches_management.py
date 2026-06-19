@@ -16,8 +16,8 @@ from app.schemas.coach_schemas import (
     InviteCoachRequest, InviteCoachResponse,
     CoachListResponse, CoachListItem,
 )
-from app.email_utils import send_invitation_email
 from app.dependencies.gym_member_managment import get_admin_gym
+from app.services.notification_service import save_notification , send_push_notification
 
 router = APIRouter(prefix="/admin/gyms/{gym_id}/coaches", tags=["Admin - Coach Management"])
 
@@ -150,7 +150,7 @@ async def invite_member(body: InviteCoachRequest,
         db.add(inv)
 
     await db.commit()
-    await send_invitation_email(body.email, gym.gymName, inv.token)
+    # await send_invitation_email(body.email, gym.gymName, inv.token)
     await notify_invite(db, body.email, gym.gymName, "coach", gym_id=gym.gymID, token=inv.token)
     return InviteCoachResponse(message="Invitation sent successfully.", email=body.email)
 
@@ -266,4 +266,5 @@ async def decline_coach_invitation(
     inv.status = InvitationStatus.declined
     await db.commit()
     return {"message": "Invitation declined."}
+
 
