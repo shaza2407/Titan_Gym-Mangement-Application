@@ -267,7 +267,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                     'My Gym${stats?.gymName != null ? ' - ${stats!.gymName}' : ''}',
                     'View announcements and enroll in classes',
                     () {
-                      setState(() => _currentIndex = 1);
+                      setState(() => _currentIndex = 0);
                     },
                   ),
                   _buildActionItem(
