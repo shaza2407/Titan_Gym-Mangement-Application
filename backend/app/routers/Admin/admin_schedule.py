@@ -165,32 +165,21 @@ async def approve_class_request(
         raise HTTPException(status_code, error)
     
     gym_name = (await db.execute(select(Gym.gymName).where(Gym.gymID == gym_id))).scalar_one_or_none()
-    notify_Coach_on_class_approval(db=db, 
-                                   request_id= request_id , 
-                                    gym_id= gymID , title= "Admin approval" ,
-                                    body= f"Admin approved on class request of {gym_name} gym",
-                                    type= "admin class permission",
-                                    data={
-                                       "gym_id":str(gym_id),
-                                       "request_id" : str(request_id)
-                                   })
-    
+    await notify_Coach_on_class_approval(   
+        db=db,
+        request_id=request_id,
+        gym_id=gymID,
+        title="Admin Approval",
+        body=f"Admin approved your class request at {gym_name}",
+        type="admin class permission",
+        data={
+            "gym_id": str(gym_id),
+            "request_id": str(request_id),
+        },
+    )
     return {"message": "Request approved and class created"}
 
-# async def notify_Coach_on_class_approval(db: AsyncSession,request_id : int, gym_id: int, title: str, body: str, type: str, data: dict):
 
-# await notify_admin(
-#         db=db,
-#         gym_id=payload.gym_id,
-#         title="new Class Request",
-#         body=f"A coach has requested a new class at {gym_name}.",
-#         type="coach_class_request",
-#         data={
-#             "gym_id": str(payload.gym_id),
-#             "coach_id": str(coach.coachID),
-#             "class_name": payload.class_name if hasattr(payload, 'class_name') else "",
-#         }
-#     )
 # POST /admin/schedule/requests/{request_id}/reject?gym_id=1
 @router.post("/requests/{request_id}/reject")
 async def reject_class_request(
@@ -205,14 +194,18 @@ async def reject_class_request(
         raise HTTPException(404, "Request not found or already processed")
     
     gym_name = (await db.execute(select(Gym.gymName).where(Gym.gymID == gym_id))).scalar_one_or_none()
-    notify_Coach_on_class_approval(db=db, 
-                                   request_id= request_id , 
-                                   gym_id= gymID , title= "Admin Rejection" ,
-                                   body= f"Admin Rejected on class request of {gym_name} gym",
-                                   type= "admin class permission",
-                                   data={
-                                       "gym_id":str(gym_id),
-                                       "request_id" : str(request_id)
-                                   })
+
+    await notify_Coach_on_class_approval(  
+        db=db,
+        request_id=request_id,
+        gym_id=gymID,
+        title="Admin Rejection",
+        body=f"Admin Rejected on class request of {gym_name} gym",
+        type="admin class permission",
+        data={
+            "gym_id": str(gym_id),
+            "request_id": str(request_id),
+        },
+    )
     
     return {"message": "Request rejected"}

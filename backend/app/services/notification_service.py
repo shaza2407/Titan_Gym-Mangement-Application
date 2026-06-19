@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.models.User import User
 from app.models.notification import Notification, FcmToken
 from app.models.Gym import Gym
-from app.models import Admin ,coach , ClassRequest
+from app.models import Admin ,Coach , ClassRequest , GymClientMembership , Client ,GymCoachMembership
 import os
 
 if not firebase_admin._apps:
@@ -85,18 +85,76 @@ async def notify_admin(db: AsyncSession, gym_id: int, title: str, body: str, typ
     await send_push_notification(db, admin.userID, title, body, data)
 
 
-async def notify_Coach_on_class_approval(db: AsyncSession,request_id : int, gym_id: int, title: str, body: str, type: str, data: dict):
-    # Get gym to find adminID
+async def notify_Coach_on_class_approval(
+    db: AsyncSession,
+    request_id: int,
+    gym_id: int,
+    title: str,
+    body: str,
+    type: str,
+    data: dict,
+):
     gym = (await db.execute(select(Gym).where(Gym.gymID == gym_id))).scalar_one_or_none()
     if not gym:
         return
 
-    # Get coach user
-    coachId = (await db.execute(select(ClassRequest.coach_id).where(ClassRequest.id == request_id))).scalar_one_or_none()
-    Coach = (await db.execute(select(coach).where(coach.coachID == coachId))).scalar_one_or_none()
-    if not Coach:
+    coach_id = (
+        await db.execute(select(ClassRequest.coach_id).where(ClassRequest.id == request_id))
+    ).scalar_one_or_none()
+    if not coach_id:
         return
 
-    await save_notification(db, Coach.coachID, title, body, type, data)
-    await send_push_notification(db, Coach.userID, title, body, data)
+    coach = (
+        await db.execute(select(Coach).where(Coach.coachID == coach_id))
+    ).scalar_one_or_none()
+    if not coach:
+        return
 
+    await save_notification(db, coach.userID, title, body, type, data)
+    await send_push_notification(db, coach.userID, title, body, data)
+
+async def notify_gym_clients(db: AsyncSession, gym_id: int, title: str, body: str, type: str, data: dict):
+    # Step 1 — get all active client IDs
+    result = await db.execute(
+        select(GymClientMembership.clientID).where(
+            GymClientMembership.gymID == gym_id,
+            GymClientMembership.status == "active",
+        )
+    )
+    client_ids = result.scalars().all()  # ← list of ints, not a result object
+    if not client_ids:
+        return
+
+    # Step 2 — get all userIDs in one query using in_()
+    result = await db.execute(
+        select(Client.userID).where(Client.clientID.in_(client_ids))
+    )
+    user_ids = result.scalars().all()
+
+    for user_id in user_ids:
+        await save_notification(db, user_id, title, body, type, data)
+        await send_push_notification(db, user_id, title, body, data)
+
+
+
+async def notify_gym_coaches(db: AsyncSession, gym_id: int, title: str, body: str, type: str, data: dict):
+    # Step 1 — get all active coach IDs
+    result = await db.execute(
+        select(GymCoachMembership.coachID).where(
+            GymCoachMembership.gymID == gym_id,
+            GymCoachMembership.status == "active",  # ← fixed: was GymClientMembership
+        )
+    )
+    coach_ids = result.scalars().all()
+    if not coach_ids:
+        return
+
+    # Step 2 — get all userIDs in one query
+    result = await db.execute(
+        select(Coach.userID).where(Coach.coachID.in_(coach_ids))
+    )
+    user_ids = result.scalars().all()
+
+    for user_id in user_ids:
+        await save_notification(db, user_id, title, body, type, data)
+        await send_push_notification(db, user_id, title, body, data)
