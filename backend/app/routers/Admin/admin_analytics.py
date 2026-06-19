@@ -9,6 +9,7 @@ from app.database import get_session
 from app.dependencies.auth import get_current_user
 from app.models import Admin
 from app.models.attendance import Attendance
+from app.models import User, Admin, Coach
 from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.class_session import ClassSession
@@ -67,7 +68,9 @@ async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, 
 ## /admin/analytics/{gym_id}/summary
 @router.get("/{gym_id}/summary", response_model=AnalyticsSummaryResponse)
 async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
+    print("Analytics summary requested for gym_id:", gym_id)
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
+    print("finished _verify_gym_owner:", gym_id)
     today = date.today()
     month_start = today.replace(day=1)
     days_elapsed = today.day  # days from the 1st up to and including today
@@ -143,6 +146,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     )
     prev_month_classes = prev_classes_result.scalar_one_or_none() or 0
     new_classes_this_month: int = active_classes - prev_month_classes
+    print("return done for :", gym_id)
 
     return AnalyticsSummaryResponse(
         total_revenue=this_month_revenue,

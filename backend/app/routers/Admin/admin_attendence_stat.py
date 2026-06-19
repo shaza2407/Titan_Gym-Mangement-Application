@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, cast, Date
 from datetime import date, timedelta
+from app.models import Admin
 
 from app.database import get_session
 from app.dependencies.auth import get_current_user
