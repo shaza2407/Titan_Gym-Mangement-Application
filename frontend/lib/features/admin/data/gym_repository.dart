@@ -118,7 +118,7 @@ Future<GymModel> createGym({
     required String gymType,
     required String openingHours,
     required String closingHours,
-    List<Map<String, dynamic>> machines = const [], // ← add this
+    List<Map<String, dynamic>> machines = const [],
 
   }) async {
     final response = await http.post(
@@ -154,5 +154,19 @@ Future<int> getTotalMembers({required String token}) async {
   } else {
     throw Exception(jsonDecode(response.body)['error getting total members ']);
   }
+}
+
+Future<int> getGymMemberCount({
+  required String token,
+  required int gymId,
+}) async {
+  final response = await http.get(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/member-count'),
+    headers: _headers(token),
+  );
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body)['count'] as int;
+  }
+  return 0;
 }
 }

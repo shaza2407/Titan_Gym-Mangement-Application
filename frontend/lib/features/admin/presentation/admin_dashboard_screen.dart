@@ -188,7 +188,7 @@ class AdminDashboardScreen extends StatelessWidget {
         left: BorderSide(color: const Color(0xFF4F46E5), width: 4),
       ),
     ),
-    child: InkWell(  // ✅ wrap here
+    child: InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () => Navigator.push(
         context,
@@ -207,14 +207,12 @@ class AdminDashboardScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    gym.gymName,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                  child: Text(gym.gymName,
+                      style: const TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.bold)),
                 ),
                 const Icon(Icons.arrow_forward_ios,
-                    size: 16, color: Colors.grey), 
+                    size: 16, color: Colors.grey),
               ],
             ),
             Row(
@@ -222,25 +220,31 @@ class AdminDashboardScreen extends StatelessWidget {
                 const Icon(Icons.location_on_outlined,
                     size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(
-                  gym.location,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
-                ),
+                Text(gym.location,
+                    style:
+                        const TextStyle(color: Colors.grey, fontSize: 13)),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              gym.gymType,
-              style: const TextStyle(color: Colors.grey, fontSize: 13),
-            ),
+            Text(gym.gymType,
+                style: const TextStyle(color: Colors.grey, fontSize: 13)),
             const SizedBox(height: 12),
+
+            // ✅ FutureBuilder for member count
             Row(
               children: [
-                _gymStatChip(
-                  Icons.people_outline,
-                  const Color(0xFF4F46E5),
-                  'Members',
-                  '—',
+                FutureBuilder<int>(
+                  future: GymRepository().getGymMemberCount(
+                      token: token, gymId: gym.gymID),
+                  builder: (context, snapshot) {
+                    final count = snapshot.data ?? 0;
+                    return _gymStatChip(
+                      Icons.people_outline,
+                      const Color(0xFF4F46E5),
+                      'Members',
+                      '$count',
+                    );
+                  },
                 ),
                 const SizedBox(width: 24),
                 _gymStatChip(

@@ -351,3 +351,15 @@ async def get_pending_invitation(
         "gym_id": inv.gymID,
         "expires_at": inv.expires_at,
     }
+
+@router.get("/{gym_id}/member-count")
+async def get_gym_member_count(
+    gym_id: int,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),):
+    
+    count = (await db.execute(
+        select(func.count(GymClientMembership.id))
+        .where(GymClientMembership.gymID == gym_id)
+    )).scalar()
+    return {"count": count or 0}
