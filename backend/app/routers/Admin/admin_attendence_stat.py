@@ -6,6 +6,7 @@ from app.models import Admin
 
 from app.database import get_session
 from app.dependencies.auth import get_current_user
+from app.models import Admin
 from app.models.attendance import Attendance
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.Gym import Gym
@@ -31,7 +32,6 @@ async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Gym not found")
 
     return gym
-
 
 ## "/admin/attendance/{gym_id}/stats"
 @router.get("/{gym_id}/stats", response_model=AttendanceStatsResponse)

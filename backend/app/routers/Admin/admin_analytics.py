@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 import pytz
 from app.database import get_session
 from app.dependencies.auth import get_current_user
+from app.models import Admin
 from app.models.attendance import Attendance
 from app.models import User, Admin, Coach
 from app.models.Gym import Gym
@@ -36,6 +37,7 @@ async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Gym not found")
 
     return gym
+
 
 async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
     monthly_result = await db.execute(
