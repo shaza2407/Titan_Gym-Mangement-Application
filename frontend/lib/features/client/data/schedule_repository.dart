@@ -3,9 +3,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../domain/schedule_model.dart';
+import '../../shared/api_constants.dart';
 
 class ScheduleRepository {
-  final String baseUrl = 'http://localhost:8000';
+  final String baseUrl = ApiConstants.baseUrl;
 
   Map<String, String> _headers(String token) => {
     'Content-Type': 'application/json',
