@@ -12,8 +12,6 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       backgroundColor: Color(0xFFEEF0F8),
       body: Center(
@@ -78,9 +76,16 @@ class LoginScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Password',style: TextStyle(fontWeight: FontWeight.bold),),
-                    _HoverTextButton(label: 'Forgot password?',onTap: () => Navigator.pushNamed(context, '/forgot-password'),),
-                    ],
+                    Text(
+                      'Password',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    _HoverTextButton(
+                      label: 'Forgot password?',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/forgot-password'),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 8),
                 TextField(
@@ -121,39 +126,72 @@ class LoginScreen extends StatelessWidget {
 
                         if (signinRes.statusCode != 200) {
                           if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                jsonDecode(signinRes.body)['detail'] ??
-                                    'Sign in failed',
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  jsonDecode(signinRes.body)['detail'] ??
+                                      'Sign in failed',
+                                ),
                               ),
-                            ),
-                          );
-                        }
+                            );
+                          }
                           return;
                         }
 
                         final signinData = jsonDecode(signinRes.body);
                         final token = signinData['access_token'] as String;
                         final role = signinData['role'] as String;
-                        final userId = signinData['userID'] is int? signinData['userID'] as int
-                        : int.parse(signinData['userID'].toString());
-                          await NotificationService.saveToken(userId, token);
+                        final userId = signinData['userID'] is int
+                            ? signinData['userID'] as int
+                            : int.parse(signinData['userID'].toString());
+                        await NotificationService.saveToken(userId, token);
                         if (role == 'admin') {
                           if (context.mounted) {
-                            Navigator.pushReplacementNamed(context, '/admin-dashboard', arguments: token);
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/admin-dashboard',
+                              arguments: token,
+                            );
                           }
                           return;
                         }
-                        
+
                         if (role == 'coach') {
                           if (context.mounted) {
-                            Navigator.pushReplacementNamed(context, '/coach-dashboard', arguments: token);
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/coach-dashboard',
+                              arguments: token,
+                            );
                           }
                           return;
                         }
 
                         if (role == 'client') {
+                          final meRes = await http.get(
+                            Uri.parse("${ApiConstants.baseUrl}/client/me"),
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': 'Bearer $token',
+                            },
+                          );
+
+                          if (meRes.statusCode == 200) {
+                            final meData = jsonDecode(meRes.body);
+                            final isConnected = meData['is_connected'] as bool;
+
+                            if (!isConnected) {
+                              if (context.mounted) {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/client-profile-only',
+                                  arguments: token,
+                                );
+                              }
+                              return;
+                            }
+                          }
+
                           if (context.mounted) {
                             Navigator.pushReplacementNamed(
                               context,
@@ -165,7 +203,9 @@ class LoginScreen extends StatelessWidget {
                         }
                       } catch (e) {
                         if (context.mounted) {
-                        ScaffoldMessenger.of(context,).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Error: $e')));
                         }
                       }
                     },
@@ -175,7 +215,10 @@ class LoginScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: Text('Sign In',style: TextStyle(fontSize: 16, color: Colors.white),),
+                    child: Text(
+                      'Sign In',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                   ),
                 ),
                 SizedBox(height: 16),
@@ -186,7 +229,10 @@ class LoginScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text("Don't have an account? "),
-                      _HoverTextButton(label: 'Sign up', onTap: () => Navigator.pushNamed(context, '/signup')),
+                      _HoverTextButton(
+                        label: 'Sign up',
+                        onTap: () => Navigator.pushNamed(context, '/signup'),
+                      ),
                     ],
                   ),
                 ),
@@ -231,8 +277,8 @@ class __HoverTextButtonState extends State<_HoverTextButton> {
           widget.label,
           style: TextStyle(
             color: _isPressed
-                ? const Color(0xFF3730A3)  
-                : const Color(0xFF4F46E5), 
+                ? const Color(0xFF3730A3)
+                : const Color(0xFF4F46E5),
             decoration: _isHovered
                 ? TextDecoration.underline
                 : TextDecoration.none,
