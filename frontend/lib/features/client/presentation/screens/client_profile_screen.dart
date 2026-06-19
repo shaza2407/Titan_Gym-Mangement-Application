@@ -7,6 +7,9 @@ import '../../../shared/logout_button.dart';
 import '../../../auth/presentation/forget_password_page.dart';
 import '../../../Services/notifications_screen.dart';
 import '../../../Services/token_helper.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../../shared/api_constants.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
@@ -78,15 +81,41 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     Icons.notifications_outlined,
                     color: Colors.black,
                   ),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => NotificationsScreen(
-                        userId: getUserIdFromToken(widget.token),
-                        token: widget.token,
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NotificationsScreen(
+                          userId: getUserIdFromToken(widget.token),
+                          token: widget.token,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+
+                    // Only re-check if opened standalone (not connected to gym)
+                    if (widget.onBack == null && mounted) {
+                      try {
+                        final meRes = await http.get(
+                          Uri.parse('${ApiConstants.baseUrl}/client/me'),
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ${widget.token}',
+                          },
+                        );
+                        if (meRes.statusCode == 200 && mounted) {
+                          final meData = jsonDecode(meRes.body);
+                          final isConnected = meData['is_connected'] as bool;
+                          if (isConnected && mounted) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/client-dashboard',
+                              arguments: widget.token,
+                            );
+                          }
+                        }
+                      } catch (_) {}
+                    }
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.black),
