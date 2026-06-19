@@ -19,7 +19,7 @@ class RetentionOffer(Base):
     __tablename__ = "retention_offers"
 
     id = Column(Integer, primary_key=True, index=True)
-    gymId = Column(Integer, ForeignKey("gyms.gymId"), nullable=False)
+    gymId = Column(Integer, ForeignKey("gyms.gymID"), nullable=False)
     title = Column(String, nullable=False)
     offer_type = Column(Enum(OfferType), nullable=False)
     description = Column(Text, nullable=True)
