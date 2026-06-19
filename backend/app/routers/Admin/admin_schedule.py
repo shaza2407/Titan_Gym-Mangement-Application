@@ -23,6 +23,7 @@ from app.services.admin_schedule import (
     reject_request,
     get_pending_requests,
     get_class_members,
+    get_gym_coaches,
 )
 
 router = APIRouter(prefix="/admin/schedule", tags=["Admin Schedule"])
@@ -42,23 +43,38 @@ async def verify_admin_gym(adminID: int, gymID: int, db: AsyncSession) -> int:
 @router.get("/stats", response_model=AdminScheduleStatsResponse)
 async def schedule_stats(
     gym_id: int = Query(...),
+    week_only: bool = Query(False),          # <-- add this
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
-    stats = await get_admin_schedule_stats(gymID, db)
+    stats = await get_admin_schedule_stats(gymID, db, week_only=week_only)
     return AdminScheduleStatsResponse(**stats)
+
+
+# GET /admin/schedule/coaches?gym_id=1
+@router.get("/coaches")
+async def gym_coaches(
+    gym_id: int = Query(...),
+    admin: Admin = Depends(require_admin),
+    db: AsyncSession = Depends(get_session),
+):
+    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    return await get_gym_coaches(gymID, db)
 
 
 # GET /admin/schedule/classes?gym_id=1
 @router.get("/classes")
 async def all_classes(
     gym_id: int = Query(...),
+    from_date: date | None = Query(None),
+    week_start: date | None = Query(None),   # <-- add
+    week_end: date | None = Query(None),     # <-- add
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
-    return await get_all_classes(gymID, db)
+    return await get_all_classes(gymID, db, from_date=from_date, week_start=week_start, week_end=week_end)
 
 
 # POST /admin/schedule/classes?gym_id=1
@@ -67,12 +83,12 @@ async def create_new_class(
     payload: CreateClassRequest,
     gym_id: int = Query(...),
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
-    session = await create_class(gymID, payload, db)
-    if not session:
-        raise HTTPException(409, "Coach already has a class at this time")
+    session, error = await create_class(gymID, payload, db)
+    if error:
+        raise HTTPException(409, error)
     return {"message": "Class created successfully", "id": session.id}
 
 
@@ -83,12 +99,13 @@ async def update_class(
     payload: EditClassRequest,
     gym_id: int = Query(...),
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
-    session = await edit_class(session_id, gymID, payload, db)
-    if not session:
-        raise HTTPException(404, "Class not found")
+    session, error = await edit_class(session_id, gymID, payload, db)
+    if error:
+        status_code = 404 if "not found" in error.lower() else 409
+        raise HTTPException(status_code, error)
     return {"message": "Class updated successfully"}
 
 
@@ -98,7 +115,7 @@ async def remove_class(
     session_id: int,
     gym_id: int = Query(...),
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
     success = await delete_class(session_id, gymID, db)
@@ -111,10 +128,10 @@ async def remove_class(
 @router.get("/classes/{session_id}/members")
 async def class_members(
     session_id: int,
-    class_date: date | None = None,  # ← optional query param
+    class_date: date | None = None,
     gym_id: int = Query(...),
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
     members = await get_class_members(session_id, gymID, db, class_date)
@@ -126,7 +143,7 @@ async def class_members(
 async def pending_requests(
     gym_id: int = Query(...),
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
     return await get_pending_requests(gymID, db)
@@ -138,12 +155,13 @@ async def approve_class_request(
     request_id: int,
     gym_id: int = Query(...),
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
-    success = await approve_request(request_id, gymID, db)
+    success, error = await approve_request(request_id, gymID, db)
     if not success:
-        raise HTTPException(404, "Request not found or already processed")
+        status_code = 404 if "not found" in (error or "").lower() else 409
+        raise HTTPException(status_code, error)
     return {"message": "Request approved and class created"}
 
 
@@ -153,7 +171,7 @@ async def reject_class_request(
     request_id: int,
     gym_id: int = Query(...),
     admin: Admin = Depends(require_admin),
-    db: AsyncSession = Depends(get_session)
+    db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
     success = await reject_request(request_id, gymID, db)
