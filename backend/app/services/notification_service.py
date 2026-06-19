@@ -52,14 +52,20 @@ async def send_push_notification(db: AsyncSession, user_id: int, title: str, bod
         print(f"FCM send failed: {e}")  # don't crash the app if push fails
 
 
-async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str):
-    user = await get_user_by_email(db, email)
+async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, gym_id: int = None, token: str = None):
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if not user:
         return
 
     title = f"You've been invited to {gym_name}"
-    body = f"You have a new invitation to join as a {role}."
-    data = {"gym_name": gym_name, "role": role}
+    body = f"You have a new invitation to join as a {role}. Tap to accept or decline."
+    data = {
+        "gym_name": gym_name,
+        "role": role,
+        "gym_id": str(gym_id) if gym_id else "",
+        "invite_token": token or "",
+        "type": f"gym_invite_{role}",
+    }
 
     await save_notification(db, user.userID, title, body, f"gym_invite_{role}", data)
     await send_push_notification(db, user.userID, title, body, data)
