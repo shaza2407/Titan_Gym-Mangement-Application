@@ -23,7 +23,6 @@ from app.services.coach_schedule import (
     get_coach_gyms_lookup
 )
 from app.services.notification_service import notify_admin
-from app.services import coach_schedule
 from app.models.Gym import Gym
 
 router = APIRouter(prefix="/coach/schedule", tags=["Coach Schedule"])
@@ -95,7 +94,7 @@ async def create_request(
     await notify_admin(
         db=db,
         gym_id=payload.gym_id,
-        title="New Class Request",
+        title="new Class Request",
         body=f"A coach has requested a new class at {gym_name}.",
         type="coach_class_request",
         data={
@@ -135,7 +134,7 @@ async def delete_class(
     return {"message": "Class removed successfully"}
 
 
-# -Added: new endpoint to delete a requested class.
+# to delete a requested class.
 @router.delete("/requests/{request_id}")
 async def delete_request(request_id: int, current_user=Depends(require_coach), db: AsyncSession = Depends(get_session)):
     coach = await get_coach_or_404(current_user.userID, db)
@@ -145,7 +144,7 @@ async def delete_request(request_id: int, current_user=Depends(require_coach), d
     return {"message":"Request cancelled and deleted successfully"}
 
 
-# -Added: new endpoint to get gyms for a coach
+#to get gyms for a coach
 @router.get("/gyms", response_model=list[CoachGymLookUpResponse])
 async def read_coach_gyms(current_user=Depends(require_coach), db: AsyncSession=Depends(get_session)):
     coach = await get_coach_or_404(current_user.userID, db)
