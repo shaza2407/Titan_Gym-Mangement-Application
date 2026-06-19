@@ -76,6 +76,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return Icons.fitness_center;
       case 'gym_invite_coach':
         return Icons.sports_gymnastics;
+      case 'coach_class_request':    
+        return Icons.calendar_today;  
       default:
         return Icons.notifications;
     }
