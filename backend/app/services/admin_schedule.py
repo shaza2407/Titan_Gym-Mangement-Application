@@ -1,7 +1,7 @@
 # app/services/admin_schedule.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from datetime import date, timedelta
 from app.models.class_session import ClassSession
 from app.models.class_request import ClassRequest, RequestStatus
@@ -9,6 +9,7 @@ from app.models.class_enrollment import ClassEnrollment
 from app.models.coach import Coach
 from app.models import User
 from app.schemas.schedule_schema import CreateClassRequest, EditClassRequest
+from app.models import GymCoachMembership
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -148,7 +149,6 @@ async def create_class(gymID: int, payload: CreateClassRequest, db: AsyncSession
     await db.refresh(session)
     return session
 
-
 async def delete_class(session_id: int, gymID: int, db: AsyncSession) -> bool:
     result = await db.execute(
         select(ClassSession).where(
@@ -157,9 +157,20 @@ async def delete_class(session_id: int, gymID: int, db: AsyncSession) -> bool:
         )
     )
     session = result.scalar_one_or_none()
+
     if not session:
         return False
+
+    # Delete all enrollments for this class
+    await db.execute(
+        delete(ClassEnrollment).where(
+            ClassEnrollment.session_id == session_id
+        )
+    )
+
+    # Delete the class itself
     await db.delete(session)
+
     await db.commit()
     return True
 
@@ -340,3 +351,13 @@ async def get_class_members(
             "enrolled_at": enrollment.enrolled_at,
         })
     return members
+
+
+async def get_gym_coaches(gymID: int, db: AsyncSession) -> list:
+    result = await db.execute(
+        select(Coach.coachID, User.name)
+        .join(GymCoachMembership, GymCoachMembership.coachID == Coach.coachID)
+        .join(User, User.userID == Coach.userID)
+        .where(GymCoachMembership.gymID == gymID)
+    )
+    return [{"coach_id": row[0], "name": row[1]} for row in result.all()]
