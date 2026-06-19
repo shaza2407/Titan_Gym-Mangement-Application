@@ -11,8 +11,8 @@ class CoachScheduleStatsModel {
 
   factory CoachScheduleStatsModel.fromJson(Map<String, dynamic> json) {
     return CoachScheduleStatsModel(
-      weeklyClasses:   json['weekly_classes'],
-      totalStudents:   json['total_students'],
+      weeklyClasses: json['weekly_classes'],
+      totalStudents: json['total_students'],
       pendingRequests: json['pending_requests'],
     );
   }
@@ -45,16 +45,16 @@ class CoachClassModel {
 
   factory CoachClassModel.fromJson(Map<String, dynamic> json) {
     return CoachClassModel(
-      id:             json['id'],
-      title:          json['title'],
-      dayOfWeek:      json['day_of_week'],
-      date:           json['date'],
-      startTime:      json['start_time'],
-      duration:       json['duration'],
-      isRecurring:    json['is_recurring'],
-      gymName:        json['gym_name'],
-      currentClients: json['current_clients'],
-      maxClients:     json['max_clients'],
+      id: json['id'] ?? 0,
+      title: json['title']?.toString() ?? 'Untitled Class',
+      dayOfWeek: json['day_of_week']?.toString(),
+      date: json['date']?.toString(),
+      startTime: json['start_time']?.toString() ?? '00:00',
+      duration: json['duration']?? 45,
+      isRecurring: json['is_recurring']?? false,
+      gymName: json['gym_name']?.toString(),
+      currentClients: json['current_clients']?? 0,
+      maxClients: json['max_clients']?? 0,
     );
   }
 }
@@ -72,8 +72,8 @@ class CoachWeeklyDayModel {
 
   factory CoachWeeklyDayModel.fromJson(Map<String, dynamic> json) {
     return CoachWeeklyDayModel(
-      day:     json['day'],
-      label:   json['label'] ?? json['day'],
+      day: json['day'],
+      label: json['label'] ?? json['day'],
       classes: (json['classes'] as List)
           .map((e) => CoachWeeklyClassItem.fromJson(e))
           .toList(),
@@ -102,13 +102,13 @@ class CoachWeeklyClassItem {
 
   factory CoachWeeklyClassItem.fromJson(Map<String, dynamic> json) {
     return CoachWeeklyClassItem(
-      id:             json['id'],
-      title:          json['title'],
-      startTime:      json['start_time'],
-      duration:       json['duration'],
-      gymName:        json['gym_name'],
+      id: json['id'],
+      title: json['title'],
+      startTime: json['start_time'],
+      duration: json['duration'],
+      gymName: json['gym_name'],
       currentClients: json['current_clients'],
-      maxClients:     json['max_clients'],
+      maxClients: json['max_clients'],
     );
   }
 }
@@ -146,19 +146,35 @@ class CoachClassRequestModel {
 
   factory CoachClassRequestModel.fromJson(Map<String, dynamic> json) {
     return CoachClassRequestModel(
-      id:            json['id'],
-      coachId:       json['coach_id'],
-      gymID:         json['gymID'],
-      className:     json['class_name'],
-      isRecurring:   json['is_recurring'],
-      dayOfWeek:     json['day_of_week'],
-      requestedDate: json['requested_date'],
-      requestedTime: json['requested_time'],
-      duration:      json['duration'],
-      maxCapacity:   json['max_capacity'],
-      reason:        json['reason_for_request'],
-      status:        json['status'],
-      createdAt:     json['created_at'],
+      id: json['id'] ?? 0,
+      coachId: json['coach_id'] ?? 0,
+      gymID: json['gymID'] ?? 0,
+      className: json['class_name']?.toString() ?? 'Untitled',
+      isRecurring: json['is_recurring'] ?? false,
+      dayOfWeek: json['day_of_week']?.toString(),
+      requestedDate: json['requested_date']?.toString(),
+      requestedTime: json['requested_time']?.toString() ?? '',
+      duration: json['duration'] ?? 45,
+      maxCapacity: json['max_capacity'] ?? 20,
+      reason: json['reason_for_request']?.toString(),
+      status: json['status']?.toString() ?? 'pending',
+      createdAt: json['created_at']?.toString() ?? '',    );
+  }
+}
+
+class CoachGymLookupModel {
+  final int id;
+  final String name;
+
+  CoachGymLookupModel({
+    required this.id,
+    required this.name,
+  });
+
+  factory CoachGymLookupModel.fromJson(Map<String, dynamic> json){
+    return CoachGymLookupModel(
+      id: json['id'],
+      name: json['name'] ?? 'Unknown Gym Branch',
     );
   }
 }

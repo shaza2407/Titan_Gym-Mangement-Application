@@ -2,12 +2,16 @@
 
 import 'package:flutter/material.dart';
 import '../../data/client_repository.dart';
+import '../../data/dashboard_repository.dart';
 import '../../domain/client_profile_model.dart';
+import '../../domain/dashboard_model.dart';
 
 class ClientProfileController extends ChangeNotifier {
   final ClientRepository _repo = ClientRepository();
+  final DashboardRepository _dashRepo = DashboardRepository();
 
   ClientProfileModel? profile;
+  DashboardStatsModel? dashboardStats;
   bool isLoading = false;
   bool isSaving  = false;
   String? errorMessage;
@@ -33,7 +37,12 @@ class ClientProfileController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      profile = await _repo.getProfile(token);
+      final results = await Future.wait([
+        _repo.getProfile(token),
+        _dashRepo.getDashboardStats(token),
+      ]);
+      profile = results[0] as ClientProfileModel;
+      dashboardStats = results[1] as DashboardStatsModel;
       nameController.text             = profile!.name;
       phoneController.text            = profile!.phone ?? '';
       bioController.text              = profile!.bio ?? '';

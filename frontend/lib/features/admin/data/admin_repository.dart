@@ -134,24 +134,33 @@ class AdminApiService {
     throw Exception('Failed to load clients: ${res.statusCode}');
   }
 
-  static Future<void> inviteClient(int gymId, String email, String token) async {
-    final res = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/invite'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'email': email}),
-    );
-    if (res.statusCode != 200 && res.statusCode != 201) {
-      final detail = jsonDecode(res.body)['detail'] ?? 'Unknown error';
-      throw Exception(detail);
-    }
+  static Future<void> inviteClient(
+  int gymId,
+  String email,
+  String token, {
+  String subscriptionType = 'monthly',
+  int subscriptionMonths = 1,
+  }) async {
+  final res = await http.post(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/invite'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'email': email,
+      'subscription_type': subscriptionType,
+      'subscription_months': subscriptionMonths,
+    }),
+  );
+  if (res.statusCode != 201) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to send invite');
   }
+}
 
-  static Future<void> suspendClient(int gymId, int ClientId, String token) async {
+  static Future<void> suspendClient(int gymId, int clientId, String token) async {
     final res = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$ClientId/suspend'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$clientId/suspend'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -252,6 +261,39 @@ static Future<void> updateAdminProfile({
     throw Exception(detail);
   }
 }
+
+static Future<void> updateGym({
+  required int gymId,
+  required String token,
+  required String gymName,
+  required String gymType,
+  required String location,
+  required String openingHours,
+  required String closingHours,
+  required double subscriptionPrice,
+  double? yearlySubscriptionPrice,
+}) async {
+  final res = await http.patch(
+    Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'gymName': gymName,
+      'gymType': gymType,
+      'location': location,
+      'openingHours': openingHours,
+      'closingHours': closingHours,
+      'subscriptionPrice': subscriptionPrice,
+      'yearlySubscriptionPrice': yearlySubscriptionPrice,
+    }),
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to update gym');
+  }
+}
+
 }
 
 //admin profile models

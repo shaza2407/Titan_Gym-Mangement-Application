@@ -44,7 +44,9 @@ class SignupController extends ChangeNotifier {
       
       );
 
-    Navigator.pushReplacementNamed(context,'/verify-email',arguments: emailController.text.trim(),);
+    if (context.mounted) {
+      Navigator.pushReplacementNamed(context, '/verify-email', arguments: emailController.text.trim());
+    }
     } catch (e) {
       errorMessage = e.toString();
     } finally {
