@@ -23,6 +23,7 @@ from app.services.admin_schedule import (
     reject_request,
     get_pending_requests,
     get_class_members,
+    get_gym_coaches,
 )
 
 router = APIRouter(prefix="/admin/schedule", tags=["Admin Schedule"])
@@ -49,6 +50,15 @@ async def schedule_stats(
     stats = await get_admin_schedule_stats(gymID, db)
     return AdminScheduleStatsResponse(**stats)
 
+# GET /admin/schedule/coaches?gym_id=1
+@router.get("/coaches")
+async def gym_coaches(
+    gym_id: int = Query(...),
+    admin: Admin = Depends(require_admin),
+    db: AsyncSession = Depends(get_session)
+):
+    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    return await get_gym_coaches(gymID, db)
 
 # GET /admin/schedule/classes?gym_id=1
 @router.get("/classes")
