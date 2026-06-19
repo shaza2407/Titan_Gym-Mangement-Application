@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
         if (settings.name == '/coach-dashboard') {
           final token = settings.arguments as String;
           return MaterialPageRoute(
-            builder: (_) => CoachDashboardScreen(token: token), // ← new
+            builder: (_) => CoachDashboardScreen(token: token),
           );
         }
         if (settings.name == '/verify-email') {
