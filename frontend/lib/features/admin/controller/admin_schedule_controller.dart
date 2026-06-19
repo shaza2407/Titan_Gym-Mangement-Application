@@ -14,13 +14,23 @@ class AdminScheduleController extends ChangeNotifier {
   int selectedTab = 0; // 0 = Schedule, 1 = Table, 2 = Requests
   String selectedDay = 'All';
 
-  AdminScheduleStatsModel? stats;
-  List<ClassSessionModel> classes = [];
   List<ClassRequestModel> requests = [];
   List<CoachOptionModel> coaches = [];
+  List<ClassSessionModel> classes =
+      []; // all classes (no past one-time) — for All Classes tab
+  List<ClassSessionModel> weekClasses = []; // this week only — for Schedule tab
+  AdminScheduleStatsModel? stats; // all-classes stats
+  AdminScheduleStatsModel? weekStats; // this-week stats
 
   static const days = [
-    'All', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+    'All',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
   ];
 
   Future<void> loadAll(String token, int gymId) async {
@@ -28,17 +38,40 @@ class AdminScheduleController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
+    final today = DateTime.now();
+
+    // Monday of this week
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+    // Sunday of this week
+    final sunday = monday.add(const Duration(days: 6));
+
+    String _fmt(DateTime d) =>
+        '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+    final fromDate = _fmt(today);
+    final weekStart = _fmt(monday);
+    final weekEnd = _fmt(sunday);
+
     try {
       final results = await Future.wait([
-        _repo.getStats(token, gymId),
-        _repo.getClasses(token, gymId),
+        _repo.getStats(token, gymId), // all stats
+        _repo.getStats(token, gymId, weekOnly: true), // week stats
+        _repo.getClasses(token, gymId, fromDate: fromDate), // All Classes tab
+        _repo.getClasses(
+          token,
+          gymId,
+          weekStart: weekStart,
+          weekEnd: weekEnd,
+        ), // Schedule tab
         _repo.getPendingRequests(token, gymId),
         _repo.getCoaches(token, gymId),
       ]);
-      stats    = results[0] as AdminScheduleStatsModel;
-      classes  = results[1] as List<ClassSessionModel>;
-      requests = results[2] as List<ClassRequestModel>;
-      coaches  = results[3] as List<CoachOptionModel>;
+      stats = results[0] as AdminScheduleStatsModel;
+      weekStats = results[1] as AdminScheduleStatsModel;
+      classes = results[2] as List<ClassSessionModel>;
+      weekClasses = results[3] as List<ClassSessionModel>;
+      requests = results[4] as List<ClassRequestModel>;
+      coaches = results[5] as List<CoachOptionModel>;
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
@@ -49,6 +82,12 @@ class AdminScheduleController extends ChangeNotifier {
 
   void setTab(int index) {
     selectedTab = index;
+    errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearError() {
+    errorMessage = null;
     notifyListeners();
   }
 
@@ -57,15 +96,41 @@ class AdminScheduleController extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<ClassSessionModel> get filteredClasses {
-    if (selectedDay == 'All') return classes;
-    return classes.where((c) => c.dayOfWeek == selectedDay).toList();
+  bool _isPassedToday(ClassSessionModel c) {
+    final now = DateTime.now();
+    final todayStr =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final todayName = days[now.weekday - 1];
+
+    final isToday = c.isRecurring
+        ? c.dayOfWeek == todayName
+        : c.date == todayStr;
+    if (!isToday) return false;
+
+    final parts = c.startTime.split(':');
+    final classTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+    );
+    return classTime.isBefore(now);
   }
+
+  // All Classes tab uses classes (future + recurring only), minus today's already-started ones
+  List<ClassSessionModel> get filteredClasses {
+    final upcoming = classes.where((c) => !_isPassedToday(c)).toList();
+    if (selectedDay == 'All') return upcoming;
+    return upcoming.where((c) => c.dayOfWeek == selectedDay).toList();
+  }
+
+  // weeklySchedule stays exactly as-is — untouched, still shows the full week
 
   Map<String, List<ClassSessionModel>> get weeklySchedule {
     final map = <String, List<ClassSessionModel>>{};
     for (final day in days.skip(1)) {
-      map[day] = classes.where((c) => c.dayOfWeek == day).toList()
+      map[day] = weekClasses.where((c) => c.dayOfWeek == day).toList()
         ..sort((a, b) => a.startTime.compareTo(b.startTime));
     }
     return map;
@@ -77,7 +142,11 @@ class AdminScheduleController extends ChangeNotifier {
     return const Color(0xFF4CAF50);
   }
 
-  Future<bool> createClass(String token, int gymId, Map<String, dynamic> payload) async {
+  Future<bool> createClass(
+    String token,
+    int gymId,
+    Map<String, dynamic> payload,
+  ) async {
     isMutating = true;
     errorMessage = null;
     notifyListeners();
