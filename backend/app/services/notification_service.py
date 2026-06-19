@@ -69,3 +69,21 @@ async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, 
 
     await save_notification(db, user.userID, title, body, f"gym_invite_{role}", data)
     await send_push_notification(db, user.userID, title, body, data)
+
+async def notify_admin(db: AsyncSession, gym_id: int, title: str, body: str, type: str, data: dict):
+    """Find the admin of a gym and send them a notification."""
+    from app.models.Gym import Gym
+    from app.models import Admin
+
+    # Get gym to find adminID
+    gym = (await db.execute(select(Gym).where(Gym.gymID == gym_id))).scalar_one_or_none()
+    if not gym:
+        return
+
+    # Get admin user
+    admin = (await db.execute(select(Admin).where(Admin.adminID == gym.adminID))).scalar_one_or_none()
+    if not admin:
+        return
+
+    await save_notification(db, admin.userID, title, body, type, data)
+    await send_push_notification(db, admin.userID, title, body, data)

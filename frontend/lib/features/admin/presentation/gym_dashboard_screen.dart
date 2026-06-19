@@ -9,6 +9,8 @@ import 'invite_member_screen.dart';
 import 'attendance_tracking_screen.dart';
 import 'analytics_screen.dart';
 import 'gym_settings_screen.dart';
+import 'package:frontend/features/Services/notifications_screen.dart';
+import 'package:frontend/features/Services/token_helper.dart';
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
@@ -101,10 +103,16 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
           child: Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_outlined,
-                    color: Colors.black),
-                onPressed: () {},
+                icon: const Icon(Icons.notifications_outlined, color: Colors.black),
+                onPressed: () => Navigator.push(context,
+                MaterialPageRoute(
+                  builder: (_) => NotificationsScreen(
+                  userId: getUserIdFromToken(widget.token),
+                  token: widget.token,
+                ),
               ),
+            ),
+          ),
             ],
           ),
         ),
