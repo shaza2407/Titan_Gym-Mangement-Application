@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.User import User
 from app.models.notification import Notification, FcmToken
-
-# Initialize Firebase once
+from app.models.Gym import Gym
+from app.models import Admin ,coach , ClassRequest
 import os
 
 if not firebase_admin._apps:
@@ -42,14 +42,14 @@ async def send_push_notification(db: AsyncSession, user_id: int, title: str, bod
 
     message = messaging.Message(
         notification=messaging.Notification(title=title, body=body),
-        data={k: str(v) for k, v in data.items()},  # ✅ all values must be strings
+        data={k: str(v) for k, v in data.items()}, 
         token=fcm.token,
     )
 
     try:
         messaging.send(message)
     except Exception as e:
-        print(f"FCM send failed: {e}")  # don't crash the app if push fails
+        print(f"FCM send failed: {e}")  # to not crash the app if push fails
 
 
 async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, gym_id: int = None, token: str = None):
@@ -57,8 +57,8 @@ async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, 
     if not user:
         return
 
-    title = f"You've been invited to {gym_name}"
-    body = f"You have a new invitation to join as a {role}. Tap to accept or decline."
+    title = f"You've been invited to {gym_name} as a {role}. "
+    body = f"Tap to accept or decline."
     data = {
         "gym_name": gym_name,
         "role": role,
@@ -71,10 +71,6 @@ async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, 
     await send_push_notification(db, user.userID, title, body, data)
 
 async def notify_admin(db: AsyncSession, gym_id: int, title: str, body: str, type: str, data: dict):
-    """Find the admin of a gym and send them a notification."""
-    from app.models.Gym import Gym
-    from app.models import Admin
-
     # Get gym to find adminID
     gym = (await db.execute(select(Gym).where(Gym.gymID == gym_id))).scalar_one_or_none()
     if not gym:
@@ -87,3 +83,20 @@ async def notify_admin(db: AsyncSession, gym_id: int, title: str, body: str, typ
 
     await save_notification(db, admin.userID, title, body, type, data)
     await send_push_notification(db, admin.userID, title, body, data)
+
+
+async def notify_Coach_on_class_approval(db: AsyncSession,request_id : int, gym_id: int, title: str, body: str, type: str, data: dict):
+    # Get gym to find adminID
+    gym = (await db.execute(select(Gym).where(Gym.gymID == gym_id))).scalar_one_or_none()
+    if not gym:
+        return
+
+    # Get coach user
+    coachId = (await db.execute(select(ClassRequest.coach_id).where(ClassRequest.id == request_id))).scalar_one_or_none()
+    Coach = (await db.execute(select(coach).where(coach.coachID == coachId))).scalar_one_or_none()
+    if not Coach:
+        return
+
+    await save_notification(db, Coach.coachID, title, body, type, data)
+    await send_push_notification(db, Coach.userID, title, body, data)
+
