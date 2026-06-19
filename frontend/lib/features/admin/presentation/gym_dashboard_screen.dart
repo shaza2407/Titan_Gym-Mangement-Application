@@ -11,6 +11,8 @@ import 'analytics_screen.dart';
 import 'gym_settings_screen.dart';
 import 'package:frontend/features/Services/notifications_screen.dart';
 import 'package:frontend/features/Services/token_helper.dart';
+import 'announcements_screen.dart';
+
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
@@ -245,15 +247,17 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                     const SizedBox(height: 16),
                     _buildActionItem(
                       Icons.campaign_outlined,
-                      const Color(0xFF4F46E5),
+                     const Color(0xFF4F46E5),
                       'Announcements',
                       'Create and manage gym announcements',
-                      () {},
-                    ),
+                      () => Navigator.push(context,
+                            MaterialPageRoute(
+                            builder: (_) => AnnouncementsScreen(token: widget.token, gymId: widget.gym.gymID),)),
+                      ),
                     _buildActionItem(
                       Icons.people_outline,
                       const Color(0xFF4F46E5),
-                      'Member Management',
+                      'Client Management',
                       'View and manage gym members',
                       () => Navigator.push(
                           context,

@@ -29,23 +29,3 @@ async def send_reset_email(email: str, token: str):
         subtype    = "plain"
     )
     await FastMail(conf).send_message(message)
-
-
-
-async def send_invitation_email(email: str, gym_name: str, token: str):
-    link = f"http://localhost:5173/accept-invitation?token={token}"
-    body = (
-        f"Hi\n\n"
-        f"You've been invited to join {gym_name} on Titan App.\n\n"
-        f"Click the link below to accept your invitation:\n\n"
-        f"{link}\n\n"
-        f"This invitation expires in 7 days.\n\n"
-        f"If you didn't expect this, you can safely ignore this email."
-    )
-    message = MessageSchema(
-        subject = f"You're invited to join {gym_name} on Titan App.",
-        recipients = [email],
-        body = body,
-        subtype = "plain",
-    )
-    await FastMail(conf).send_message(message)
