@@ -113,7 +113,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
               ),
             ),
           ),
-            ],
+          ],
           ),
         ),
         IconButton(

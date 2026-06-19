@@ -1,6 +1,7 @@
 // lib/features/admin/presentation/admin_shell.dart
 
 import 'package:flutter/material.dart';
+import 'admin_schedule_screen.dart';
 import 'gym_dashboard_screen.dart';
 import 'admin_profile.dart';
 import 'analytics_screen.dart';
@@ -43,7 +44,10 @@ class _AdminShellState extends State<AdminShell> {
           onTabChange: _onTap,
         );
       case 2:
-        return const Center(child: Text('Schedule - Coming Soon'));
+        return AdminScheduleScreen (
+          token: widget.token,
+          gymId: widget.gym.gymID,
+          onTabChange: _onTap,);
       case 3:
         return AdminProfileScreen(
           token: widget.token,
