@@ -22,7 +22,9 @@ from app.services.coach_schedule import (
     remove_class_request,
     get_coach_gyms_lookup
 )
+from app.services.notification_service import notify_admin
 from app.services import coach_schedule
+from app.models.Gym import Gym
 
 router = APIRouter(prefix="/coach/schedule", tags=["Coach Schedule"])
 
@@ -75,7 +77,6 @@ async def class_requests(
     coach = await get_coach_or_404(current_user.userID, db)
     return await get_class_requests(coach.coachID, db)
 
-# - Edited: use payload.gym_id directly from selection dropdown 
 # POST /coach/schedule/requests
 @router.post("/requests", status_code=201)
 async def create_request(
@@ -85,7 +86,26 @@ async def create_request(
 ):
     coach = await get_coach_or_404(current_user.userID, db)
     result = await create_class_request(coach.coachID, payload.gym_id, payload, db)
+    gym = (await db.execute(
+        select(Gym).where(Gym.gymID == payload.gym_id)
+    )).scalar_one_or_none()
+
+    gym_name = gym.gymName if gym else "your gym"
+
+    await notify_admin(
+        db=db,
+        gym_id=payload.gym_id,
+        title="New Class Request",
+        body=f"A coach has requested a new class at {gym_name}.",
+        type="coach_class_request",
+        data={
+            "gym_id": str(payload.gym_id),
+            "coach_id": str(coach.coachID),
+            "class_name": payload.class_name if hasattr(payload, 'class_name') else "",
+        }
+    )
     return result
+
 
 
 # DELETE /coach/schedule/my-classes/{class_id}
