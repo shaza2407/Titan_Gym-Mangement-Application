@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 import pytz
 from app.database import get_session
 from app.dependencies.auth import get_current_user
+from app.models import Admin
 from app.models.attendance import Attendance
 from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership
@@ -23,12 +24,19 @@ from app.schemas.analytics_schemas import (
 router = APIRouter(prefix="/admin/analytics", tags=["Admin - Analytics"])
 
 ## help function
-async def _verify_gym_owner(gym_id: int, admin_id: int, db: AsyncSession) -> Gym:
-    result = await db.execute(select(Gym).where(Gym.gymID == gym_id, Gym.adminID == admin_id))
+async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
+    result = await db.execute(select(Admin).where(Admin.userID == user_id))
+    admin = result.scalar_one_or_none()
+    if not admin:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found")
+
+    result = await db.execute(select(Gym).where(Gym.gymID == gym_id, Gym.adminID == admin.adminID))
     gym = result.scalar_one_or_none()
     if not gym:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Gym not found")
+
     return gym
+
 
 async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
     monthly_result = await db.execute(
