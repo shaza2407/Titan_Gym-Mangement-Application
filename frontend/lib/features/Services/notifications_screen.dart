@@ -28,7 +28,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     super.initState();
     _fetchNotifications();
   }
-
   Future<void> _fetchNotifications() async {
     try {
       final res = await http.get(
