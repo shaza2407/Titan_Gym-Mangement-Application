@@ -83,7 +83,7 @@ async def predict_churn_risk(membership: GymClientMembership, db: Session, days:
             response.raise_for_status()
             return response.json().get("churn_risk", "Low")
     except Exception as e:
-        return f"Error: {e}"
+        return f"Error  : {e}"
         # if  > 30 or days_until_expiry < 7:
         #     return "High"
         # elif recent_score <= 10:
