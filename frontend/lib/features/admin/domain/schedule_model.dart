@@ -56,7 +56,7 @@ class ClassSessionModel {
     return ClassSessionModel(
       id:             json['id'],
       title:          json['title'],
-      dayOfWeek:      json['day_of_week'],
+      dayOfWeek:      json['day_of_week'] as String?,
       date:           json['date'],
       startTime:      json['start_time'],
       duration:       json['duration'],
