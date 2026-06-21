@@ -13,7 +13,6 @@ async def get_membership(clientID: int, db: AsyncSession) -> GymClientMembership
     result = await db.execute(
         select(GymClientMembership).where(
             GymClientMembership.clientID == clientID,
-            GymClientMembership.status == ClientMembershipStatus.active,
         )
     )
     return result.scalar_one_or_none()
