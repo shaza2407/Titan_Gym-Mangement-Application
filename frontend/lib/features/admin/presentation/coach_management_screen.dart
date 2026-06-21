@@ -105,13 +105,8 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Coach Management',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16)),
-            Text('View and manage gym coaches',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
+            Text('Coach Management', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('View and manage gym coaches', style: TextStyle(color: Colors.grey, fontSize: 12)),
           ],
         ),
         actions: [
