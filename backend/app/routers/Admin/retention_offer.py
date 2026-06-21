@@ -110,6 +110,8 @@ async def preview_members(gym_id: int, request: PreviewRequest, db: AsyncSession
             churn_risk=risk,
         ))
 
+
+    ## {m1: r1, m2: r2, m3: r3...}
     if request.target_type == "highest_risk":
         previews.sort(key=lambda x: RISK_ORDER[x.churn_risk])
     elif request.target_type == "lowest_risk":
@@ -118,7 +120,7 @@ async def preview_members(gym_id: int, request: PreviewRequest, db: AsyncSession
         previews.sort(key=lambda x: RISK_ORDER[x.churn_risk])  # show all sorted
         return previews
 
-    if request.number_of_members:
+    if request.number_of_members and request.target_type != "all_members":
         previews = previews[:request.number_of_members]
 
     return previews
