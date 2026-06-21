@@ -8,9 +8,13 @@ from app.dependencies.auth import require_admin
 from app.schemas.gym import GymCreate, GymUpdate, GymResponse, GymDashboardStats 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import func, select
 from app.database import get_session
 from app.dependencies.auth import get_current_user
+from app.models.gym_coachs_membership import GymCoachMembership
+from app.models.class_session import ClassSession
+
+
 
 
 router = APIRouter(
@@ -63,3 +67,28 @@ async def update_gym_endpoint(
     gym = await update_gym(db, gym_id, body, admin.adminID)
     return {"message": "Gym updated successfully."}
 
+#number of coaches in a gym
+@router.get("/{gym_id}/coach-count")
+async def get_gym_coach_count(
+    gym_id: int,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    count = (await db.execute(
+        select(func.count(GymCoachMembership.id))
+        .where(GymCoachMembership.gymID == gym_id)
+    )).scalar()
+    return {"count": count or 0}
+
+
+@router.get("/{gym_id}/class-count")
+async def get_gym_class_count(
+    gym_id: int,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    count = (await db.execute(
+        select(func.count(ClassSession.id))
+        .where(ClassSession.gymID == gym_id)
+    )).scalar()
+    return {"count": count or 0}

@@ -266,11 +266,18 @@ class AdminDashboardScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(width: 24),
-                _gymStatChip(
-                  Icons.trending_up,
-                  const Color(0xFF1D9E75),
-                  'Monthly Subscription',
-                  '\$${gym.subscriptionPrice.toStringAsFixed(0)}',
+                FutureBuilder<int>(
+                  future: GymRepository().getGymCoachCount(
+                  token: token, gymId: gym.gymID),
+                  builder: (context, snapshot) {
+                  final count = snapshot.data ?? 0;
+                   return _gymStatChip(
+                      Icons.sports_gymnastics_sharp,
+                    const Color(0xFF1D9E75),
+                    'Coaches',
+                    '$count',
+                    );
+                  },
                 ),
               ],
             ),

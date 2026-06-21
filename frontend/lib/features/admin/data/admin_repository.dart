@@ -140,6 +140,7 @@ class AdminApiService {
   String token, {
   String subscriptionType = 'monthly',
   int subscriptionMonths = 1,
+  int subscriptionPrice = 0,
   }) async {
   final res = await http.post(
     Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/invite'),
@@ -151,6 +152,7 @@ class AdminApiService {
       'email': email,
       'subscription_type': subscriptionType,
       'subscription_months': subscriptionMonths,
+      'subscription_price': subscriptionPrice,
     }),
   );
   if (res.statusCode != 201) {
@@ -171,6 +173,16 @@ class AdminApiService {
       throw Exception(detail);
     }
   }
+
+  static Future<void> unsuspendClient(int gymId, int memberId, String token) async {
+  final res = await http.post(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$memberId/unsuspend'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to unsuspend');
+  }
+}
 
 
   // Coaches
@@ -216,6 +228,16 @@ class AdminApiService {
       throw Exception(detail);
     }
   }
+
+static Future<void> unsuspendCoach(int gymId, int memberId, String token) async {
+  final res = await http.post(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/coaches/$memberId/unsuspend'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to unsuspend');
+  }
+}
 
 // Admin Profile
 static Future<AdminProfile> fetchAdminProfile(String token) async {
@@ -270,8 +292,6 @@ static Future<void> updateGym({
   required String location,
   required String openingHours,
   required String closingHours,
-  required double subscriptionPrice,
-  double? yearlySubscriptionPrice,
 }) async {
   final res = await http.patch(
     Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId'),
@@ -285,8 +305,6 @@ static Future<void> updateGym({
       'location': location,
       'openingHours': openingHours,
       'closingHours': closingHours,
-      'subscriptionPrice': subscriptionPrice,
-      'yearlySubscriptionPrice': yearlySubscriptionPrice,
     }),
   );
   if (res.statusCode != 200) {

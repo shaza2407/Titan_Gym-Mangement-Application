@@ -136,8 +136,6 @@ class AdminGymController extends ChangeNotifier {
       final newGym = await _repo.createGym(
         token:                  token,
         gymName:                gymNameController.text.trim(),
-        subscriptionPrice:      double.parse(priceController.text.trim()),
-        yearlySubscriptionPrice: double.parse(yearlyPriceController.text.trim()),
         location:               locationController.text.trim(),
         gymType:                selectedGymType,
         openingHours:           openingHoursController.text.trim(),

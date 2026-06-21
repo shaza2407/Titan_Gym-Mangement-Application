@@ -5,9 +5,12 @@ from fastapi import HTTPException, status
 import qrcode
 import base64
 from io import BytesIO
+from sqlalchemy import or_, and_
+import calendar
 from app.models import Gym , GymMachineInventory
 from app.schemas.gym import GymCreate, GymUpdate
 from sqlalchemy import func
+from app.models.class_session import ClassSession
 from datetime import date, datetime, timezone
 from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
 from app.models.attendance import Attendance
@@ -116,30 +119,25 @@ async def get_dashboard_stats(db: AsyncSession, gym_id: int, admin_id: int) -> d
     )
     today_attendance = attendance.scalar() or 0
 
-    # Monthly revenue
-    monthly = await db.execute(
-        select(func.count(GymClientMembership.id))
-        .filter(
-            GymClientMembership.gymID == gym_id,
-            GymClientMembership.status == ClientMembershipStatus.active,
-            GymClientMembership.subscription_end >= today,
-            GymClientMembership.subscription == "Monthly",
+    today = date.today()
+    today_day = calendar.day_name[today.weekday()].lower()  # e.g. "monday"
+
+    classes = await db.execute(
+    select(func.count(ClassSession.id))
+    .filter(
+        ClassSession.gymID == gym_id,
+        or_(
+            ClassSession.date == today,                    # for only one time classes
+            and_(
+                ClassSession.is_recurring == True,
+                ClassSession.day_of_week == today_day,     #for recurring classes
+            )
+            )
         )
     )
-    annual = await db.execute(
-        select(func.count(GymClientMembership.id))
-        .filter(
-            GymClientMembership.gymID == gym_id,
-            GymClientMembership.status == ClientMembershipStatus.active,
-            GymClientMembership.subscription_end >= today,
-            GymClientMembership.subscription == "Annual",
-        )
-    )
-    monthly_revenue = (
-        (monthly.scalar() or 0) * (gym.subscriptionPrice or 0)
-    ) + (
-        (annual.scalar() or 0) * ((gym.yearlySubscriptionPrice or 0) / 12)
-    )
+    total_classes = classes.scalar() or 0
+
+
 
     return {
         "gymID":               gym.gymID,
@@ -147,5 +145,5 @@ async def get_dashboard_stats(db: AsyncSession, gym_id: int, admin_id: int) -> d
         "totalMembers":        total_members,
         "activeSubscriptions": active_subscriptions,
         "todayAttendance":     today_attendance,
-        "monthlyRevenue":      round(monthly_revenue, 2),
+        "totalClasses":        total_classes,
     }
