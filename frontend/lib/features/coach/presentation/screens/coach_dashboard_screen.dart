@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/coach/presentation/controllers/coach_schedule_controller.dart';
+import 'package:frontend/features/coach/presentation/screens/request_class_screen.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/logout_button.dart';
 import '../../../coach/presentation/screens/coach_ui_utils.dart';
@@ -7,11 +9,13 @@ import '../../domain/coach_dashboard_model.dart';
 import 'coach_schedule_screen.dart';
 import 'coach_profile_screen.dart';
 import '../../../Services/token_helper.dart';
-import '../../../Services//notifications_screen.dart';
+import '../../../Services/notifications_screen.dart';
+import 'coach_gyms_screen.dart';
 
 class CoachDashboardScreen extends StatefulWidget {
   final String token;
-  const CoachDashboardScreen({super.key, required this.token});
+  final int initialIndex;
+  const CoachDashboardScreen({super.key, required this.token, this.initialIndex =0});
 
   @override
   State<CoachDashboardScreen> createState() => _CoachDashboardScreenState();
@@ -21,13 +25,12 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
   int _currentIndex = 0;
   late final CoachDashboardController _ctrl;
   late final List<Widget> _tabs;
-
   @override
   void initState() {
     super.initState();
     _ctrl = CoachDashboardController();
     _ctrl.loadAll(widget.token); // called once — not on every rebuild
-
+    _currentIndex = widget.initialIndex; // set initial tab index
     // Built once. IndexedStack keeps every tab mounted, so switching tabs
     // never re-triggers initState or re-fetches data, and scroll position /
     // in-progress edits on Schedule & Profile are preserved.
@@ -39,6 +42,10 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
         ),
       ),
       CoachScheduleScreen(
+        token: widget.token,
+        onBack: () => setState(() => _currentIndex = 0),
+      ),
+      CoachGymsScreen(
         token: widget.token,
         onBack: () => setState(() => _currentIndex = 0),
       ),
@@ -66,9 +73,22 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
       selectedItemColor: CoachColors.primary,
       unselectedItemColor: Colors.grey,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Dashboard'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Schedule'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.grid_view),
+          label: 'Dashboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_month_outlined),
+          label: 'Schedule',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.fitness_center_outlined),
+          label: 'Gyms',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          label: 'Profile',
+        ),
       ],
     );
   }
@@ -96,17 +116,32 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  StatCard(icon: Icons.calendar_today_outlined, value: '${stats?.weeklyClasses ?? 0}', label: 'Weekly\nClasses', color: CoachColors.primary),
+                  StatCard(
+                    icon: Icons.calendar_today_outlined,
+                    value: '${stats?.weeklyClasses ?? 0}',
+                    label: 'Weekly\nClasses',
+                    color: CoachColors.primary,
+                  ),
                   const SizedBox(width: 12),
-                  StatCard(icon: Icons.people_outline, value: '${stats?.totalStudents ?? 0}', label: 'Total\nStudents', color: CoachColors.success),
+                  StatCard(
+                    icon: Icons.people_outline,
+                    value: '${stats?.totalClients ?? 0}',
+                    label: 'Total\nClients',
+                    color: CoachColors.success,
+                  ),
                   const SizedBox(width: 12),
-                  StatCard(icon: Icons.fitness_center_outlined, value: '${stats?.activeGyms ?? 0}', label: 'Active\nGyms', color: CoachColors.warning),
+                  StatCard(
+                    icon: Icons.fitness_center_outlined,
+                    value: '${stats?.activeGyms ?? 0}',
+                    label: 'Active\nGyms',
+                    color: CoachColors.warning,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
               _buildUpcomingSection(ctrl),
               const SizedBox(height: 16),
-              _buildQuickActions(),
+              _buildQuickActions(ctrl),
             ],
           ),
         ),
@@ -123,14 +158,24 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
             CircleAvatar(
               radius: 20,
               backgroundColor: const Color.fromARGB(255, 206, 132, 28),
-              child: const Icon(Icons.fitness_center, color: Colors.white, size: 18),
+              child: const Icon(
+                Icons.fitness_center,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 10),
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Coach Dashboard', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('Welcome back, Coach!', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  'Coach Dashboard',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Welcome back, Coach!',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
           ],
@@ -141,18 +186,22 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.notifications_outlined),
-                  onPressed: () => Navigator.push(context,
-                  MaterialPageRoute(
-                    builder: (_) => NotificationsScreen(
-                      userId: getUserIdFromToken(widget.token),
-                      token: widget.token,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => NotificationsScreen(
+                        userId: getUserIdFromToken(widget.token),
+                        token: widget.token,
+                      ),
                     ),
                   ),
                 ),
-              ),
               ],
             ),
-            IconButton(icon: const Icon(Icons.logout_outlined), onPressed: () => showLogoutDialog(context)),
+            IconButton(
+              icon: const Icon(Icons.logout_outlined),
+              onPressed: () => showLogoutDialog(context),
+            ),
           ],
         ),
       ],
@@ -162,12 +211,21 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
   Widget _buildUpcomingSection(CoachDashboardController ctrl) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Today's Classes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Text(_todayLabel(), style: const TextStyle(color: Colors.grey, fontSize: 13)),
+          const Text(
+            "Today's Classes",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            _todayLabel(),
+            style: const TextStyle(color: Colors.grey, fontSize: 13),
+          ),
           const SizedBox(height: 16),
           if (ctrl.upcoming.isEmpty)
             const EmptyState(
@@ -185,12 +243,17 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
   Widget _buildUpcomingCard(CoachUpcomingClassModel c) {
     final isFull = c.currentClients >= c.maxClients;
     final ratio = c.maxClients == 0 ? 0.0 : c.currentClients / c.maxClients;
-    final capacityColor = isFull ? CoachColors.danger : (ratio > 0.8 ? CoachColors.warning : CoachColors.success);
+    final capacityColor = isFull
+        ? CoachColors.danger
+        : (ratio > 0.8 ? CoachColors.warning : CoachColors.success);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade200), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         children: [
           Container(
@@ -207,15 +270,26 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(c.title, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(c.gymName ?? '', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  c.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                c.gymName ?? 'Unknown Gym',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(formatTime(c.startTime), style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                formatTime(c.startTime),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -238,41 +312,97 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(CoachDashboardController ctrl) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Quick Actions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const Text('Manage your coaching activities', style: TextStyle(color: Colors.grey, fontSize: 13)),
+          const Text(
+            'Quick Actions',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const Text(
+            'Manage your coaching activities',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
           const SizedBox(height: 16),
-          _buildActionItem(Icons.calendar_month_outlined, 'My Schedule & Classes', 'View schedule and manage class requests', () => setState(() => _currentIndex = 1)),
-          _buildActionItem(Icons.person_outline, 'My Profile', 'Update your coach information', () => setState(() => _currentIndex = 2)),
+
+          _buildActionItem(
+            Icons.calendar_month_outlined,
+            'My Gyms',
+            'View gyms you are coaching at',
+            () => setState(() => _currentIndex = 2),
+          ),
+          _buildActionItem(
+            Icons.calendar_month_outlined,
+            'Request Class',
+            'Open a request to add a new class',
+            () async {
+              final scheduleCtrl = CoachScheduleController();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => RequestClassScreen(
+                    token: widget.token,
+                    controller: scheduleCtrl,
+                  ),
+                ),
+              );
+              ctrl.loadAll(widget.token);
+            },
+          ),
+          _buildActionItem(
+            Icons.person_outline,
+            'My Profile',
+            'Update your coach information',
+            () => setState(() => _currentIndex = 3),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildActionItem(IconData icon, String title, String subtitle, VoidCallback onTap) {
+  Widget _buildActionItem(
+    IconData icon,
+    String title,
+    String subtitle,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade200), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade200),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Row(
           children: [
-            Icon(icon, color: const Color.fromARGB(255, 206, 132, 28), size: 22),
+            Icon(
+              icon,
+              color: const Color.fromARGB(255, 206, 132, 28),
+              size: 22,
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -285,8 +415,30 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
 
   String _todayLabel() {
     final now = DateTime.now();
-    const months = ['', 'January','February','March','April','May','June','July','August','September','October','November','December'];
-    const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const months = [
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     return '${days[now.weekday - 1]}, ${months[now.month]} ${now.day}, ${now.year}';
   }
 }
