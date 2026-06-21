@@ -2,7 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select, update, delete
 from app.database import get_session
 from app.models import Notification
 from app.models import User
@@ -25,24 +25,24 @@ async def get_notifications(user_id: int, db: AsyncSession = Depends(get_session
 
 @router.patch("/{notification_id}/read")
 async def mark_read(notification_id: str, db: AsyncSession = Depends(get_session)):
-    await db.execute(
-        update(Notification)
-        .where(Notification.id == notification_id)
-        .values(is_read=True)
+    result = await db.execute(
+        delete(Notification).where(Notification.id == notification_id)
     )
     await db.commit()
-    return {"message": "Marked as read"}
+
+    if result.rowcount == 0:
+        raise HTTPException(404, "Notification not found.")
+
+    return {"message": "Notification deleted"}
 
 
 @router.patch("/{user_id}/read-all")
 async def mark_all_read(user_id: int, db: AsyncSession = Depends(get_session)):
     await db.execute(
-        update(Notification)
-        .where(Notification.user_id == user_id, Notification.is_read == False)
-        .values(is_read=True)
+        delete(Notification).where(Notification.user_id == user_id)
     )
     await db.commit()
-    return {"message": "All marked as read"}
+    return {"message": "All notifications deleted"}
 
 
 @router.post("/fcm-token")

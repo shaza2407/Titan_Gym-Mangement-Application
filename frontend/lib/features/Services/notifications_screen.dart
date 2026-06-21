@@ -28,7 +28,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     super.initState();
     _fetchNotifications();
   }
-
   Future<void> _fetchNotifications() async {
     try {
       final res = await http.get(
@@ -57,7 +56,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _markAllAsRead() async {
     await http.patch(
-      Uri.parse('${ApiConstants.baseUrl}/notifications/${widget.userId}/read-all'),
+      Uri.parse(
+        '${ApiConstants.baseUrl}/notifications/${widget.userId}/read-all',
+      ),
       headers: {'Authorization': 'Bearer ${widget.token}'},
     );
     setState(() {
@@ -76,8 +77,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return Icons.fitness_center;
       case 'gym_invite_coach':
         return Icons.sports_gymnastics;
-      case 'coach_class_request':    
-        return Icons.calendar_today;  
+      case 'coach_class_request':
+        return Icons.calendar_today;
       default:
         return Icons.notifications;
     }
@@ -107,11 +108,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Notifications',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16)),
+            const Text(
+              'Notifications',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
             Text(
               _unreadCount > 0 ? '$_unreadCount unread' : 'All caught up',
               style: const TextStyle(color: Colors.grey, fontSize: 12),
@@ -122,126 +126,151 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (_unreadCount > 0)
             TextButton(
               onPressed: _markAllAsRead,
-              child: const Text('Mark all read',
-                  style: TextStyle(color: accentColor, fontSize: 12)),
+              child: const Text(
+                'Mark all read',
+                style: TextStyle(color: accentColor, fontSize: 12),
+              ),
             ),
         ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: accentColor))
           : _notifications.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.notifications_off_outlined,
-                          size: 48, color: Colors.grey),
-                      SizedBox(height: 12),
-                      Text('No notifications yet',
-                          style: TextStyle(color: Colors.grey, fontSize: 15)),
-                    ],
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.notifications_off_outlined,
+                    size: 48,
+                    color: Colors.grey,
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _fetchNotifications,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _notifications.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final n = _notifications[index];
-                      final isRead = n['is_read'] as bool;
-                      final type = n['type'] as String? ?? '';
+                  SizedBox(height: 12),
+                  Text(
+                    'No notifications yet',
+                    style: TextStyle(color: Colors.grey, fontSize: 15),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _fetchNotifications,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: _notifications.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final n = _notifications[index];
+                  final isRead = n['is_read'] as bool;
+                  final type = n['type'] as String? ?? '';
 
-                      return GestureDetector(
-                        onTap: () {
-  if (!isRead) _markAsRead(n['id'], index);
-    if (type == 'gym_invite_client' || type == 'gym_invite_coach') {
-    final data = n['data'] as Map<String, dynamic>? ?? {};
-    final gymId = int.tryParse(data['gym_id']?.toString() ?? '');
-    final inviteToken = data['invite_token']?.toString() ?? '';
-    final gymName = data['gym_name']?.toString() ?? 'Gym';
+                  return GestureDetector(
+                    onTap: () {
+                      if (!isRead) _markAsRead(n['id'], index);
+                      if (type == 'gym_invite_client' ||
+                          type == 'gym_invite_coach') {
+                        final data = n['data'] as Map<String, dynamic>? ?? {};
+                        final gymId = int.tryParse(
+                          data['gym_id']?.toString() ?? '',
+                        );
+                        final inviteToken =
+                            data['invite_token']?.toString() ?? '';
+                        final gymName = data['gym_name']?.toString() ?? 'Gym';
 
-    if (gymId != null && inviteToken.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => InvitationScreen(
-            gymId: gymId,
-            inviteToken: inviteToken,
-            gymName: gymName,
-            authToken: widget.token,
-            role: type == 'gym_invite_coach' ? 'coach' : 'client'
-          ),
-        ),
-      );
-    }
-  }
-},
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: isRead
-                                ? Colors.white
-                                : accentColor.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: isRead
-                                  ? Colors.transparent
-                                  : accentColor.withValues(alpha: 0.2),
+                        if (gymId != null && inviteToken.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => InvitationScreen(
+                                gymId: gymId,
+                                inviteToken: inviteToken,
+                                gymName: gymName,
+                                authToken: widget.token,
+                                role: type == 'gym_invite_coach'
+                                    ? 'coach'
+                                    : 'client',
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isRead
+                            ? Colors.white
+                            : accentColor.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isRead
+                              ? Colors.transparent
+                              : accentColor.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              _iconForType(type),
+                              color: accentColor,
+                              size: 20,
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: accentColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(_iconForType(type),
-                                    color: accentColor, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(n['title'] ?? '',
-                                        style: TextStyle(
-                                            fontWeight: isRead
-                                                ? FontWeight.normal
-                                                : FontWeight.bold,
-                                            fontSize: 14)),
-                                    const SizedBox(height: 4),
-                                    Text(n['body'] ?? '',
-                                        style: const TextStyle(
-                                            color: Colors.grey, fontSize: 12)),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      _timeAgo(n['created_at']),
-                                      style: const TextStyle(
-                                          color: Colors.grey, fontSize: 11),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (!isRead)
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: accentColor,
-                                    shape: BoxShape.circle,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  n['title'] ?? '',
+                                  style: TextStyle(
+                                    fontWeight: isRead
+                                        ? FontWeight.normal
+                                        : FontWeight.bold,
+                                    fontSize: 14,
                                   ),
                                 ),
-                            ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  n['body'] ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _timeAgo(n['created_at']),
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                          if (!isRead)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: accentColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

@@ -4,14 +4,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, cast, Date, distinct
 from datetime import datetime, date, timedelta
 from app.models.attendance import Attendance
-from app.models.gym_clients_membership import GymClientMembership
+from app.models.gym_clients_membership import GymClientMembership ,ClientMembershipStatus
 
 _DOW = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
 async def get_membership(clientID: int, db: AsyncSession) -> GymClientMembership:
     result = await db.execute(
-        select(GymClientMembership).where(GymClientMembership.clientID == clientID)
+        select(GymClientMembership).where(
+            GymClientMembership.clientID == clientID,
+            GymClientMembership.status == ClientMembershipStatus.active,
+        )
     )
     return result.scalar_one_or_none()
 
