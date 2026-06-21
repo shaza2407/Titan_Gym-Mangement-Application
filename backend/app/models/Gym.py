@@ -7,8 +7,6 @@ class Gym(Base):
     gymID = Column("gymID", Integer, primary_key=True , index=True)
     gymName = Column("gymName", String , nullable=False)
     adminID = Column("adminID", Integer, ForeignKey("administrators.adminID"), nullable=False)
-    subscriptionPrice = Column("subscriptionPrice", Double , nullable=False)
-    yearlySubscriptionPrice = Column("yearlySubscriptionPrice", Double , nullable=True)
     location = Column("location", String , nullable=False)
     QRCode = Column("QRCode", String , nullable=True)
     gymType = Column("GYMTYPE", String , nullable=False)        #males , females, mixed

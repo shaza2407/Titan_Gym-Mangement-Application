@@ -15,7 +15,7 @@ class ClassSessionResponse(BaseModel):
     start_time:      time
     duration:        int
     is_recurring:    bool
-    gymID:           Optional[int] = None
+    gymID:           int = None
     coach_id:        int
     coach_name:      Optional[str] = None
     current_clients: int

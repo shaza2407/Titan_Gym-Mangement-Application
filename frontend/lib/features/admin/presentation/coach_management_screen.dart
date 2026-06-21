@@ -64,7 +64,33 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
       }
     }
   }
-
+  Future<void> _unsuspend(int memberId) async {
+  try {
+    await AdminApiService.unsuspendCoach(
+        widget.gym.gymID, memberId, widget.token);
+    _refresh();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Coach unsuspended successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (e) {
+    final msg = e.toString().replaceFirst('Exception: ', '');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg.contains('expired')
+              ? 'Membership is expired — please renew first'
+              : 'Error: $msg'),
+          backgroundColor: Colors.grey,
+        ),
+      );
+    }
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,6 +212,7 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
                   ...filtered.map((c) => _CoachCard(
                         coach: c,
                         onSuspend: () => _suspend(c.id),
+                        onUnsuspend: () => _unsuspend(c.id),
                         onViewDetails: () {
                           Navigator.push(
                             context,
@@ -301,11 +328,13 @@ class _StatCard extends StatelessWidget {
 class _CoachCard extends StatelessWidget {
   final CoachListItem coach;
   final VoidCallback onSuspend;
+  final VoidCallback onUnsuspend;
   final VoidCallback onViewDetails;
 
   const _CoachCard({
     required this.coach,
     required this.onSuspend,
+    required this.onUnsuspend,
     required this.onViewDetails,
   });
 
@@ -441,19 +470,30 @@ class _CoachCard extends StatelessWidget {
                 ),
               ),
               if (!isPending) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onSuspend,
-                    icon: const Icon(Icons.pause_circle_outline, size: 16),
-                    label: const Text('Suspend'),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: coach.status == 'suspended'? OutlinedButton.icon(
+                onPressed: onUnsuspend,
+                icon: const Icon(Icons.play_circle_outline,
+                size: 16, color: Colors.green),
+                label: const Text('Unsuspend',
+                style: TextStyle(color: Colors.green)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.green),
+                  shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
                   ),
+                )
+                : OutlinedButton.icon(
+                onPressed: onSuspend,
+                icon: const Icon(Icons.pause_circle_outline, size: 16),
+                label: const Text('Suspend'),
+                style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-              ],
+              ),
+            ),
+            ],
             ],
           ),
         ],

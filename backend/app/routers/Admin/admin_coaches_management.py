@@ -178,8 +178,30 @@ async def suspend_coach(
     await db.commit()
     return {"message": "Coach suspended successfully."}
 
-from datetime import datetime, timedelta, timezone
-from app.models.coach import Coach
+
+
+@router.post("/{member_id}/unsuspend")
+async def unsuspend_coach(
+    member_id: int,
+    db: AsyncSession = Depends(get_session),
+    gym: Gym = Depends(get_admin_gym),
+):
+    membership = (await db.execute(
+        select(GymCoachMembership)
+        .join(Coach, GymCoachMembership.coachID == Coach.coachID)
+        .where(
+            GymCoachMembership.gymID == gym.gymID,
+            Coach.userID == member_id,
+        )
+    )).scalar_one_or_none()
+
+    if not membership:
+        raise HTTPException(404, "Coach not found in this gym.")
+
+    membership.status = CoachMembershipStatus.active
+    await db.commit()
+    return {"message": "Client unsuspended successfully."}
+
 
 # POST /admin/gyms/{gym_id}/coaches/invitations/accept
 @router.post("/invitations/accept")
