@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/admin/presentation/retention_offer_screen.dart';
 import 'package:provider/provider.dart';
 import '../controller/admin_gym_controller.dart';
 import '../data/gym_repository.dart';
@@ -318,7 +319,12 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color(0xFF4F46E5),
                       'Retention Offers',
                       'Create retention offers and predictions',
-                      () {},
+                      () => Navigator.push(context,
+                          MaterialPageRoute(
+                          builder: (_) => RetentionOfferScreen(gymId: widget.gym.gymID,token: widget.token,),
+                         ),
+                      ),
+                      // () {},
                       showDivider: false,
                     ),
                   ],
