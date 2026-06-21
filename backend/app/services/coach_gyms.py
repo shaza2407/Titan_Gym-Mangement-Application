@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy import or_
 from app.models.Gym import Gym
 from app.models.coach import Coach
-from app.models.Announcement import Announcement
+from app.models.announcement import Announcement
 from app.models.class_session import ClassSession
 from app.models.gym_coachs_membership import GymCoachMembership, CoachMembershipStatus
 from app.services.coach_schedule import _count_enrolled, _next_occurrence
@@ -111,7 +111,11 @@ async def get_coach_announcements(user_id: int, db: AsyncSession, gym_id: int | 
         # 3. Renamed to loop_gym_id so it doesn't overwrite the parameter!
         loop_gym_id = row.gymID 
 
-        announcements_query = select(Announcement).where(Announcement.gymID == loop_gym_id).order_by(Announcement.created_at.desc())
+        announcements_query = (select(Announcement)
+        .where(
+        Announcement.gymID == loop_gym_id,
+        Announcement.reciever.in_(["Coaches", "Clients and Coaches"]))
+        .order_by(Announcement.created_at.desc()))
         announcements_result = await db.execute(announcements_query)
         announcements = announcements_result.scalars().all()
 
