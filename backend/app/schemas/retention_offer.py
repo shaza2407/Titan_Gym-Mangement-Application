@@ -56,4 +56,5 @@ class RetentionDashboardResponse(BaseModel):
     mid_risk_count: int
     offers_sent: int
     ai_insight: str
+    total_active_members: int
     offer_history: List[OfferHistoryItem]

@@ -1,12 +1,11 @@
-import httpx
 import numpy as np
 from datetime import datetime, timezone, timedelta
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.models.attendance import Attendance
 from app.models.gym_clients_membership import GymClientMembership
+from app.ml.predictor import predict
 
-ML_API_URL = "http://127.0.0.1:8000/predict"
 
 
 def encode_days(days: int) -> int:
@@ -17,15 +16,16 @@ def encode_days(days: int) -> int:
     else:
         return 2   # high : 5-7 days
 
-def get_weekly_attendance(membership_id: int, db: Session) -> list:
+async def get_weekly_attendance(membership_id: int, db: AsyncSession) -> list:
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     since_90 = now - timedelta(days=90)
-    records = db.query(Attendance.checked_in).filter(
-        Attendance.membershipID == membership_id,
-        Attendance.checked_in >= since_90
-    ).all()
-
-    checkins = [r.checked_in for r in records]
+    result = await db.execute(
+        select(Attendance.checked_in).where(
+            Attendance.membershipID == membership_id,
+            Attendance.checked_in >= since_90
+        )
+    )
+    checkins = [row[0] for row in result.all()]
     weeks = []
     for i in range(11, -1, -1): ##
         week_start = now - timedelta(days=i * 7 + 7)
@@ -37,10 +37,13 @@ def get_weekly_attendance(membership_id: int, db: Session) -> list:
     return weeks
 
 
-def get_days_since_last_visit(membership_id: int, db: Session) -> int:
-    last = db.query(Attendance.checked_in).filter(
-        Attendance.membershipID == membership_id
-    ).order_by(Attendance.checked_in.desc()).first()
+async def get_days_since_last_visit(membership_id: int, db: AsyncSession) -> int:
+    result = await db.execute(
+        select(Attendance.checked_in)
+        .where(Attendance.membershipID == membership_id)
+        .order_by(Attendance.checked_in.desc())
+    )
+    last = result.first()
 
     if not last:
         return 365
@@ -55,17 +58,17 @@ def get_days_until_expiry(membership: GymClientMembership) -> int:
     return max(delta.days, 0)
 
 
-async def predict_churn_risk(membership: GymClientMembership, db: Session, days: int):
-    weeks = get_weekly_attendance(membership.id, db)
+async def predict_churn_risk(membership: GymClientMembership, db: AsyncSession):
+    weeks = await get_weekly_attendance(membership.id, db)
+    # weeks_arr = np.array(weeks)
 
-    # weights = list(range(1, 13))
-    weighted_score = sum(weeks * np.array(range(1, 13)))
-    recent_score = int(sum(weeks[8:] * np.array(range(9, 13))))
-    old_score = int(sum(weeks[:8] * np.array(range(1, 9))))
-    recent_vs_old = round(recent_score / (old_score + 1), 4)
-    is_inactive = 1 if all(v == 0 for v in weeks[8:]) else 0
+    # weighted_score = int(sum(weeks_arr * np.array(range(1, 13))))
+    # recent_score = int(sum(weeks_arr[8:] * np.array(range(9, 13))))
+    # old_score = int(sum(weeks_arr[:8] * np.array(range(1, 9))))
+    # recent_vs_old = round(recent_score / (old_score + 1), 4)
+    # is_inactive = 1 if all(v == 0 for v in weeks_arr[8:]) else 0
 
-    days_since_last_visit = get_days_since_last_visit(membership.id, db)
+    days_since_last_visit = await get_days_since_last_visit(membership.id, db)
     days_until_expiry = get_days_until_expiry(membership)
 
     payload = {
@@ -78,10 +81,7 @@ async def predict_churn_risk(membership: GymClientMembership, db: Session, days:
     }
 
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(ML_API_URL, json=payload)
-            response.raise_for_status()
-            return response.json().get("churn_risk", "Low")
+        return predict(payload)
     except Exception as e:
         return f"Error  : {e}"
         # if  > 30 or days_until_expiry < 7:
