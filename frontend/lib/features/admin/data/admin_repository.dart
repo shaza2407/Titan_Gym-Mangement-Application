@@ -160,6 +160,19 @@ class AdminApiService {
   }
 }
 
+static Future<void> cancelInvitation(int gymId, String email, String token) async {
+  final res = await http.delete(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/invitations/$email'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to cancel invitation');
+  }
+}
+
   static Future<void> suspendClient(int gymId, int clientId, String token) async {
     final res = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$clientId/suspend'),
