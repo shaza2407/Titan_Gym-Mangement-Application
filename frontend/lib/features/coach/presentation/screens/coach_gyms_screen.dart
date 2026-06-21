@@ -17,7 +17,6 @@ class CoachGymsScreen extends StatefulWidget {
 }
 
 class _CoachGymsScreenState extends State<CoachGymsScreen> {
-  // 0 = Gyms, 1 = Announcements (all gyms)
   int _selectedTap = 0;
   late CoachGymsController _ctrl;
 
@@ -151,7 +150,7 @@ class _CoachGymsScreenState extends State<CoachGymsScreen> {
         ),
       ),
     );
-  }
+   }
 
   Widget _buildGymsList(CoachGymsController ctrl) {
     if (ctrl.myGyms.isEmpty) {
@@ -179,9 +178,6 @@ class _CoachGymsScreenState extends State<CoachGymsScreen> {
               ),
             );
           },
-          // Navigates to a dedicated per-gym screen instead of
-          // filtering the shared "Announcements" tab in place — that
-          // tab is reserved for the all-gyms view.
           onAnnouncements: () {
             Navigator.push(
               context,
@@ -208,59 +204,123 @@ class _CoachGymsScreenState extends State<CoachGymsScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: ctrl.announcements.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        final ann = ctrl.announcements[index];
-        return _buildAnnouncementCard(ann.title, ann.gymName, ann.date, ann.content);
-      },
+      separatorBuilder: (context, index) => const SizedBox(height: 14),
+      itemBuilder: (context, index) => AnnouncementCard(announcement: ctrl.announcements[index]),
     );
   }
+}
 
-  Widget _buildAnnouncementCard(String title, String gymName, String date, String body) {
+// ── Announcement card ──────────────────────────────────────────────
+class AnnouncementCard extends StatelessWidget {
+  final CoachAnnouncementModel announcement;
+  final bool showGymName; // 🌟 1. Add this flag
+
+  const AnnouncementCard({
+    super.key, 
+    required this.announcement, 
+    this.showGymName = true, // 🌟 2. Default to true for the 'All Gyms' tab
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F9FF),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBAE6FD)),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.notifications_none, color: Color(0xFF0284C7), size: 20),
-              const SizedBox(width: 10),
-              Expanded(
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: 4,
+              decoration: const BoxDecoration(
+                color: CoachColors.primary,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(16), bottomLeft: Radius.circular(16)),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black)),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Text(gymName, style: const TextStyle(fontSize: 11, color: Colors.black87)),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: CoachColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.campaign_outlined, size: 18, color: CoachColors.primary),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            announcement.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      announcement.content,
+                      style: TextStyle(color: Colors.grey.shade700, fontSize: 13, height: 1.5),
+                    ),
+                    const SizedBox(height: 14),
+                    
+                    // Align date to the right if the Gym name is hidden
+                    Row(
+                      mainAxisAlignment: showGymName ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
+                      children: [
+                        // Only build the Gym badge if showGymName is true
+                        if (showGymName)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.business, size: 11, color: CoachColors.warning),
+                                const SizedBox(width: 4),
+                                Text(
+                                  announcement.gymName,
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black87),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Text(
+                          formatDate(announcement.date),
+                          style: TextStyle(color: Colors.grey.shade400, fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              Text(formatDate(date), style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(body, style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.4)),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
+// ── Gym card ────────────────────────────────────────────────────────
 class GymCardWidget extends StatefulWidget {
   final CoachGymModel gym;
   final VoidCallback onSchedule;
@@ -275,26 +335,37 @@ class GymCardWidget extends StatefulWidget {
 class _GymCardWidgetState extends State<GymCardWidget> {
   bool _isExpanded = false;
 
+  Color get _statusColor {
+    switch (widget.gym.status.toLowerCase()) {
+      case 'active':
+        return CoachColors.success;
+      case 'pending':
+        return CoachColors.warning;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final nextClassText = widget.gym.nextClass != null
-        ? '${widget.gym.nextClass!.title} at ${widget.gym.nextClass!.startTime}'
-        : 'No upcoming classes';
-
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 3)),
+        ],
       ),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16), // Kept outer padding balanced
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -304,38 +375,52 @@ class _GymCardWidgetState extends State<GymCardWidget> {
                       ),
                       child: const Icon(Icons.business, color: Color(0xFF8B5CF6)),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(widget.gym.gymName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text(
+                            widget.gym.gymName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.location_on_outlined, size: 14, color: Colors.grey.shade500),
+                              Icon(Icons.location_on_outlined, size: 13, color: Colors.grey.shade500),
                               const SizedBox(width: 4),
                               Expanded(
-                                child: Text(widget.gym.address, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                                child: Text(
+                                  widget.gym.address,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                                ),
                               ),
                             ],
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    _buildStatusBadge(),
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    _buildMiniStat('Clients', '${widget.gym.clientsCount}'),
-                    _buildMiniStat('Classes', '${widget.gym.classesCount}'),
-                    _buildStatusBadge(widget.gym.status),
-                  ],
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10), // Tightened from 12 to 10
+                  decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      _buildMiniStat(Icons.people_outline, '${widget.gym.clientsCount}', 'Clients'),
+                      Container(height: 28, width: 1, color: Colors.grey.shade300),
+                      _buildMiniStat(Icons.calendar_today_outlined, '${widget.gym.classesCount}', 'Classes'),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                const Text('Next Class:', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                Text(nextClassText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                // 🌟 REMOVED: The extra SizedBox(height: 14) that was causing the huge gap
               ],
             ),
           ),
@@ -347,14 +432,23 @@ class _GymCardWidgetState extends State<GymCardWidget> {
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
                 border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                borderRadius: _isExpanded
+                    ? BorderRadius.zero
+                    : const BorderRadius.only(bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(_isExpanded ? 'Hide Details' : 'View Details',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black)),
+                  Text(
+                    _isExpanded ? 'Hide Details' : 'View Details',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black),
+                  ),
                   const SizedBox(width: 4),
-                  Icon(_isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, size: 18),
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.keyboard_arrow_down, size: 18),
+                  ),
                 ],
               ),
             ),
@@ -373,7 +467,7 @@ class _GymCardWidgetState extends State<GymCardWidget> {
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                     ),
                   ),
@@ -387,7 +481,7 @@ class _GymCardWidgetState extends State<GymCardWidget> {
                         foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: const BorderSide(color: Colors.black),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                     ),
                   ),
@@ -399,26 +493,31 @@ class _GymCardWidgetState extends State<GymCardWidget> {
     );
   }
 
-  Widget _buildMiniStat(String label, String value) {
+  Widget _buildMiniStat(IconData icon, String value, String label) {
     return Expanded(
       child: Column(
         children: [
+          Icon(icon, size: 16, color: Colors.grey.shade500),
+          const SizedBox(height: 4),
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
         ],
       ),
     );
   }
 
-  Widget _buildStatusBadge(String status) {
+  Widget _buildStatusBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade300),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(color: _statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 6, height: 6, decoration: BoxDecoration(color: _statusColor, shape: BoxShape.circle)),
+          const SizedBox(width: 5),
+          Text(widget.gym.status, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: _statusColor)),
+        ],
       ),
-      child: Text(status, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
     );
   }
 }

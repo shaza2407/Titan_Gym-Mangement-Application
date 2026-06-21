@@ -276,9 +276,20 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                c.gymName ?? 'Unknown Gym',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                const SizedBox(height: 4), // Adds a tiny gap below the title
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 14, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        c.gymName ?? 'Unknown Gym',
+                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
