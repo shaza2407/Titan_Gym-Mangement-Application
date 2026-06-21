@@ -6,7 +6,6 @@ from fastapi.params import Depends
 from app.database import get_session
 from app.routers.Admin import admin_clients_management
 from app.routers.Auth import auth
-from app.routers.Coach import coach_dashboard
 from app.routers.Admin import admin_coaches_management
 from app.routers.Admin import gym
 from app.routers.Admin import admin_dashboard
@@ -16,7 +15,7 @@ from app.routers.Client import achievements
 from app.routers.Client import training_plan
 from app.routers.Admin import admin_schedule
 from app.routers.Client import client_schedule
-from app.routers.Coach import coach_schedule
+from app.routers.Coach import (coach_schedule, coach_gyms, coach_dashboard)
 from app.routers.Admin import admin_attendence_stat
 from app.routers.Notifications import notifications
 from app.routers.Admin import admin_analytics
@@ -49,6 +48,7 @@ app.include_router(auth.router)
 #coach routers
 app.include_router(coach_dashboard.router)
 app.include_router(coach_schedule.router)
+app.include_router(coach_gyms.router)
 
 #gym routers
 app.include_router(gym.router)

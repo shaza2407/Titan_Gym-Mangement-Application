@@ -441,3 +441,4 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
     );
   }
 }
+
