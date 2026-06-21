@@ -60,13 +60,6 @@ def get_days_until_expiry(membership: GymClientMembership) -> int:
 
 async def predict_churn_risk(membership: GymClientMembership, db: AsyncSession):
     weeks = await get_weekly_attendance(membership.id, db)
-    # weeks_arr = np.array(weeks)
-
-    # weighted_score = int(sum(weeks_arr * np.array(range(1, 13))))
-    # recent_score = int(sum(weeks_arr[8:] * np.array(range(9, 13))))
-    # old_score = int(sum(weeks_arr[:8] * np.array(range(1, 9))))
-    # recent_vs_old = round(recent_score / (old_score + 1), 4)
-    # is_inactive = 1 if all(v == 0 for v in weeks_arr[8:]) else 0
 
     days_since_last_visit = await get_days_since_last_visit(membership.id, db)
     days_until_expiry = get_days_until_expiry(membership)
