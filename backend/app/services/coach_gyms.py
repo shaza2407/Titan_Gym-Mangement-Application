@@ -13,23 +13,14 @@ from app.services.coach_schedule import _count_enrolled, _next_occurrence
 
 async def get_coach_active_gyms(user_id: int, db: AsyncSession)->list:
     
-    # STEP 1: Find the Coach ID
+    # Find the Coach ID
     coach_query = select(Coach).where(Coach.userID == user_id)
     coach_res = await db.execute(coach_query)
     coach = coach_res.scalar_one_or_none()
     
     if not coach:
-        print(f"❌ DEBUG: No Coach profile found for User {user_id}!")
         return []
 
-    # STEP 2: Find all memberships for this coach (ignoring status for a moment)
-    all_mems_query = select(GymCoachMembership).where(GymCoachMembership.coachID == coach.coachID)
-    all_mems_res = await db.execute(all_mems_query)
-    all_mems = all_mems_res.scalars().all()
-    for m in all_mems:
-        print(f"   -> GymID: {m.gymID} | Status in DB: '{m.status}'")
-
-    # STEP 3: Now run the actual strict query
     gyms_query = (
         select(Gym.gymID, Gym.gymName, Gym.location, GymCoachMembership.status, GymCoachMembership.coachID)
         .join(GymCoachMembership, Gym.gymID == GymCoachMembership.gymID)
@@ -47,17 +38,6 @@ async def get_coach_active_gyms(user_id: int, db: AsyncSession)->list:
     results = []
     for row in gym_rows:
         gym_id = row.gymID
-
-        # # 🌟 ADD THIS DEBUG BLOCK: Fetch ALL classes for this coach to see what the DB holds
-        # debug_query = select(ClassSession).where(ClassSession.coach_id == row.coachID)
-        # debug_res = await db.execute(debug_query)
-        # all_coach_classes = debug_res.scalars().all()
-        
-        # print(f"\n--- 🔍 DEBUG: CLASSES FOR COACH {row.coachID} ---")
-        # print(f"Total classes found in DB: {len(all_coach_classes)}")
-        # for c in all_coach_classes:
-        #     print(f"   -> Class: '{c.title}' | Attached to GymID: {getattr(c, 'gymID', 'MISSING_COLUMN')}")
-        # print("-------------------------------------------\n")
 
         # fetch all classes for this coach at this gym
         sessions_query = select(ClassSession).where(ClassSession.coach_id == row.coachID, ClassSession.gymID == gym_id)
@@ -106,7 +86,6 @@ async def get_coach_active_gyms(user_id: int, db: AsyncSession)->list:
             "next_class": next_class_date
         })    
 
-    print(f"✅ DEBUG: Successfully formatted {len(results)} gyms to send to Flutter.\n")
     return results
                 
 async def get_coach_announcements(user_id: int, db: AsyncSession, gym_id: int | None = None) -> list:
