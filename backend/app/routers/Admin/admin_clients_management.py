@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select , func
 import secrets
 from datetime import timezone
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date ,date as date_type
 from app.services.notification_service import notify_invite
 from dateutil.relativedelta import relativedelta
 from app.database import get_session
@@ -11,9 +11,11 @@ from app.dependencies.auth import get_current_user
 from app.models import User , Admin
 from app.models.client import Client
 from app.models.Gym import Gym
+from app.models.subscription import Subscription
 from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
 from app.models.member_invitation import MemberInvitation, InvitationStatus
 from app.schemas.UserRole import UserRole
+from app.schemas.renewMembershipRequest import RenewMembershipRequest
 from app.schemas.client_schemas import (
     InviteClientRequest, InviteClientResponse,
     ClientListResponse, ClientListItem,
@@ -162,18 +164,20 @@ async def invite_member(body: InviteClientRequest,
 
     now = datetime.now(timezone.utc)
     if body.subscription_type == "yearly":
-        subscription_label = f"{body.subscription_months} year{'s' if body.subscription_months > 1 else ''}"
+        subscription_label = "yearly"
         subscription_end = (now + relativedelta(years=body.subscription_months)).date()
     else:
-        subscription_label = f"{body.subscription_months} month{'s' if body.subscription_months > 1 else ''}"
+        subscription_label = "monthly"
         subscription_end = (now + relativedelta(months=body.subscription_months)).date()
 
     if existing_inv:
         existing_inv.token = secrets.token_urlsafe(32)
         existing_inv.sent_at = datetime.now(timezone.utc)
-        existing_inv.expires_at = datetime.now(timezone.utc) + timedelta(days=3)
+        existing_inv.expires_at = datetime.now(timezone.utc) + timedelta(days=3)  #invitations will be expired after 3 days
         existing_inv.subscription = subscription_label
         existing_inv.subscription_end = subscription_end
+        existing_inv.subscription_price = body.subscription_price  
+        existing_inv.duration_count = body.subscription_months 
         inv = existing_inv
     else:
         inv = MemberInvitation(
@@ -184,7 +188,9 @@ async def invite_member(body: InviteClientRequest,
             status=InvitationStatus.pending,
             expires_at=datetime.now(timezone.utc)+ timedelta(days=3),
             subscription=subscription_label,          
-            subscription_end=subscription_end,        
+            subscription_end=subscription_end,   
+            subscription_price=body.subscription_price,    
+            duration_count=body.subscription_months,       
         )
         db.add(inv)
 
@@ -220,6 +226,50 @@ async def suspend_client(
     await db.commit()
     return {"message": "Client suspended successfully."}
 
+#to unsuspend suspended client
+@router.post("/{gym_id}/clients/{member_id}/unsuspend")
+async def unsuspend_client(
+    member_id: int,
+    db: AsyncSession = Depends(get_session),
+    gym: Gym = Depends(get_admin_gym),
+):
+    membership = (await db.execute(
+        select(GymClientMembership)
+        .join(Client, GymClientMembership.clientID == Client.clientID)
+        .where(
+            GymClientMembership.gymID == gym.gymID,
+            Client.userID == member_id,
+        )
+    )).scalar_one_or_none()
+
+    if not membership:
+        raise HTTPException(404, "Client not found in this gym.")
+
+    #check if subscription is expired
+    if membership.subscription_end and membership.subscription_end < date_type.today():
+        raise HTTPException(400, "Membership expired. Please renew first.")
+
+    #block if client has an active membership at another gym
+    other_active = (await db.execute(
+        select(GymClientMembership).where(
+            GymClientMembership.clientID == membership.clientID,
+            GymClientMembership.status == ClientMembershipStatus.active,
+            GymClientMembership.gymID != gym.gymID,
+        )
+    )).scalar_one_or_none()
+
+    if other_active:
+        raise HTTPException(
+            400,
+            "This client now has an active membership at another gym. "
+            "Please send a new invitation to re-add them to this gym."
+        )
+
+    membership.status = ClientMembershipStatus.active
+    await db.commit()
+    return {"message": "Client unsuspended successfully."}
+
+
 
 @router.get("/total-members")
 async def get_total_members(db: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user),):
@@ -247,7 +297,6 @@ async def accept_invitation(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    # 1. Find invitation
     inv = (await db.execute(
         select(MemberInvitation).where(
             MemberInvitation.token == token,
@@ -265,7 +314,6 @@ async def accept_invitation(
     if inv.email.lower() != current_user.email.lower():
         raise HTTPException(403, "This invitation is not for your account.")
 
-    # 2. Get client record
     client = (await db.execute(
         select(Client).where(Client.userID == current_user.userID)
     )).scalar_one_or_none()
@@ -273,33 +321,75 @@ async def accept_invitation(
     if not client:
         raise HTTPException(404, "Client profile not found.")
 
-    # 3. Check not already a member
-    already = (await db.execute(
+    #only block if there's an ACTIVE membership at this exact gym
+    already_active = (await db.execute(
+        select(GymClientMembership).where(
+            GymClientMembership.clientID == client.clientID,
+            GymClientMembership.gymID == gym_id,
+            GymClientMembership.status == ClientMembershipStatus.active,
+        )
+    )).scalar_one_or_none()
+
+    if already_active:
+        raise HTTPException(400, "Already a member of this gym.")
+
+    #if a suspended membership exists at this SAME gym, clean it up before re-inserting
+    old_membership = (await db.execute(
         select(GymClientMembership).where(
             GymClientMembership.clientID == client.clientID,
             GymClientMembership.gymID == gym_id,
         )
     )).scalar_one_or_none()
 
-    if already:
-        raise HTTPException(400, "Already a member of this gym.")
+    if old_membership:
+        #delete subscription rows tied to the old membership first
+        old_subscriptions = (await db.execute(
+            select(Subscription).where(
+                Subscription.gymClientMebershipID == old_membership.id
+            )
+        )).scalars().all()
 
-    # 4.Create membership using pre-calculated values from invitation
+        for s in old_subscriptions:
+            await db.delete(s)
+
+        await db.delete(old_membership)
+        await db.flush()
+
+    #suspend all other active memberships across every OTHER gym
+    other_active = (await db.execute(
+        select(GymClientMembership).where(
+            GymClientMembership.clientID == client.clientID,
+            GymClientMembership.status == ClientMembershipStatus.active,
+            GymClientMembership.gymID != gym_id,
+        )
+    )).scalars().all()
+
+    for m in other_active:
+        m.status = ClientMembershipStatus.suspended
+
+    #create fresh membership
     membership = GymClientMembership(
         clientID=client.clientID,
         gymID=gym_id,
         status=ClientMembershipStatus.active,
-        subscription=inv.subscription,         
-        subscription_end=inv.subscription_end,  
+        subscription=inv.subscription,
+        subscription_end=inv.subscription_end,
     )
     db.add(membership)
+    await db.flush()
 
-    # 5.mark invitation as accepted
+    #create subscription record
+    subscription = Subscription(
+        gymClientMebershipID=membership.id,
+        supscriptionPrice=inv.subscription_price,
+        duration_count=inv.duration_count,
+    )
+    db.add(subscription)
+
     inv.status = InvitationStatus.accepted
 
     await db.commit()
     return {"message": "Invitation accepted. You are now a member!"}
-
 
 
 @router.post("/{gym_id}/invitations/decline")
@@ -362,3 +452,98 @@ async def get_gym_member_count(
         .where(GymClientMembership.gymID == gym_id)
     )).scalar()
     return {"count": count or 0}
+
+
+@router.post("/{gym_id}/clients/{member_id}/renew")
+async def renew_membership(
+    member_id: int,
+    body: RenewMembershipRequest,
+    db: AsyncSession = Depends(get_session),
+    gym: Gym = Depends(get_admin_gym),
+):
+    # Get membership
+    membership = (await db.execute(
+        select(GymClientMembership)
+        .join(Client, GymClientMembership.clientID == Client.clientID)
+        .where(
+            GymClientMembership.gymID == gym.gymID,
+            Client.userID == member_id,
+        )
+    )).scalar_one_or_none()
+
+    #if client id is not found in the gym
+    if not membership:
+        raise HTTPException(404, "Client not found in this gym.")
+
+    #calculate new expiry — extend from today if expired, or from current end if still active member
+    today = date.today()
+    base_date = max(membership.subscription_end, today) if membership.subscription_end else today
+
+    if body.subscription_type == "yearly":
+        new_end = base_date + relativedelta(years=body.duration_count)
+        subscription_label = "yearly"
+    else:
+        new_end = base_date + relativedelta(months=body.duration_count)
+        subscription_label = "monthly"
+
+    #update membership (subscription end and subscription -> type)
+    membership.subscription_end = new_end
+    membership.subscription = subscription_label
+    membership.status = ClientMembershipStatus.active  #reactivate if suspended
+
+    # Log subscription record
+    sub = Subscription(
+        gymClientMebershipID=membership.id,
+        supscriptionPrice=int(body.price),
+        duration_count=body.duration_count,
+    )
+    db.add(sub)
+
+    await db.commit()
+    return {
+        "message": "Membership renewed successfully.",
+        "new_subscription_end": str(new_end),
+        "subscription": subscription_label,
+    }
+
+# GET /admin/gyms/{gym_id}/invitations/preview?token=...
+@router.get("/{gym_id}/invitations/preview")
+async def preview_invitation(
+    gym_id: int,
+    token: str,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    inv = (await db.execute(
+        select(MemberInvitation).where(
+            MemberInvitation.token == token,
+            MemberInvitation.gymID == gym_id,
+            MemberInvitation.status == InvitationStatus.pending,
+        )
+    )).scalar_one_or_none()
+
+    if not inv:
+        raise HTTPException(404, "Invitation not found or already used.")
+
+    client = (await db.execute(
+        select(Client).where(Client.userID == current_user.userID)
+    )).scalar_one_or_none()
+
+    other_active_gyms = []
+    if client:
+        rows = (await db.execute(
+            select(Gym.gymName)
+            .join(GymClientMembership, GymClientMembership.gymID == Gym.gymID)
+            .where(
+                GymClientMembership.clientID == client.clientID,
+                GymClientMembership.status == ClientMembershipStatus.active,
+                GymClientMembership.gymID != gym_id,
+            )
+        )).all()
+        other_active_gyms = [r.gymName for r in rows]
+
+    return {
+        "gym_name": inv.subscription,  # or fetch actual gym name if needed
+        "will_suspend_other_memberships": len(other_active_gyms) > 0,
+        "other_active_gyms": other_active_gyms,
+    }
