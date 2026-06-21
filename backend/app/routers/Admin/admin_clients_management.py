@@ -11,6 +11,7 @@ from app.dependencies.auth import get_current_user
 from app.models import User , Admin
 from app.models.client import Client
 from app.models.Gym import Gym
+from app.models.notification import Notification
 from app.models.subscription import Subscription
 from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
 from app.models.member_invitation import MemberInvitation, InvitationStatus
@@ -25,7 +26,6 @@ from app.models import Attendance
 
 
 router = APIRouter(prefix="/admin/gyms", tags=["Admin - Client Management"])
-
 # GET /admin/gyms/{gym_id}/clients
 @router.get("/{gym_id}/clients", response_model=ClientListResponse)
 async def list_clients(status_filter: str | None = None,
@@ -50,21 +50,25 @@ async def list_clients(status_filter: str | None = None,
     )
     visit_map = {r.membershipID: r.visits for r in visit_counts_result.all()}
 
+    member_emails = set()
+
     for membership, client, user in rows:
-        # search filter
         if search:
             term = search.lower()
             if term not in user.name.lower() and term not in user.email.lower():
                 continue
 
-        # compute display status: active vs expired
         if (membership.status == ClientMembershipStatus.active
                 and membership.subscription_end is not None
                 and membership.subscription_end < date.today()
         ):
             display_status = "expired"
         else:
-            display_status = membership.status.value  # "active" or "suspended"
+            display_status = membership.status.value
+
+        # ✅ only suppress pending card if membership is active or expired (not suspended)
+        if display_status in ("active", "expired"):
+            member_emails.add(user.email.lower())
 
         members.append(ClientListItem(
             id=user.userID,
@@ -88,6 +92,9 @@ async def list_clients(status_filter: str | None = None,
 
     for inv in invitations:
         if search and search.lower() not in inv.email.lower():
+            continue
+        #skip pending card only if active or expired membership exists for this email
+        if inv.email.lower() in member_emails:
             continue
         members.append(ClientListItem(
             id=inv.id,
@@ -128,7 +135,6 @@ async def invite_member(body: InviteClientRequest,
                         db: AsyncSession = Depends(get_session),
                         gym: Gym = Depends(get_admin_gym),
                         ):
-    # 1. Check the email exists in the app
     existing_user = (await db.execute(
         select(User).where(User.email == body.email)
     )).scalar_one_or_none()
@@ -136,23 +142,58 @@ async def invite_member(body: InviteClientRequest,
     if not existing_user:
         raise HTTPException(404, "No user found with this email.")
 
-    # 2. Check the user is a client
     if existing_user.role != UserRole.client:
         raise HTTPException(400, "This user is not a client.")
 
-    # 3. Check the user isn't already a member of this gym
-    already_member = (await db.execute(
-        select(GymClientMembership).where(
-            GymClientMembership.clientID == existing_user.userID,
+    # block only if ACTIVE
+    active_membership = (await db.execute(
+        select(GymClientMembership)
+        .join(Client, GymClientMembership.clientID == Client.clientID)
+        .where(
+            Client.userID == existing_user.userID,
             GymClientMembership.gymID == gym.gymID,
+            GymClientMembership.status == ClientMembershipStatus.active,
         )
     )).scalar_one_or_none()
 
-    if already_member:
-        raise HTTPException(400, "This client is already a member of this gym.")
+    if active_membership:
+        raise HTTPException(400, "This client is already an active member of this gym.")
 
+    #delete suspended membership so its card disappears
+    suspended_membership = (await db.execute(
+        select(GymClientMembership)
+        .join(Client, GymClientMembership.clientID == Client.clientID)
+        .where(
+            Client.userID == existing_user.userID,
+            GymClientMembership.gymID == gym.gymID,
+            GymClientMembership.status == ClientMembershipStatus.suspended,
+        )
+    )).scalar_one_or_none()
 
-    ## 4. Check for existing pending invitation
+    if suspended_membership:
+        # 1. delete attendance records
+        old_attendance = (await db.execute(
+            select(Attendance).where(
+                Attendance.membershipID == suspended_membership.id
+            )
+        )).scalars().all()
+        for a in old_attendance:
+            await db.delete(a)
+
+        # 2. delete subscription records
+        old_subs = (await db.execute(
+            select(Subscription).where(
+                Subscription.gymClientMebershipID == suspended_membership.id
+            )
+        )).scalars().all()
+        for s in old_subs:
+            await db.delete(s)
+
+        # 3. delete membership
+        await db.delete(suspended_membership)
+        await db.flush()
+
+    ## check for existing pending invitation
     existing_inv = (await db.execute(
         select(MemberInvitation).where(
             MemberInvitation.gymID == gym.gymID,
@@ -173,11 +214,11 @@ async def invite_member(body: InviteClientRequest,
     if existing_inv:
         existing_inv.token = secrets.token_urlsafe(32)
         existing_inv.sent_at = datetime.now(timezone.utc)
-        existing_inv.expires_at = datetime.now(timezone.utc) + timedelta(days=3)  #invitations will be expired after 3 days
+        existing_inv.expires_at = datetime.now(timezone.utc) + timedelta(days=3)
         existing_inv.subscription = subscription_label
         existing_inv.subscription_end = subscription_end
-        existing_inv.subscription_price = body.subscription_price  
-        existing_inv.duration_count = body.subscription_months 
+        existing_inv.subscription_price = body.subscription_price
+        existing_inv.duration_count = body.subscription_months
         inv = existing_inv
     else:
         inv = MemberInvitation(
@@ -186,21 +227,58 @@ async def invite_member(body: InviteClientRequest,
             invited_as="client",
             token=secrets.token_urlsafe(32),
             status=InvitationStatus.pending,
-            expires_at=datetime.now(timezone.utc)+ timedelta(days=3),
-            subscription=subscription_label,          
-            subscription_end=subscription_end,   
-            subscription_price=body.subscription_price,    
-            duration_count=body.subscription_months,       
+            expires_at=datetime.now(timezone.utc) + timedelta(days=3),
+            subscription=subscription_label,
+            subscription_end=subscription_end,
+            subscription_price=body.subscription_price,
+            duration_count=body.subscription_months,
         )
         db.add(inv)
 
     await db.commit()
-    # await send_invitation_email(body.email, gym.gymName, inv.token)
     await notify_invite(db, body.email, gym.gymName, "client",
                         gym_id=gym.gymID, token=inv.token)
 
     return InviteClientResponse(message="Invitation sent successfully.", email=body.email)
 
+@router.delete("/{gym_id}/invitations/{email}")
+async def cancel_invitation(
+    gym_id: int,
+    email: str,
+    db: AsyncSession = Depends(get_session),
+    current_user=Depends(get_current_user),
+):
+    invitation = (await db.execute(
+        select(MemberInvitation).where(
+            MemberInvitation.gymID == gym_id,
+            MemberInvitation.email == email,
+            MemberInvitation.status == InvitationStatus.pending,
+            MemberInvitation.invited_as == "client",
+        )
+    )).scalar_one_or_none()
+
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+
+    #find the user by email to get their user_id
+    user = (await db.execute(
+        select(User).where(User.email == email)
+    )).scalar_one_or_none()
+
+    # delete the invite notification for that user
+    if user:
+        notifications = (await db.execute(
+            select(Notification).where(
+                Notification.user_id == user.userID,
+                Notification.type == "gym_invite_client",
+            )
+        )).scalars().all()
+        for n in notifications:
+            await db.delete(n)
+
+    await db.delete(invitation)
+    await db.commit()
+    return {"detail": "Invitation cancelled"}
 
 
 ## POST /admin/gyms/{gym_id}/clients/{member_id}/suspend
