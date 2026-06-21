@@ -23,8 +23,6 @@ class MachineInventoryResponse(BaseModel):
 # Base
 class GymBase(BaseModel):
     gymName: str = Field(..., example="FitZone")
-    subscriptionPrice: float = Field(..., example=199.99)
-    yearlySubscriptionPrice: float = Field(..., example=999.99)
     location: str = Field(..., example="123 Main St, Cairo")
     gymType: str = Field(..., example="mixed")
     openingHours: str = Field(..., example="06:00")
@@ -39,8 +37,6 @@ class GymCreate(GymBase):
 # Update
 class GymUpdate(BaseModel):
     gymName: Optional[str] = None
-    subscriptionPrice: Optional[float] = None
-    yearlySubscriptionPrice: Optional[float] = None
     location: Optional[str] = None
     gymType: Optional[str] = None
     openingHours: Optional[str] = None
@@ -52,7 +48,6 @@ class GymResponse(GymBase):
     gymID: int
     adminID: int
     QRCode: Optional[str] = None
-    # machine_inventory: List[MachineInventoryResponse] = [] 
 
     class Config:
         from_attributes = True
@@ -64,7 +59,7 @@ class GymDashboardStats(BaseModel):
     totalMembers: int
     activeSubscriptions: int
     todayAttendance: int
-    monthlyRevenue: float
+    totalClasses: int = 0
 
     class Config:
         from_attributes = True
