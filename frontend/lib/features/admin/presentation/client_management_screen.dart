@@ -38,20 +38,38 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   }
 
   void _refresh() => setState(() => _load());
-  
-List<ClientListItem> _filtered(List<ClientListItem> members) {
-  const statusOrder = {'active': 0, 'pending': 1, 'expired': 2, 'suspended': 3};
 
-  return members.where((m) {
-    final matchFilter =
-        _selectedFilter == 'all' || m.status == _selectedFilter;
-    final matchSearch = _searchQuery.isEmpty ||
-        m.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        m.email.toLowerCase().contains(_searchQuery.toLowerCase());
-    return matchFilter && matchSearch;
-  }).toList()
-    ..sort((a, b) =>
-        (statusOrder[a.status] ?? 99).compareTo(statusOrder[b.status] ?? 99));
+  List<ClientListItem> _filtered(List<ClientListItem> members) {
+    const statusOrder = {'active': 0, 'pending': 1, 'expired': 2, 'suspended': 3};
+
+    return members.where((m) {
+      final matchFilter =
+          _selectedFilter == 'all' || m.status == _selectedFilter;
+      final matchSearch = _searchQuery.isEmpty ||
+          m.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          m.email.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchFilter && matchSearch;
+    }).toList()
+      ..sort((a, b) =>
+          (statusOrder[a.status] ?? 99).compareTo(statusOrder[b.status] ?? 99));
+  }
+
+  Future<void> _cancelInvitation(String email) async {
+  try {
+    await AdminApiService.cancelInvitation(widget.gym.gymID, email, widget.token);
+    _refresh();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invitation cancelled')),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
 }
 
   Future<void> _suspend(int memberId) async {
@@ -167,7 +185,6 @@ List<ClientListItem> _filtered(List<ClientListItem> members) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          // Fix 1: null-safe data access
           final data = snapshot.data;
           if (data == null) {
             return const Center(child: Text('No data available'));
@@ -241,6 +258,7 @@ List<ClientListItem> _filtered(List<ClientListItem> members) {
                         member: m,
                         onSuspend: () => _suspend(m.id),
                         onUnsuspend: () => _unsuspend(m.id),
+                        onCancelInvitation: () => _cancelInvitation(m.email),
                         onViewDetails: () {
                           Navigator.push(
                             context,
@@ -362,6 +380,7 @@ class _ClientCard extends StatelessWidget {
   final ClientListItem member;
   final VoidCallback onSuspend;
   final VoidCallback onUnsuspend;
+  final VoidCallback onCancelInvitation;
   final VoidCallback onViewDetails;
   final VoidCallback onRenew;
   final int gymId;
@@ -371,6 +390,7 @@ class _ClientCard extends StatelessWidget {
     required this.member,
     required this.onSuspend,
     required this.onUnsuspend,
+    required this.onCancelInvitation,
     required this.onViewDetails,
     required this.onRenew,
     required this.gymId,
@@ -394,6 +414,7 @@ class _ClientCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPending = member.status == 'pending';
     final isSuspended = member.status == 'suspended';
+    final isExpired = member.status == 'expired';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -443,7 +464,6 @@ class _ClientCard extends StatelessWidget {
                         const Icon(Icons.phone_outlined,
                             size: 12, color: Colors.grey),
                         const SizedBox(width: 4),
-                        // Fix 2: null-safe phone access
                         Text(member.phone ?? 'N/A',
                             style: const TextStyle(
                                 color: Colors.grey, fontSize: 12)),
@@ -478,7 +498,6 @@ class _ClientCard extends StatelessWidget {
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
             Text(
-              // Fix 3: null-safe invitationSent
               member.invitationSent != null
                   ? _formatDate(member.invitationSent!)
                   : '—',
@@ -493,16 +512,13 @@ class _ClientCard extends StatelessWidget {
 
           // Active/Expired/Suspended stats
           if (!isPending) ...[
-            // Fix 4: _InfoCell wrapped in Row so Flexible works correctly
             Row(
               children: [
                 _InfoCell(
                     label: 'Subscription',
-                    // Fix 5: null-safe subscription
                     value: member.subscription ?? '—'),
                 _InfoCell(
                     label: 'Visits',
-                    // Fix 6: null-safe visits
                     value: '${member.visits ?? 0}'),
               ],
             ),
@@ -511,11 +527,9 @@ class _ClientCard extends StatelessWidget {
               children: [
                 _InfoCell(
                     label: 'Joined',
-                    // Fix 7: null-safe joined
                     value: member.joined != null
                         ? _formatDate(member.joined!)
                         : '—'),
-                // Spacer so single _InfoCell still fills the row correctly
                 const Spacer(),
               ],
             ),
@@ -540,6 +554,7 @@ class _ClientCard extends StatelessWidget {
           if (!isPending)
             Row(
               children: [
+                // Renew button — visible for all non-pending statuses
                 if (!isSuspended) ...[
                   Expanded(
                     child: OutlinedButton.icon(
@@ -566,56 +581,49 @@ class _ClientCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
-                Expanded(
-                  child: isSuspended
-                      ? OutlinedButton.icon(
-                          onPressed: onUnsuspend,
-                          icon: const Icon(Icons.play_circle_outline,
-                              size: 16, color: Colors.green),
-                          label: const Text('Unsuspend',
-                              style: TextStyle(color: Colors.green)),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.green),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+
+                // Suspend/Unsuspend — hidden for expired clients
+                if (!isExpired)
+                  Expanded(
+                    child: isSuspended
+                        ? OutlinedButton.icon(
+                            onPressed: onUnsuspend,
+                            icon: const Icon(Icons.play_circle_outline,
+                                size: 16, color: Colors.green),
+                            label: const Text('Unsuspend',
+                                style: TextStyle(color: Colors.green)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.green),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          )
+                        : OutlinedButton.icon(
+                            onPressed: onSuspend,
+                            icon: const Icon(Icons.pause_circle_outline,
+                                size: 16),
+                            label: const Text('Suspend'),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
                           ),
-                        )
-                      : OutlinedButton.icon(
-                          onPressed: onSuspend,
-                          icon: const Icon(Icons.pause_circle_outline,
-                              size: 16),
-                          label: const Text('Suspend'),
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                ),
+                  ),
               ],
             )
           else
             SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  final renewed = await Navigator.push<bool>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => RenewMembershipScreen(
-                        member: member,
-                        gymId: gymId,
-                        token: token,
-                      ),
-                    ),
-                  );
-                  if (renewed == true) onRenew();
-                },
-                icon: const Icon(Icons.restart_alt, size: 16),
-                label: const Text('Renew'),
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
+    width: double.infinity,
+    child: OutlinedButton.icon(
+      onPressed: onCancelInvitation,
+      icon: const Icon(Icons.cancel_outlined, size: 16, color: Colors.red),
+      label: const Text('Cancel Invitation',
+          style: TextStyle(color: Colors.red)),
+      style: OutlinedButton.styleFrom(
+        side: const BorderSide(color: Colors.red),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10)),
+              ),
               ),
             ),
         ],
@@ -638,7 +646,6 @@ class _ClientCard extends StatelessWidget {
 }
 
 // ─ Info Cell ─
-// Fix 8: use Flexible instead of Expanded so it's safe inside any Row
 
 class _InfoCell extends StatelessWidget {
   final String label, value;
