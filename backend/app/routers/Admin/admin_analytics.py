@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 import pytz
 from app.database import get_session
 from app.dependencies.auth import get_current_user
-from app.models import Admin
+from app.models import Admin, Subscription
 from app.models.attendance import Attendance
 from app.models import User, Admin, Coach
 from app.models.Gym import Gym
@@ -40,28 +40,16 @@ async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
 
 
 async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
-    monthly_result = await db.execute(
-        select(func.count(GymClientMembership.id)).where(
+    result = await db.execute(
+        select(func.sum(Subscription.supscriptionPrice * Subscription.duration_count))
+        .join(GymClientMembership, Subscription.gymClientMebershipID == GymClientMembership.id)
+        .where(
             GymClientMembership.gymID == gym.gymID,
-            # GymClientMembership.status == "active",
-            GymClientMembership.subscription == "Monthly",
-            cast(GymClientMembership.joined_at, Date) >= start_date,
-            cast(GymClientMembership.joined_at, Date) <= end_date,
+            cast(Subscription.billingDate, Date) >= start_date,
+            cast(Subscription.billingDate, Date) <= end_date,
         )
     )
-    annual_result = await db.execute(
-        select(func.count(GymClientMembership.id)).where(
-            GymClientMembership.gymID == gym.gymID,
-            # GymClientMembership.status == "active",
-            GymClientMembership.subscription == "Annual",
-            cast(GymClientMembership.joined_at, Date) >= start_date,
-            cast(GymClientMembership.joined_at, Date) <= end_date,
-        )
-    )
-
-    monthly_count = monthly_result.scalar_one_or_none() or 0
-    annual_count = annual_result.scalar_one_or_none() or 0
-    return monthly_count * gym.subscriptionPrice + annual_count * (gym.yearlySubscriptionPrice or gym.subscriptionPrice * 12)
+    return result.scalar_one() or 0
 
 
 
