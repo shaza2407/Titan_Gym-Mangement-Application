@@ -220,8 +220,8 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                   ),
                   _buildStatCard(
                     Icons.sports_gymnastics_sharp,
-                    '\$${stats != null ? 'place holder' : '0'}',
-                    'Todays Classes',
+                    '${stats?.totalClasses ?? 0}',
+                    "Today's Classes",
                     const Color(0xFFD85A30),
                   ),
                 ],
