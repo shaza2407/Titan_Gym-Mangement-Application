@@ -19,6 +19,13 @@ async def _get_coach_name(coach_id: int, db: AsyncSession) -> str | None:
     )
     return result.scalar_one_or_none()
 
+async def _get_membership(clientID: int, db: AsyncSession) -> GymClientMembership | None:
+    result = await db.execute(
+        select(GymClientMembership).where(
+            GymClientMembership.clientID == clientID
+        )
+    )
+    return result.scalar_one_or_none()
 
 def _next_occurrence(day_name: str) -> date:
     days = ["monday", "tuesday", "wednesday", "thursday",
@@ -276,8 +283,20 @@ async def get_weekly_schedule(clientID: int, db: AsyncSession) -> list:
 
 # ── Enroll ────────────────────────────────────────────────────────────────────
 
+# ── Enroll ────────────────────────────────────────────────────────────────────
+
 async def enroll(session_id: int, clientID: int,
                  class_date: date, db: AsyncSession) -> dict:
+    membership = await _get_membership(clientID, db)
+    if not membership:
+        return {"error": "You are not connected to a gym"}
+
+    if membership.status == "suspended":
+        return {"error": "Your membership is suspended. Contact your gym to restore access."}
+
+    if membership.subscription_end < date.today():
+        return {"error": "Your subscription has expired. Please renew to enroll in classes."}
+
     result = await db.execute(
         select(ClassSession).where(ClassSession.id == session_id)
     )
