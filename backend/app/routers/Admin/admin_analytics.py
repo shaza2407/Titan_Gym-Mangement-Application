@@ -89,6 +89,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
         select(func.count(GymClientMembership.id)).where(
             GymClientMembership.gymID == gym.gymID,
             GymClientMembership.status == "active",
+            GymClientMembership.subscription_end >= today,
         )
     )
     active_members = active_result.scalar_one_or_none() or 0

@@ -5,8 +5,8 @@ from app.database import Base
 
 class OfferType(str, enum.Enum):
     discount = "discount"
-    supplement = "supplement"
-    free_session = "free_session"
+    supplements = "supplements"
+    free_sessions = "free_sessions"
     membership_upgrade = "membership_upgrade"
 
 class TargetType(str, enum.Enum):

@@ -65,11 +65,11 @@ class CoachScheduleController extends ChangeNotifier {
       return false;
     }
 
-    if (isRecurring && selectedDay == null) {
-      errorMessage = 'Please select a day for recurring class';
-      notifyListeners();
-      return false;
-    }
+    // if (isRecurring && selectedDay == null) {
+    //   errorMessage = 'Please select a day for recurring class';
+    //   notifyListeners();
+    //   return false;
+    // }
 
     if (selectedDate == null) {
       errorMessage = 'Please pick a start date from the calendar';
