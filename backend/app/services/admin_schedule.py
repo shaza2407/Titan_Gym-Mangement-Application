@@ -195,7 +195,7 @@ async def get_all_classes(
             or_(
                 ClassSession.is_recurring == True,
                 and_(
-                    ClassSession.is_recurring == False,
+                    or_(ClassSession.is_recurring == False, ClassSession.is_recurring.is_(None)),
                     ClassSession.date >= week_start,
                     ClassSession.date <= week_end,
                 )
@@ -224,14 +224,22 @@ async def get_all_classes(
         current_clients = await _count_enrolled_for_session(
             s.id, s.is_recurring, s.date, db
         )
+
+        day_name = s.day_of_week
+        if s.is_recurring and not day_name and s.date:
+            try:
+                day_name = s.date.strftime("%A").lower() 
+            except AttributeError:
+                pass
+        
         classes.append({
             "id":              s.id,
             "title":           s.title,
-            "day_of_week":     s.day_of_week,
+            "day_of_week":     day_name,
             "date":            s.date,
             "start_time":      s.start_time,
             "duration":        s.duration,
-            "is_recurring":    s.is_recurring,
+            "is_recurring":    True if s.is_recurring else False,
             "gymID":           s.gymID,
             "coach_id":        s.coach_id,
             "coach_name":      coach_name,
@@ -239,6 +247,7 @@ async def get_all_classes(
             "max_clients":     s.max_clients,
         })
     return classes
+
 
 
 # Return value is now a dict so the router can surface the specific error reason.
