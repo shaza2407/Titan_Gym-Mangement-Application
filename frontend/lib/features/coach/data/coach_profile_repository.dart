@@ -23,17 +23,33 @@ class CoachProfileRepository {
   }
 
   Future<CoachProfileModel> updateProfile(
-      String token, Map<String, dynamic> data) async {
-    final res = await http.put(
-      Uri.parse('$baseUrl/coach/profile'),
-      headers: _headers(token),
-      body: jsonEncode(data),
-    );
-    if (res.statusCode == 200) {
-      return CoachProfileModel.fromJson(jsonDecode(res.body));
-    }
-    throw Exception('Failed to update profile');
+    String token, Map<String, dynamic> data) async {
+  final res = await http.put(
+    Uri.parse('$baseUrl/coach/profile'),
+    headers: _headers(token),
+    body: jsonEncode(data),
+  );
+  if (res.statusCode == 200) {
+    return CoachProfileModel.fromJson(jsonDecode(res.body));
   }
+
+  // print('Error response: ${res.body}'); // ← add this
+
+  try {
+    final body = jsonDecode(res.body);
+    final detail = body['detail'];
+    if (detail is List && detail.isNotEmpty) {
+      final msg = (detail.first['msg'] as String).replaceAll('Value error, ', '');
+      throw Exception(msg);
+    } else if (detail is String) {
+      throw Exception(detail);
+    }
+  } catch (e) {
+    if (e is Exception) rethrow;
+  }
+
+  throw Exception('Failed to update profile');
+}
 
   Future<List<String>> getSpecializations(String token) async {
     final res = await http.get(

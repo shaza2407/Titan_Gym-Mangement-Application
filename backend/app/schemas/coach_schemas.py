@@ -1,6 +1,6 @@
 # app/schemas/coach_schemas.py
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr ,field_validator
 from datetime import date, time, datetime
 import datetime as dt
 from typing import Optional, List
@@ -102,7 +102,15 @@ class CoachProfileUpdate(BaseModel):
     certifications:   Optional[str]  = None
     years_experience: Optional[int]  = None
     date_of_birth:    Optional[date] = None
-
+ 
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, v):
+        if v is None:
+            return v
+        if not v.startswith('01') or len(v) != 11 or not v.isdigit():
+            raise ValueError('Phone must be 11 digits and start with 01')
+        return v
 
 class CoachProfileResponse(BaseModel):
     userID:           int
