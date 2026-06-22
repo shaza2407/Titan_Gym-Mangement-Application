@@ -8,7 +8,6 @@ import 'client_management_screen.dart';
 import 'coach_management_screen.dart';
 import 'invite_member_screen.dart';
 import 'attendance_tracking_screen.dart';
-import 'analytics_screen.dart';
 import 'gym_settings_screen.dart';
 import 'package:frontend/features/Services/notifications_screen.dart';
 import 'package:frontend/features/Services/token_helper.dart';
@@ -32,7 +31,6 @@ class GymDashboardScreen extends StatefulWidget {
 }
 
 class _GymDashboardScreenState extends State<GymDashboardScreen> {
-  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -45,18 +43,18 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AdminGymController>(
-      builder: (context, controller, _) {
-        return Scaffold(
-          backgroundColor: const Color(0xFFF5F5F5),
-          appBar: _buildAppBar(),
-          body: _buildCurrentTab(controller),
-        );
-      },
-    );
-  }
+@override
+Widget build(BuildContext context) {
+  return Consumer<AdminGymController>(
+    builder: (context, controller, _) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        appBar: _buildAppBar(),
+        body: _buildHomeTab(controller), // directly, no switch
+      );
+    },
+  );
+}
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -107,7 +105,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.notifications_outlined, color: Colors.black),
-                onPressed: () => Navigator.push(context,
+                onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => NotificationsScreen(
                   userId: getUserIdFromToken(widget.token),
@@ -121,7 +119,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
         ),
         IconButton(
           icon: const Icon(Icons.settings_outlined, color: Colors.black),
-          onPressed: () => Navigator.push(context,
+          onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => GymSettingsScreen(gym: widget.gym,token: widget.token,),
             ),
@@ -133,18 +131,6 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
         ),
       ],
     );
-  }
-
-  Widget _buildCurrentTab(AdminGymController controller) {
-    switch (_currentIndex) {
-      case 0:
-        return _buildHomeTab(controller);
-      case 1:
-        return AnalyticsScreen(
-            token: widget.token, gymId: widget.gym.gymID);
-      default:
-        return _buildHomeTab(controller);
-    }
   }
 
   Widget _buildHomeTab(AdminGymController controller) {
@@ -251,17 +237,18 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                      const Color(0xFF4F46E5),
                       'Announcements',
                       'Create and manage gym announcements',
-                      () => Navigator.push(context,
-                            MaterialPageRoute(
-                            builder: (_) => AnnouncementsScreen(token: widget.token, gymId: widget.gym.gymID),)),
+                      () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AnnouncementsScreen(token: widget.token,gymId: widget.gym.gymID,),
                       ),
+                      ),
+                    ),
                     _buildActionItem(
                       Icons.people_outline,
                       const Color(0xFF4F46E5),
                       'Client Management',
                       'View and manage gym members',
-                      () => Navigator.push(
-                          context,
+                      () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => ClientManagementScreen(
                                 token: widget.token, gym: widget.gym),
@@ -272,8 +259,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color(0xFF4F46E5),
                       'Coach Management',
                       'View and manage gym coaches',
-                      () => Navigator.push(
-                          context,
+                      () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => CoachManagementScreen(
                                 token: widget.token, gym: widget.gym),
@@ -284,8 +270,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color(0xFF4F46E5),
                       'Add New Member',
                       'Enroll a new member to the gym',
-                      () => Navigator.push(
-                          context,
+                      () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => InviteMemberScreen(
                                 gym: widget.gym, token: widget.token),
@@ -296,8 +281,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color(0xFF4F46E5),
                       'Attendance Tracking',
                       'View attendance records and QR codes',
-                      () => Navigator.push(
-                          context,
+                      () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => AttendanceTrackingScreen(
                                 token: widget.token, gym: widget.gym),
@@ -308,7 +292,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color(0xFF4F46E5),
                       'Gym Settings',
                       "Update this gym's information",
-                      () => Navigator.push(context,
+                      () => Navigator.of(context).push(
                           MaterialPageRoute(
                           builder: (_) => GymSettingsScreen(gym: widget.gym,token: widget.token,),
                          ),
@@ -319,7 +303,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color(0xFF4F46E5),
                       'Retention Offers',
                       'Create retention offers and predictions',
-                      () => Navigator.push(context,
+                      () => Navigator.of(context).push(
                           MaterialPageRoute(
                           builder: (_) => RetentionOfferScreen(gymId: widget.gym.gymID,token: widget.token,),
                          ),
@@ -340,7 +324,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
 
   Widget _buildGymSelector() {
     return GestureDetector(
-      onTap: () => Navigator.pop(context),
+      onTap: () => Navigator.of(context, rootNavigator: true).pop(),
       child: Container(
         padding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

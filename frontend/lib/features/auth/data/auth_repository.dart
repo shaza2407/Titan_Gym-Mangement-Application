@@ -28,11 +28,15 @@ class AuthRepository {
 
     if (response.statusCode == 200) {
       return UserModel.fromJson(jsonDecode(response.body));
-    } else { print('STATUS: ${response.statusCode}');
-        print('STATUS: ${response.statusCode}');
-        print('BODY: ${response.body}');
-        throw Exception(jsonDecode(response.body)['detail'] ?? jsonDecode(response.body)['message']);
+  } else {
+    final body = jsonDecode(response.body);
+    final detail = body['detail'];
+    if (detail is List && detail.isNotEmpty) {
+      final msg = (detail.first['msg'] as String).replaceAll('Value error, ', '');
+      throw Exception(msg);
     }
+    throw Exception(detail ?? body['message'] ?? 'Signup failed');
+  }
   }
 
 Future<void> verifyEmail({
