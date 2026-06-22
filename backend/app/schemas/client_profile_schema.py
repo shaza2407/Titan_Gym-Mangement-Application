@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel , field_validator
 from typing import Optional
 from datetime import date as DateType
 from datetime import datetime
@@ -11,6 +11,13 @@ class ClientProfileUpdate(BaseModel):
     date_of_birth:     Optional[DateType] = None
     bio:               Optional[str]      = None
     emergency_contact: Optional[str]      = None
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, v):
+        if not v.startswith('01') or len(v) != 11 or not v.isdigit():
+            raise ValueError('Phone must be 11 digits and start with 01')
+        return v
 
 class ClientProfileResponse(BaseModel):
     userID:            int

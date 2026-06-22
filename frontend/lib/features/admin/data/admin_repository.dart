@@ -275,8 +275,8 @@ static Future<void> updateAdminProfile({
   String? newPassword,
 }) async {
   final body = {
-    'name': name,
-    'phone': phone,
+    'name': name.isEmpty ? null : name,
+    'phone': phone.isEmpty ? null : phone,
     if (currentPassword != null && currentPassword.isNotEmpty)
       'current_password': currentPassword,
     if (newPassword != null && newPassword.isNotEmpty)
@@ -291,9 +291,15 @@ static Future<void> updateAdminProfile({
     },
     body: jsonEncode(body),
   );
+
   if (res.statusCode != 200) {
-    final detail = jsonDecode(res.body)['detail'] ?? 'Unknown error';
-    throw Exception(detail);
+    final detail = jsonDecode(res.body)['detail'];
+    if (detail is List && detail.isNotEmpty) {
+      final msg = (detail.first['message'] as String? ) ?? 
+                  (detail.first['msg'] as String? ?? 'Unknown error').replaceAll('Value error, ', '');
+      throw Exception(msg);
+    }
+    throw Exception(detail ?? 'Unknown error');
   }
 }
 
