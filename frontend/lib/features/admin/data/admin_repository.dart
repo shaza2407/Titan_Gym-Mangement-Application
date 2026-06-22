@@ -24,18 +24,18 @@ class ClientListItem {
   });
 
   factory ClientListItem.fromJson(Map<String, dynamic> json) {
-    return ClientListItem(
-      id: json['id'],
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
-      status: json['status'] ?? 'pending',
-      phone: json['phone'],
-      subscription: json['subscription'],
-      subscriptionEnd: json['subscription_end'],
-      visits: json['visits'],
-      joined: json['joined'],
-      invitationSent: json['invitation_sent'],
-    );
+  return ClientListItem(
+    id:     (json['id'] ?? 0) as int,   
+    name:    json['name']    ?? '',
+    email:   json['email']   ?? '',
+    status:  json['status']  ?? 'pending',
+    phone:   json['phone'],
+    subscription:    json['subscription'],
+    subscriptionEnd: json['subscription_end'],
+    visits:  (json['visits'] as int?), 
+    joined:          json['joined'],
+    invitationSent:  json['invitation_sent'],
+  );
   }
 }
 
@@ -348,15 +348,15 @@ class AdminProfile {
   });
 
   factory AdminProfile.fromJson(Map<String, dynamic> json) {
-    return AdminProfile(
-      adminID:    json['adminID'],
-      userID:     json['userID'],
-      name:       json['name']       ?? '',
-      email:      json['email']      ?? '',
-      phone:      json['phone'],
-      createdAt:  json['created_at'],
-      totalGyms:  json['total_gyms'] ?? 0,
-    );
-  }
+  return AdminProfile(
+    adminID:   (json['adminID']    ?? 0) as int,
+    userID:    (json['userID']     ?? 0) as int,
+    name:       json['name']       ?? '',
+    email:      json['email']      ?? '',
+    phone:      json['phone'],
+    createdAt:  json['created_at'],
+    totalGyms: (json['total_gyms'] ?? 0) as int,
+  );
+} 
 }
 

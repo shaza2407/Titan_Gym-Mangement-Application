@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.models.Announcement import Announcement
+from app.models.announcement import Announcement
 from app.schemas.announcement_schema import CreateAnnouncementRequest
 from app.services.notification_service import notify_gym_clients ,notify_gym_coaches
 

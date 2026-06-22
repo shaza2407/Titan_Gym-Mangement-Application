@@ -121,7 +121,7 @@ async def notify_gym_clients(db: AsyncSession, gym_id: int, title: str, body: st
             GymClientMembership.status == "active",
         )
     )
-    client_ids = result.scalars().all()  # ← list of ints, not a result object
+    client_ids = result.scalars().all()  # list of ints, not a result object
     if not client_ids:
         return
 
