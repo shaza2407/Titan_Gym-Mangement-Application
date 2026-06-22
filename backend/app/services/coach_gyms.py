@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+# from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy import or_
@@ -108,7 +108,6 @@ async def get_coach_announcements(user_id: int, db: AsyncSession, gym_id: int | 
     results = []
 
     for row in gym_rows:
-        # 3. Renamed to loop_gym_id so it doesn't overwrite the parameter!
         loop_gym_id = row.gymID 
 
         announcements_query = select(Announcement).where(Announcement.gymID == loop_gym_id).order_by(Announcement.created_at.desc())
@@ -121,8 +120,8 @@ async def get_coach_announcements(user_id: int, db: AsyncSession, gym_id: int | 
                 "gym_name": row.gymName,
                 "title": a.title,
                 "content": a.content,
-                # Ensure date is a string so Flutter doesn't crash on parsing
                 "created_at": a.created_at.isoformat() if a.created_at else None 
             })
+    results.sort(key=lambda x: x["created_at"], reverse=True)
 
     return results
