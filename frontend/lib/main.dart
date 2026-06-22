@@ -13,11 +13,7 @@ import 'features/shared/api_constants.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'features/Services/notification_service.dart';
-// import 'features/admin/presentation/client_management_screen.dart';
-// import 'features/admin/presentation/coach_management_screen.dart';
-// import 'features/admin/presentation/client_detail_screen.dart';
-// import 'features/admin/presentation/coach_detail_screen.dart';
-// import 'features/admin/presentation/invite_member_screen.dart';
+import './features/intial_screen.dart';
 
 
 import 'package:flutter/foundation.dart';
@@ -53,10 +49,12 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
       ),
       routes: {
+        '/splash': (context) => const SplashScreen(),
         '/login':  (context) => LoginScreen(),
         '/signup': (context) => SignupScreen(),
         '/forgot-password': (context) => ForgotPasswordPage(),
       },
+
       // Routes that need arguments use onGenerateRoute
       onGenerateRoute: (settings) {
         if (settings.name == '/client-dashboard') {
@@ -89,7 +87,7 @@ class MyApp extends StatelessWidget {
   
   return null;
 },
-      home: LoginScreen(),
+      home: const SplashScreen(),
     );
   }
 }
