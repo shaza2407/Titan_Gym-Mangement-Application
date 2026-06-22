@@ -18,7 +18,7 @@ from app.models.client_achievement import ClientAchievement
 from app.models.training_plan import TrainingPlan , DayStatus , PlanStatus , WorkoutStatus
 from app.models.class_enrollment import ClassEnrollment
 from app.models.notification import Notification, FcmToken
-from app.models.Announcement import Announcement
+from app.models.announcement import Announcement
 from app.models.retention_offer import RetentionOffer
 from app.models.subscription import Subscription
 

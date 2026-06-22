@@ -66,7 +66,7 @@ async def list_clients(status_filter: str | None = None,
         else:
             display_status = membership.status.value
 
-        # ✅ only suppress pending card if membership is active or expired (not suspended)
+        #only suppress pending card if membership is active or expired (not suspended)
         if display_status in ("active", "expired"):
             member_emails.add(user.email.lower())
 
