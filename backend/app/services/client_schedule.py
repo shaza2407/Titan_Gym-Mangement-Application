@@ -324,6 +324,8 @@ async def enroll(session_id: int, clientID: int,
         "session_id": session_id,
         "clientID":   clientID,
         "class_date": str(class_date),
+        "start_time": session.start_time,   
+        "title":      session.title,
     }
 
 
