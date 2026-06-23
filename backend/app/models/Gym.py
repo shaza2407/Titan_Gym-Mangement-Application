@@ -6,7 +6,7 @@ class Gym(Base):
     __tablename__ = "gyms"
     gymID = Column("gymID", Integer, primary_key=True , index=True)
     gymName = Column("gymName", String , nullable=False)
-    adminID = Column("adminID", Integer, ForeignKey("administrators.adminID"), nullable=False)
+    adminID = Column("adminID", Integer, ForeignKey("administrators.adminID" ,ondelete="CASCADE"), nullable=False)
     location = Column("location", String , nullable=False)
     QRCode = Column("QRCode", String , nullable=True)
     gymType = Column("GYMTYPE", String , nullable=False)        #males , females, mixed

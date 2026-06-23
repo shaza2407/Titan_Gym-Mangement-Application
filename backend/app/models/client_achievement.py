@@ -24,7 +24,7 @@ class ClientAchievement(Base):
     )
 
     id            = Column(Integer, primary_key=True, index=True)
-    clientID      = Column(Integer, ForeignKey("clients.clientID"),           nullable=False)
+    clientID      = Column(Integer, ForeignKey("clients.clientID" ),  nullable=False)
     achievementID = Column(Integer, ForeignKey("achievements.achievementID"), nullable=False)
 
     # Progress

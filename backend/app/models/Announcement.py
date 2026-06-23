@@ -7,7 +7,7 @@ class Announcement(Base):
     __tablename__ = "announcements"
 
     announce_id = Column(Integer, primary_key=True, index=True)
-    gymID       = Column(Integer, ForeignKey("gyms.gymID"), nullable=False)
+    gymID       = Column(Integer, ForeignKey("gyms.gymID", ondelete="CASCADE"), nullable=False)
     title       = Column(String(255), nullable=False)
     content     = Column(String(1000), nullable=False)
     reciever    = Column(String(50), nullable=False, server_default='Clients and Coaches')  

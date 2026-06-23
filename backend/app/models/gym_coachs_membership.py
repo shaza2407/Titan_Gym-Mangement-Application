@@ -11,7 +11,7 @@ class GymCoachMembership(Base):
     __tablename__ = "gym_coach_memberships"
 
     id = Column(Integer, primary_key=True, index=True)
-    gymID = Column("gymID", Integer, ForeignKey("gyms.gymID"), nullable=False)
-    coachID = Column("coachID", Integer, ForeignKey("coaches.coachID"), nullable=False)
+    gymID = Column("gymID", Integer, ForeignKey("gyms.gymID" ,ondelete="CASCADE"), nullable=False)
+    coachID = Column("coachID", Integer, ForeignKey("coaches.coachID" ,ondelete="CASCADE"), nullable=False)
     hire_date = Column(DateTime(timezone=True), server_default=func.now())
     status = Column(Enum(CoachMembershipStatus), default=CoachMembershipStatus.active)
