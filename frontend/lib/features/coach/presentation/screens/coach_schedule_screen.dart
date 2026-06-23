@@ -252,7 +252,7 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                 ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: ctrl.myClasses.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 16),
+                  separatorBuilder: (_, _) => const SizedBox(width: 16),
                   itemBuilder: (context, index) =>
                       _buildCompactClassCard(ctrl.myClasses[index], ctrl),
                 ),
@@ -267,7 +267,7 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              CoachColors.background.withOpacity(0),
+                              CoachColors.background.withValues(alpha: 0),
                               CoachColors.background,
                             ],
                           ),
@@ -403,7 +403,7 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: capacityColor.withOpacity(0.1),
+                  color: capacityColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -470,7 +470,7 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                   color: CoachColors.primary,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: CoachColors.primary.withOpacity(0.3),
+                    color: CoachColors.primary.withValues(alpha: 0.3),
                     width: 3,
                   ),
                 ),
@@ -703,7 +703,7 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

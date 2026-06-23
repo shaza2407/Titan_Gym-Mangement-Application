@@ -176,7 +176,7 @@ class AdminDashboardScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -266,11 +266,18 @@ class AdminDashboardScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(width: 24),
-                _gymStatChip(
-                  Icons.trending_up,
-                  const Color(0xFF1D9E75),
-                  'Monthly Subscription',
-                  '\$${gym.subscriptionPrice.toStringAsFixed(0)}',
+                FutureBuilder<int>(
+                  future: GymRepository().getGymCoachCount(
+                  token: token, gymId: gym.gymID),
+                  builder: (context, snapshot) {
+                  final count = snapshot.data ?? 0;
+                   return _gymStatChip(
+                      Icons.sports_gymnastics_sharp,
+                    const Color(0xFF1D9E75),
+                    'Coaches',
+                    '$count',
+                    );
+                  },
                 ),
               ],
             ),
@@ -287,7 +294,7 @@ class AdminDashboardScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 16),

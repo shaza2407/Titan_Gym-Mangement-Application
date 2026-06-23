@@ -18,10 +18,12 @@ class InviteMemberScreen extends StatefulWidget {
 
 class _InviteMemberScreenState extends State<InviteMemberScreen> {
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _monthsController =
-      TextEditingController(text: '1');
+  final TextEditingController _monthsController = TextEditingController(text: '1');
+  final TextEditingController _priceController = TextEditingController();
+
   bool _loading = false;
   String? _error;
+  String? _priceError;
   String _inviteAs = 'client';
   String _subscriptionType = 'monthly';
 
@@ -37,14 +39,27 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
 
   Future<void> _send() async {
   final email = _emailController.text.trim();
+  
+  setState(() {
+    _error = null;
+    _priceError = null;
+  });
+
   if (email.isEmpty) {
     setState(() => _error = 'Please enter an email address');
     return;
   }
 
+  if (!_isCoach) {
+    final price = int.tryParse(_priceController.text);
+    if (price == null || price <= 0) {
+      setState(() => _priceError = 'Please enter a valid subscription price');
+      return;
+    }
+  }
+
   setState(() {
     _loading = true;
-    _error = null;
   });
 
   try {
@@ -56,8 +71,9 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
         widget.gym.gymID,
         email,
         widget.token,
-        subscriptionType: _subscriptionType,       // ✅ "monthly" | "yearly"
-        subscriptionMonths: int.tryParse(_monthsController.text) ?? 1, // ✅
+        subscriptionType: _subscriptionType,      
+        subscriptionMonths: int.tryParse(_monthsController.text) ?? 1, 
+        subscriptionPrice: int.tryParse(_priceController.text) ?? 0,
       );
     }
     if (mounted) {
@@ -117,7 +133,7 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
+                      color: accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.person_add, color: accentColor),
@@ -316,6 +332,23 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                const Text('Subscription Price *',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. 50',
+                    prefixText: '\$ ',
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),borderSide: BorderSide.none,),
+                    errorText: _priceError,   
+                  ),
+                ),
+                
                 const SizedBox(height: 12),
 
                 // Summary Chip
@@ -324,7 +357,7 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                   padding: const EdgeInsets.symmetric(
                       vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.08),
+                    color: accentColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -334,6 +367,7 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                   ),
                 ),
               ],
+              
 
               const SizedBox(height: 24),
 

@@ -8,7 +8,7 @@ class InvitationScreen extends StatefulWidget {
   final String inviteToken;
   final String gymName;
   final String authToken;
-  final String role; 
+  final String role;
 
   const InvitationScreen({
     super.key,
@@ -29,15 +29,64 @@ class _InvitationScreenState extends State<InvitationScreen> {
 
   Future<void> _accept() async {
     setState(() => _loading = true);
-  try {
-    final url = widget.role == 'coach'
-        ? '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/coaches/invitations/accept?token=${widget.inviteToken}'
-        : '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/invitations/accept?token=${widget.inviteToken}';
+    try {
+      // Step 1: check if accepting will suspend another active membership
+      if (widget.role != 'coach') {
+        final previewRes = await http.get(
+          Uri.parse(
+              '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/invitations/preview?token=${widget.inviteToken}'),
+          headers: {'Authorization': 'Bearer ${widget.authToken}'},
+        );
 
-    final res = await http.post(
-      Uri.parse(url),
-      headers: {'Authorization': 'Bearer ${widget.authToken}'},
-    );
+        if (previewRes.statusCode == 200) {
+          final data = jsonDecode(previewRes.body);
+          final willSuspend = data['will_suspend_other_memberships'] as bool;
+          final otherGyms = (data['other_active_gyms'] as List).join(', ');
+
+          if (willSuspend) {
+            setState(() => _loading = false); // pause loading while dialog is up
+            if (!mounted) return;
+
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Switch Gym Membership?'),
+                content: Text(
+                  'You currently have an active membership at $otherGyms. '
+                  'Accepting this invitation will suspend it. Continue?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: accentColor),
+                    child: const Text('Continue',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
+            );
+
+            if (confirmed != true) return; // user cancelled
+            setState(() => _loading = true); // resume loading
+          }
+        }
+      }
+
+      // Step 2: proceed with actual acceptance
+      final url = widget.role == 'coach'
+          ? '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/coaches/invitations/accept?token=${widget.inviteToken}'
+          : '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/invitations/accept?token=${widget.inviteToken}';
+
+      final res = await http.post(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer ${widget.authToken}'},
+      );
+
       if (res.statusCode == 200) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -65,19 +114,24 @@ class _InvitationScreenState extends State<InvitationScreen> {
   Future<void> _decline() async {
     setState(() => _loading = true);
     try {
-    final url = widget.role == 'coach'
-        ? '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/coaches/invitations/decline?token=${widget.inviteToken}'
-        : '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/invitations/decline?token=${widget.inviteToken}';
+      final url = widget.role == 'coach'
+          ? '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/coaches/invitations/decline?token=${widget.inviteToken}'
+          : '${ApiConstants.baseUrl}/admin/gyms/${widget.gymId}/invitations/decline?token=${widget.inviteToken}';
 
-    final res = await http.post(
-      Uri.parse(url),
-      headers: {'Authorization': 'Bearer ${widget.authToken}'},
-    );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invitation declined.')),
-        );
-        Navigator.pop(context, false); // return false = declined
+      final res = await http.post(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer ${widget.authToken}'},
+      );
+
+      if (res.statusCode == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invitation declined.')),
+          );
+          Navigator.pop(context, false); // return false = declined
+        }
+      } else {
+        throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed');
       }
     } catch (e) {
       if (mounted) {
@@ -130,7 +184,7 @@ class _InvitationScreenState extends State<InvitationScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
+                      color: accentColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.fitness_center,
@@ -144,9 +198,11 @@ class _InvitationScreenState extends State<InvitationScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'You have been invited to join this gym as a client member.',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  Text(
+                    widget.role == 'coach'
+                        ? 'You have been invited to join this gym as a coach.'
+                        : 'You have been invited to join this gym as a client member.',
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -156,13 +212,22 @@ class _InvitationScreenState extends State<InvitationScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: _loading ? null : _accept,
-                      icon: const Icon(Icons.check_circle_outline,
-                          color: Colors.white),
-                      label: const Text('Accept Invitation',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16)),
+                      icon: _loading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.check_circle_outline,
+                              color: Colors.white),
+                      label: Text(
+                        _loading ? 'Please wait...' : 'Accept Invitation',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accentColor,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -178,8 +243,7 @@ class _InvitationScreenState extends State<InvitationScreen> {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: _loading ? null : _decline,
-                      icon: const Icon(Icons.cancel_outlined,
-                          color: Colors.red),
+                      icon: const Icon(Icons.cancel_outlined, color: Colors.red),
                       label: const Text('Decline',
                           style: TextStyle(
                               color: Colors.red,

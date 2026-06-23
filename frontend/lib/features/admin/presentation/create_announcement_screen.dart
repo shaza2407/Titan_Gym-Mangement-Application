@@ -65,7 +65,7 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
         body: jsonEncode({
           'title': _titleController.text.trim(),
           'content': _contentController.text.trim(),
-          'reciever': _selectedReceiver, // ← send to backend
+          'reciever': _selectedReceiver, 
         }),
       );
 
@@ -238,7 +238,7 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonFormField<String>(
-        value: value,           // ← was initialValue (doesn't exist)
+        initialValue: value,           // ← was initialValue (doesn't exist)
         decoration: InputDecoration(
           labelText: label,
           border: InputBorder.none,

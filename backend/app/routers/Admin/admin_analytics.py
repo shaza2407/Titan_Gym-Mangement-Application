@@ -7,14 +7,16 @@ from dateutil.relativedelta import relativedelta
 import pytz
 from app.database import get_session
 from app.dependencies.auth import get_current_user
-from app.models import Admin
+from app.models import Admin, Subscription, RetentionOffer
 from app.models.attendance import Attendance
 from app.models import User, Admin, Coach
 from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.class_session import ClassSession
 from app.models.class_enrollment import ClassEnrollment
-from app.schemas.analytics_schemas import (
+from app.models.retention_offer import RetentionOfferRecipient
+from app.models.client import Client
+from app.schemas.admin.analytics_schemas import (
     AnalyticsSummaryResponse,
     RevenueTrendResponse,
     MemberGrowthResponse,
@@ -40,28 +42,16 @@ async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
 
 
 async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
-    monthly_result = await db.execute(
-        select(func.count(GymClientMembership.id)).where(
+    result = await db.execute(
+        select(func.sum(Subscription.supscriptionPrice * Subscription.duration_count))
+        .join(GymClientMembership, Subscription.gymClientMebershipID == GymClientMembership.id)
+        .where(
             GymClientMembership.gymID == gym.gymID,
-            # GymClientMembership.status == "active",
-            GymClientMembership.subscription == "Monthly",
-            cast(GymClientMembership.joined_at, Date) >= start_date,
-            cast(GymClientMembership.joined_at, Date) <= end_date,
+            cast(Subscription.billingDate, Date) >= start_date,
+            cast(Subscription.billingDate, Date) <= end_date,
         )
     )
-    annual_result = await db.execute(
-        select(func.count(GymClientMembership.id)).where(
-            GymClientMembership.gymID == gym.gymID,
-            # GymClientMembership.status == "active",
-            GymClientMembership.subscription == "Annual",
-            cast(GymClientMembership.joined_at, Date) >= start_date,
-            cast(GymClientMembership.joined_at, Date) <= end_date,
-        )
-    )
-
-    monthly_count = monthly_result.scalar_one_or_none() or 0
-    annual_count = annual_result.scalar_one_or_none() or 0
-    return monthly_count * gym.subscriptionPrice + annual_count * (gym.yearlySubscriptionPrice or gym.subscriptionPrice * 12)
+    return result.scalar_one() or 0
 
 
 
@@ -89,6 +79,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
         select(func.count(GymClientMembership.id)).where(
             GymClientMembership.gymID == gym.gymID,
             GymClientMembership.status == "active",
+            GymClientMembership.subscription_end >= today,
         )
     )
     active_members = active_result.scalar_one_or_none() or 0
@@ -260,3 +251,45 @@ async def get_weekly_pattern(gym_id: int, db: AsyncSession = Depends(get_session
     }for i in range(7)]
 
     return WeeklyPatternResponse(data=data)
+
+
+
+## Offer Retention
+## /admin/analytics/{gym_id}/retention-offers/{offer_id}
+@router.get("/{gym_id}/retention-offers/{offer_id}")
+async def get_offer_details(gym_id: int, offer_id: int, db: AsyncSession = Depends(get_session), current_admin = Depends(get_current_user)):
+    gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
+
+    result = await db.execute(select(RetentionOffer).where(
+            RetentionOffer.id == offer_id,
+            RetentionOffer.gymId == gym_id,)
+    )
+    offer = result.scalar_one_or_none()
+    if not offer:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Offer not found")
+
+    recipients_result = await db.execute(
+        select(User.name, User.email, RetentionOfferRecipient.risk_level)
+        .join(GymClientMembership, RetentionOfferRecipient.membership_id == GymClientMembership.id)
+        .join(Client, GymClientMembership.clientID == Client.clientID)
+        .join(User, Client.userID == User.userID)
+        .where(RetentionOfferRecipient.offer_id == offer_id)
+    )
+
+    recipients = [
+        {"name": r.name, "email": r.email, "risk_level": r.risk_level}
+        for r in recipients_result.all()
+    ]
+
+    return {
+        "id":offer.id,
+        "title":offer.title,
+        "offer_type":offer.offer_type,
+        "description":offer.description,
+        "benefit":offer.benefit,
+        "valid_until":offer.valid_until.isoformat() if offer.valid_until else None,
+        "target_type":offer.target_type,
+        "number_of_members":offer.number_of_members,
+        "sent_at":offer.created_at.isoformat() if offer.created_at else None,
+        "recipients": recipients,
+    }

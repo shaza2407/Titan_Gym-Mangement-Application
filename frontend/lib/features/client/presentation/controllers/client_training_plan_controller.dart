@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import '../../data/training_plan_repository.dart';
 import '../../domain/training_plan_model.dart';
+import '../../../shared/api_constants.dart';
 
 class ClientTrainingPlanController extends ChangeNotifier {
   final TrainingPlanRepository _repo = TrainingPlanRepository();
@@ -163,6 +164,12 @@ class ClientTrainingPlanController extends ChangeNotifier {
       final day = week.days[dayIndex];
       final total = day.exercises.length;
       final completed = day.exercises.where((e) => e.isCompleted).length;
+      final completedIndices = <int>[];
+      for (int i = 0; i < day.exercises.length; i++) {
+        if (day.exercises[i].isCompleted) {
+          completedIndices.add(i);
+        }
+      }
 
       // Call API
       await _repo.completeDay(
@@ -173,6 +180,7 @@ class ClientTrainingPlanController extends ChangeNotifier {
         completedExercises: completed,
         totalExercises: total,
         durationMinutes: durationMinutes,
+        completedExerciseIndices: completedIndices,
       );
 
       day.isCompleted = true;
@@ -182,6 +190,25 @@ class ClientTrainingPlanController extends ChangeNotifier {
       errorMessage = e.toString();
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<bool> logWeekCompletion(String token) async {
+    if (activePlan == null) return false;
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repo.completeWeek(token, activePlan!.planID, selectedWeekNumber);
+      await loadActivePlan(token);
+      return true;
+    } catch (e) {
+      errorMessage = e.toString();
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -233,8 +260,9 @@ class ClientTrainingPlanController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final baseUrl = ApiConstants.baseUrl; 
       final res = await http.get(
-        Uri.parse('http://127.0.0.1:8000/training-plans/${activePlan!.planID}/pdf'),
+        Uri.parse('${baseUrl}/training-plans/${activePlan!.planID}/pdf'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -245,10 +273,12 @@ class ClientTrainingPlanController extends ChangeNotifier {
         await file.writeAsBytes(res.bodyBytes);
         await OpenFilex.open(file.path);
       } else {
-        errorMessage = 'Failed to download PDF.';
+        errorMessage = 'Failed to download PDF (${res.statusCode}).';
+        notifyListeners();
       }
     } catch (e) {
-      errorMessage = 'Error saving PDF: $e';
+      errorMessage = 'Error downloading PDF: $e';
+      notifyListeners();
     } finally {
       isLoading = false;
       notifyListeners();

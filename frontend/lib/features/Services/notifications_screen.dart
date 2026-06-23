@@ -28,7 +28,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     super.initState();
     _fetchNotifications();
   }
-
   Future<void> _fetchNotifications() async {
     try {
       final res = await http.get(
@@ -159,7 +158,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: _notifications.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   final n = _notifications[index];
                   final isRead = n['is_read'] as bool;

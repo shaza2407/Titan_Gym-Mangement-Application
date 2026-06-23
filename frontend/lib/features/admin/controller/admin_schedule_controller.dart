@@ -45,12 +45,12 @@ class AdminScheduleController extends ChangeNotifier {
     // Sunday of this week
     final sunday = monday.add(const Duration(days: 6));
 
-    String _fmt(DateTime d) =>
+    String fmt(DateTime d) =>
         '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-    final fromDate = _fmt(today);
-    final weekStart = _fmt(monday);
-    final weekEnd = _fmt(sunday);
+    final fromDate = fmt(today);
+    final weekStart = fmt(monday);
+    final weekEnd = fmt(sunday);
 
     try {
       final results = await Future.wait([

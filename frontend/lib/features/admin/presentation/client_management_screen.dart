@@ -3,6 +3,7 @@ import '../data/admin_repository.dart';
 import 'invite_member_screen.dart';
 import 'client_detail_screen.dart';
 import '../data/gym_repository.dart';
+import 'renew_screen.dart';
 
 class ClientManagementScreen extends StatefulWidget {
   final GymModel gym;
@@ -13,7 +14,7 @@ class ClientManagementScreen extends StatefulWidget {
     super.key,
     required this.gym,
     required this.token,
-    this.onTabChange
+    this.onTabChange,
   });
 
   @override
@@ -39,6 +40,8 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   void _refresh() => setState(() => _load());
 
   List<ClientListItem> _filtered(List<ClientListItem> members) {
+    const statusOrder = {'active': 0, 'pending': 1, 'expired': 2, 'suspended': 3};
+
     return members.where((m) {
       final matchFilter =
           _selectedFilter == 'all' || m.status == _selectedFilter;
@@ -46,8 +49,28 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
           m.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           m.email.toLowerCase().contains(_searchQuery.toLowerCase());
       return matchFilter && matchSearch;
-    }).toList();
+    }).toList()
+      ..sort((a, b) =>
+          (statusOrder[a.status] ?? 99).compareTo(statusOrder[b.status] ?? 99));
   }
+
+  Future<void> _cancelInvitation(String email) async {
+  try {
+    await AdminApiService.cancelInvitation(widget.gym.gymID, email, widget.token);
+    _refresh();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invitation cancelled')),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+}
 
   Future<void> _suspend(int memberId) async {
     try {
@@ -68,6 +91,40 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
     }
   }
 
+  Future<void> _unsuspend(int memberId) async {
+    try {
+      await AdminApiService.unsuspendClient(
+          widget.gym.gymID, memberId, widget.token);
+      _refresh();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Member unsuspended successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      String displayMsg;
+
+      if (msg.contains('expired')) {
+        displayMsg = 'Membership is expired — please renew first';
+      } else if (msg.contains('active membership at another gym')) {
+        displayMsg =
+            'Client is now active at another gym — send a new invitation to re-add them';
+      } else {
+        displayMsg = 'Error: $msg';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(displayMsg), backgroundColor: Colors.grey),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,8 +140,10 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Client Management',
-                style:
-                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16)),
             Text('View and manage gym clients',
                 style: TextStyle(color: Colors.grey, fontSize: 12)),
           ],
@@ -97,7 +156,8 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                 color: const Color(0xFF6C63FF),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.person_add, color: Colors.white, size: 20),
+              child:
+                  const Icon(Icons.person_add, color: Colors.white, size: 20),
             ),
             onPressed: () async {
               await Navigator.push(
@@ -124,7 +184,12 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
-          final data = snapshot.data!;
+
+          final data = snapshot.data;
+          if (data == null) {
+            return const Center(child: Text('No data available'));
+          }
+
           final filtered = _filtered(data.members);
 
           return RefreshIndicator(
@@ -135,20 +200,27 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                 // Stats Row
                 Row(
                   children: [
-                    _StatCard(label: 'Total Clients', value: '${data.total}',
+                    _StatCard(
+                        label: 'Total Clients',
+                        value: '${data.total}',
                         icon: Icons.people_outline),
                     const SizedBox(width: 8),
-                    _StatCard(label: 'Active', value: '${data.active}',
-                        icon: Icons.trending_up, color: const Color(0xFF6C63FF)),
+                    _StatCard(
+                        label: 'Active',
+                        value: '${data.active}',
+                        icon: Icons.trending_up,
+                        color: const Color(0xFF6C63FF)),
                     const SizedBox(width: 8),
-                    _StatCard(label: 'Pending', value: '${data.pending}',
+                    _StatCard(
+                        label: 'Pending',
+                        value: '${data.pending}',
                         icon: Icons.person_add_outlined,
                         color: Colors.orange),
                   ],
                 ),
                 const SizedBox(height: 16),
 
-                //  Search
+                // Search
                 TextField(
                   controller: _searchController,
                   onChanged: (v) => setState(() => _searchQuery = v),
@@ -165,14 +237,14 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                //  Filter Tabs
+                // Filter Tabs
                 _FilterRow(
                   selected: _selectedFilter,
                   onSelect: (v) => setState(() => _selectedFilter = v),
                 ),
                 const SizedBox(height: 16),
 
-                //  Member Cards ─
+                // Member Cards
                 if (filtered.isEmpty)
                   const Center(
                     child: Padding(
@@ -185,6 +257,8 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                   ...filtered.map((m) => _ClientCard(
                         member: m,
                         onSuspend: () => _suspend(m.id),
+                        onUnsuspend: () => _unsuspend(m.id),
+                        onCancelInvitation: () => _cancelInvitation(m.email),
                         onViewDetails: () {
                           Navigator.push(
                             context,
@@ -193,6 +267,9 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
                             ),
                           );
                         },
+                        onRenew: _refresh,
+                        gymId: widget.gym.gymID,
+                        token: widget.token,
                       )),
               ],
             ),
@@ -203,7 +280,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   }
 }
 
-// ─ Filter Row
+// ─ Filter Row ─
 
 class _FilterRow extends StatelessWidget {
   final String selected;
@@ -243,9 +320,8 @@ class _FilterRow extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.grey,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     fontSize: 13,
                   ),
                 ),
@@ -303,12 +379,22 @@ class _StatCard extends StatelessWidget {
 class _ClientCard extends StatelessWidget {
   final ClientListItem member;
   final VoidCallback onSuspend;
+  final VoidCallback onUnsuspend;
+  final VoidCallback onCancelInvitation;
   final VoidCallback onViewDetails;
+  final VoidCallback onRenew;
+  final int gymId;
+  final String token;
 
   const _ClientCard({
     required this.member,
     required this.onSuspend,
+    required this.onUnsuspend,
+    required this.onCancelInvitation,
     required this.onViewDetails,
+    required this.onRenew,
+    required this.gymId,
+    required this.token,
   });
 
   Color _statusColor(String status) {
@@ -327,6 +413,8 @@ class _ClientCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPending = member.status == 'pending';
+    final isSuspended = member.status == 'suspended';
+    final isExpired = member.status == 'expired';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -338,7 +426,7 @@ class _ClientCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //Header
+          // Header
           Row(
             children: [
               const CircleAvatar(
@@ -357,18 +445,20 @@ class _ClientCard extends StatelessWidget {
                           fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                     Row(
-  children: [
-    const Icon(Icons.email_outlined, size: 12, color: Colors.grey),
-    const SizedBox(width: 4),
-    Flexible(
-      child: Text(
-        member.email,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: Colors.grey, fontSize: 12),
-      ),
-    ),
-  ],
-),
+                      children: [
+                        const Icon(Icons.email_outlined,
+                            size: 12, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            member.email,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
                     Row(
                       children: [
                         const Icon(Icons.phone_outlined,
@@ -411,7 +501,8 @@ class _ClientCard extends StatelessWidget {
               member.invitationSent != null
                   ? _formatDate(member.invitationSent!)
                   : '—',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: 13),
             ),
             const SizedBox(height: 4),
             Text('Waiting for client to accept invitation',
@@ -419,7 +510,7 @@ class _ClientCard extends StatelessWidget {
             const SizedBox(height: 12),
           ],
 
-          // Active/Expired stats
+          // Active/Expired/Suspended stats
           if (!isPending) ...[
             Row(
               children: [
@@ -439,57 +530,102 @@ class _ClientCard extends StatelessWidget {
                     value: member.joined != null
                         ? _formatDate(member.joined!)
                         : '—'),
+                const Spacer(),
               ],
             ),
             const SizedBox(height: 12),
           ],
-          Row(
-            children: [
-                Expanded(
-                child: OutlinedButton(
-                  onPressed: onViewDetails,
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text('View Details'),
-                ),
+
+          // View Details
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: onViewDetails,
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
               ),
-          ],
+              child: const Text('View Details'),
+            ),
           ),
           const SizedBox(height: 8),
 
           // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: (){},
-                    icon: const Icon(Icons.restart_alt, size: 16),
-                    label: const Text('Renew'),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+          if (!isPending)
+            Row(
+              children: [
+                // Renew button — visible for all non-pending statuses
+                if (!isSuspended) ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final renewed = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => RenewMembershipScreen(
+                              member: member,
+                              gymId: gymId,
+                              token: token,
+                            ),
+                          ),
+                        );
+                        if (renewed == true) onRenew();
+                      },
+                      icon: const Icon(Icons.restart_alt, size: 16),
+                      label: const Text('Renew'),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
                     ),
                   ),
-                ),
-              if (!isPending) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onSuspend,
-                    icon: const Icon(Icons.pause_circle_outline, size: 16),
-                    label: const Text('Suspend'),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
+                  const SizedBox(width: 8),
+                ],
+
+                // Suspend/Unsuspend — hidden for expired clients
+                if (!isExpired)
+                  Expanded(
+                    child: isSuspended
+                        ? OutlinedButton.icon(
+                            onPressed: onUnsuspend,
+                            icon: const Icon(Icons.play_circle_outline,
+                                size: 16, color: Colors.green),
+                            label: const Text('Unsuspend',
+                                style: TextStyle(color: Colors.green)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.green),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          )
+                        : OutlinedButton.icon(
+                            onPressed: onSuspend,
+                            icon: const Icon(Icons.pause_circle_outline,
+                                size: 16),
+                            label: const Text('Suspend'),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
                   ),
-                ),
               ],
-              
-            ],
-          ),
+            )
+          else
+            SizedBox(
+    width: double.infinity,
+    child: OutlinedButton.icon(
+      onPressed: onCancelInvitation,
+      icon: const Icon(Icons.cancel_outlined, size: 16, color: Colors.red),
+      label: const Text('Cancel Invitation',
+          style: TextStyle(color: Colors.red)),
+      style: OutlinedButton.styleFrom(
+        side: const BorderSide(color: Colors.red),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10)),
+              ),
+              ),
+            ),
         ],
       ),
     );
@@ -509,17 +645,20 @@ class _ClientCard extends StatelessWidget {
   }
 }
 
+// ─ Info Cell ─
+
 class _InfoCell extends StatelessWidget {
   final String label, value;
   const _InfoCell({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Flexible(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+          Text(label,
+              style: const TextStyle(color: Colors.grey, fontSize: 11)),
           Text(value,
               style: const TextStyle(
                   fontWeight: FontWeight.w600, fontSize: 13)),

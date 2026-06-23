@@ -77,6 +77,7 @@ class TrainingPlanRepository {
     required int completedExercises,
     required int totalExercises,
     required int durationMinutes,
+    required List<int> completedExerciseIndices,
   }) async {
     final body = {
       'week_number': weekNumber,
@@ -84,6 +85,7 @@ class TrainingPlanRepository {
       'completed_exercises': completedExercises,
       'total_exercises': totalExercises,
       'duration_minutes': durationMinutes,
+      'completed_exercise_indices': completedExerciseIndices,
     };
 
     final res = await http.post(
@@ -98,6 +100,24 @@ class TrainingPlanRepository {
     if (res.statusCode != 200) {
       final error = jsonDecode(res.body);
       throw Exception(error['detail'] ?? 'Failed to complete workout day');
+    }
+  }
+
+  Future<void> completeWeek(String token, int planId, int weekNumber) async {
+    final body = {
+      'week_number': weekNumber,
+    };
+    final res = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/training-plans/$planId/complete-week'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+    if (res.statusCode != 200) {
+      final error = jsonDecode(res.body);
+      throw Exception(error['detail'] ?? 'Failed to complete week');
     }
   }
 

@@ -38,8 +38,6 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
   late final TextEditingController _closingCtrl;
 
   // Pricing
-  late final TextEditingController _monthlyCtrl;
-  late final TextEditingController _yearlyCtrl;
 
   static const _accent = Color(0xFF4F46E5);
 
@@ -55,11 +53,6 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
     _websiteCtrl = TextEditingController();
     _openingCtrl = TextEditingController(text: g.openingHours);
     _closingCtrl = TextEditingController(text: g.closingHours);
-    _monthlyCtrl =
-        TextEditingController(text: g.subscriptionPrice.toStringAsFixed(0));
-    _yearlyCtrl = TextEditingController(
-        text: g.yearlySubscriptionPrice?.toStringAsFixed(0) ?? ''
-        );
   }
 
   @override
@@ -72,8 +65,6 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
     _websiteCtrl.dispose();
     _openingCtrl.dispose();
     _closingCtrl.dispose();
-    _monthlyCtrl.dispose();
-    _yearlyCtrl.dispose();
     super.dispose();
   }
 
@@ -90,8 +81,6 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
         location: _locationCtrl.text.trim(),
         openingHours: _openingCtrl.text.trim(),
         closingHours: _closingCtrl.text.trim(),
-        subscriptionPrice: double.tryParse(_monthlyCtrl.text) ?? 0,
-        yearlySubscriptionPrice: double.tryParse(_yearlyCtrl.text),
       );
 
       setState(() => saved = true);
@@ -234,33 +223,7 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
 
-            // ── Subscription Pricing ──────────────────────────────
-            _buildSection(
-              icon: Icons.attach_money_outlined,
-              title: 'Subscription Pricing',
-              subtitle: 'Set membership fees',
-              children: [
-                _buildPricingCard(
-                  icon: Icons.calendar_today_outlined,
-                  color: _accent,
-                  label: 'Monthly Subscription',
-                  sublabel: 'Price per month',
-                  controller: _monthlyCtrl,
-                  hint: '0.00',
-                ),
-                const SizedBox(height: 12),
-                _buildPricingCard(
-                  icon: Icons.calendar_month_outlined,
-                  color: const Color(0xFF1D9E75),
-                  label: 'Annual Subscription',
-                  sublabel: 'Price per year',
-                  controller: _yearlyCtrl,
-                  hint: '0.00',
-                ),
-              ],
-            ),
             const SizedBox(height: 24),
 
             // ── Save Button ───────────────────────────────────────
@@ -315,7 +278,7 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _accent.withOpacity(0.1),
+                  color: _accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: _accent, size: 18),
@@ -485,16 +448,16 @@ class _GymSettingsScreenState extends State<GymSettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 20),

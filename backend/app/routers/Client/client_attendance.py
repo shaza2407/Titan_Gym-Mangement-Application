@@ -6,21 +6,21 @@ from sqlalchemy import select
 from datetime import datetime, date, timezone
 from app.database import get_session
 from app.dependencies.auth import require_client
-from app.models import Client, GymClientMembership, Gym  # Added Gym import
-from app.schemas.attendance_schema import (
+from app.models import Client, GymClientMembership, Gym  
+from app.schemas.client.attendance_schema import (
     CheckinStatusResponse,
     CheckinResponse,
     CheckinRecord,
     CheckinHistoryResponse,
     CheckinRequest,
 )
-from app.services.attendance import (
+from app.services.admin.attendance import (
     get_membership,
     already_checked_in_today,
     record_checkin,
     get_recent_checkins
 )
-from app.services.achievement_engine import achievement_engine  # Add achievement engine
+from app.services.coach.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/client", tags=["Client Attendance"])
 
@@ -98,7 +98,8 @@ async def checkin(
     if not gym:
         raise HTTPException(404, "Gym not found")
 
-    if not gym.QRCode or payload.qr_code.strip() != gym.QRCode.strip():
+    expected_qr_data = f"TITAN-GYM-{gym.gymID}-{gym.gymName.upper().replace(' ', '-')}"
+    if payload.qr_code.strip() != expected_qr_data:
         raise HTTPException(400, "This QR code doesn't belong to your gym")
 
     gym_name = gym.gymName if gym else "Gym"
@@ -110,7 +111,7 @@ async def checkin(
     )
 
     # ── Fire achievement engine ──────────────────────────────────────────────
-    # await achievement_engine.on_checkin(membership.clientID, db)
+    await achievement_engine.on_checkin(membership.clientID, db)
 
     # Custom welcome message based on check-in time
     now = datetime.now(timezone.utc)

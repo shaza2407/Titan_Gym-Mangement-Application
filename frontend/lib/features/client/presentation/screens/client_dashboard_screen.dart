@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/logout_button.dart';
+import '../widgets/client_bottom_nav.dart';
+import 'client_gym_screen.dart';
 import 'client_profile_screen.dart';
 import 'client_scan_screen.dart';
 import '../controllers/client_dashboard_controller.dart';
@@ -13,6 +15,8 @@ import '../../../Services/notifications_screen.dart';
 import 'training_plan_screen.dart';
 import 'client_achievement_screen.dart';
 import '../controllers/client_achievement_controller.dart';
+import 'subscription_blocked_screen.dart';
+import '../../../shared/notifications/notification_badge_controller.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
@@ -26,15 +30,31 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   int _currentIndex = 0;
   late ClientDashboardController _ctrl;
   late ClientAchievementController _achievementCtrl;
+  late NotificationBadgeController _badgeCtrl;
+
+  static const int _kGym = 4;
+  static const int _kTraining = 5;
+  static const int _kAchievements = 6;
 
   @override
   void initState() {
     super.initState();
     _ctrl = ClientDashboardController();
     _ctrl.loadStats(widget.token);
-    
+
     _achievementCtrl = ClientAchievementController();
     _achievementCtrl.loadAchievements(widget.token);
+
+    _badgeCtrl = NotificationBadgeController();
+    _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _achievementCtrl.dispose();
+    _badgeCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -43,159 +63,196 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       providers: [
         ChangeNotifierProvider.value(value: _ctrl),
         ChangeNotifierProvider.value(value: _achievementCtrl),
+        ChangeNotifierProvider.value(value: _badgeCtrl),
       ],
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
-        appBar: _currentIndex == 0
-            ? AppBar(
-                backgroundColor: Colors.white,
-                elevation: 0,
-                automaticallyImplyLeading: false,
-
-                title: Consumer<ClientDashboardController>(
-                  builder: (context, ctrl, _) {
-                    final stats = ctrl.stats;
-
-                    return Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: const Color.fromARGB(255, 63, 163, 77),
-                          child: const Icon(
-                            Icons.fitness_center,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              'My Dashboard',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            Text(
-                              stats?.gymName ?? 'Welcome back!',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
-
-                actions: [
-  Stack(
-    children: [
-      IconButton(
-        icon: const Icon(
-          Icons.notifications_outlined,
-          color: Colors.black,
+        appBar: _currentIndex == 0 ? _buildAppBar() : null,
+        body: Consumer<ClientDashboardController>(
+          builder: (context, ctrl, _) => _buildBody(ctrl),
         ),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => NotificationsScreen(
-              userId: getUserIdFromToken(widget.token),
-              token: widget.token,
-            ),
-          ),
+        bottomNavigationBar: ClientBottomNav(
+          currentIndex: _currentIndex > 3 ? -1 : _currentIndex,
+          onTap: (i) {
+            if (i == 0) {
+              _goHome();
+            } else {
+              setState(() => _currentIndex = i);
+            }
+          },
         ),
-      ),
-      Positioned(
-        right: 8,
-        top: 8,
-        child: Container(
-          padding: const EdgeInsets.all(3),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-          ),
-          child: const Text(
-            '3',
-            style: TextStyle(color: Colors.white, fontSize: 10),
-          ),
-        ),
-      ),
-    ],
-  ),
-  IconButton(
-    icon: const Icon(Icons.logout_outlined, color: Colors.black),
-    onPressed: () => showLogoutDialog(context),
-  ),
-],
-              )
-            : null,
-
-        body: _buildBody(),
-        bottomNavigationBar: _buildBottomNav(),
       ),
     );
   }
 
-  Widget _buildBody() {
-    switch (_currentIndex) {
-      case 0:
-        _ctrl.loadStats(widget.token);
-        return Consumer<ClientDashboardController>(
-          builder: (context, ctrl, _) => _buildHomeTab(ctrl),
-        );
-      case 1:
-        return ClientScheduleScreen(
-          token: widget.token,
-          onBack: () => setState(() => _currentIndex = 0),
-        );
-      case 2:
-        return ClientScanScreen(
-          token: widget.token,
-          onBack: () => setState(() => _currentIndex = 0),
-        );
-      case 3:
-        return ClientProfileScreen(
-          token: widget.token,
-          onBack: () => setState(() => _currentIndex = 0),
-        );
-      default:
-        return Consumer<ClientDashboardController>(
-          builder: (context, ctrl, _) => _buildHomeTab(ctrl),
-        );
-    }
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: (i) => setState(() => _currentIndex = i),
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: const Color(0xFF4F46E5),
-      unselectedItemColor: Colors.grey,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Home'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month_outlined),
-          label: 'Schedule',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.qr_code_scanner),
-          label: 'Scan',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          label: 'Profile',
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      title: Consumer<ClientDashboardController>(
+        builder: (context, ctrl, _) {
+          final stats = ctrl.stats;
+          return Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: const Color.fromARGB(255, 63, 163, 77),
+                child: const Icon(
+                  Icons.fitness_center,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'My Dashboard',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    stats?.gymName ?? 'Welcome back!',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+      actions: [
+        _buildNotificationButton(),
+        IconButton(
+          icon: const Icon(Icons.logout_outlined, color: Colors.black),
+          onPressed: () => showLogoutDialog(context),
         ),
       ],
     );
+  }
+
+  // ── Notification button with red dot ─────────────────────────────────────
+  Widget _buildNotificationButton() {
+    return AnimatedBuilder(
+      animation: _badgeCtrl,
+      builder: (context, _) {
+        return IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.notifications_outlined, color: Colors.black),
+              if (_badgeCtrl.hasUnread)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => NotificationsScreen(
+                  userId: getUserIdFromToken(widget.token),
+                  token: widget.token,
+                ),
+              ),
+            );
+
+            if (!mounted) return;
+
+            _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBody(ClientDashboardController ctrl) {
+    final stats = ctrl.stats;
+
+    switch (_currentIndex) {
+      case 0:
+        return _buildHomeTab(ctrl);
+
+      case 1:
+        if (_isAccessBlocked(stats)) {
+          return SubscriptionBlockedScreen(
+            reason: _blockReason(stats!),
+            gymName: stats.gymName,
+            onBack: _goHome,
+          );
+        }
+        return ClientScheduleScreen(token: widget.token, onBack: _goHome);
+
+      case 2:
+        if (_isAccessBlocked(stats)) {
+          return SubscriptionBlockedScreen(
+            reason: _blockReason(stats!),
+            gymName: stats.gymName,
+            onBack: _goHome,
+          );
+        }
+        return ClientScanScreen(token: widget.token, onBack: _goHome);
+
+      case 3:
+        return ClientProfileScreen(token: widget.token, onBack: _goHome);
+
+      case _kGym:
+        if (_isAccessBlocked(stats)) {
+          return SubscriptionBlockedScreen(
+            reason: _blockReason(stats!),
+            gymName: stats.gymName,
+            onBack: _goHome,
+          );
+        }
+        return ClientGymScreen(token: widget.token, onBack: _goHome);
+
+      case _kTraining:
+        if (_isAccessBlocked(stats)) {
+          return SubscriptionBlockedScreen(
+            reason: _blockReason(stats!),
+            gymName: stats.gymName,
+            onBack: _goHome,
+          );
+        }
+        return TrainingPlanScreen(token: widget.token, onBack: _goHome);
+
+      case _kAchievements:
+        return ClientAchievementScreen(token: widget.token, onBack: _goHome);
+
+      default:
+        return _buildHomeTab(ctrl);
+    }
+  }
+
+  bool _isAccessBlocked(DashboardStatsModel? stats) =>
+      stats != null && (stats.isSuspended || stats.isExpired);
+
+  SubscriptionBlockReason _blockReason(DashboardStatsModel stats) =>
+      stats.isSuspended
+      ? SubscriptionBlockReason.suspended
+      : SubscriptionBlockReason.expired;
+
+  void _navigateTo(int index) => setState(() => _currentIndex = index);
+
+  void _goHome() {
+    setState(() => _currentIndex = 0);
+    _ctrl.loadStats(widget.token);
   }
 
   // ── Home Tab ──────────────────────────────────────────────────────────────
@@ -212,11 +269,8 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Subscription Card ─────────────────────────────────
             if (stats != null) _buildSubscriptionCard(stats),
             const SizedBox(height: 12),
-
-            // ── Stats Row ─────────────────────────────────────────
             Row(
               children: [
                 _buildStatCard(
@@ -242,8 +296,6 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // ── Actions ──────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -265,43 +317,25 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                   _buildActionItem(
                     Icons.notifications_outlined,
                     'My Gym${stats?.gymName != null ? ' - ${stats!.gymName}' : ''}',
-                    'View announcements and enroll in classes',
-                    () {
-                      setState(() => _currentIndex = 0);
-                    },
+                    'View Gym info and announcements',
+                    () => _navigateTo(_kGym),
                   ),
                   _buildActionItem(
                     Icons.track_changes_outlined,
                     'Training Plans',
                     'Generate personalized workout plans',
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TrainingPlanScreen(token: widget.token),
-                        ),
-                      );
-                    },
+                    () => _navigateTo(_kTraining),
                   ),
                   _buildActionItem(
                     Icons.emoji_events_outlined,
                     'My Badges',
                     'View your achievements',
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ClientAchievementScreen(token: widget.token),
-                        ),
-                      );
-                    },
+                    () => _navigateTo(_kAchievements),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-
-            // ── Achievements ──────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -325,16 +359,24 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                       if (achCtrl.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      
+
                       if (achCtrl.achievements.isEmpty) {
-                        return const Text('No badges available.', style: TextStyle(color: Colors.grey));
+                        return const Text(
+                          'No badges available.',
+                          style: TextStyle(color: Colors.grey),
+                        );
                       }
 
-                      // Pick 4 achievements to show on the dashboard.
-                      // Let's pick up to 4 unlocked ones first. If not enough, pad with locked ones.
-                      final unlocked = achCtrl.achievements.where((a) => a.isUnlocked).toList();
-                      final locked = achCtrl.achievements.where((a) => !a.isUnlocked).toList();
-                      final displayAch = [...unlocked, ...locked].take(4).toList();
+                      final unlocked = achCtrl.achievements
+                          .where((a) => a.isUnlocked)
+                          .toList();
+                      final locked = achCtrl.achievements
+                          .where((a) => !a.isUnlocked)
+                          .toList();
+                      final displayAch = [
+                        ...unlocked,
+                        ...locked,
+                      ].take(4).toList();
 
                       return GridView.count(
                         crossAxisCount: 2,
@@ -346,7 +388,6 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                         children: displayAch.map((a) {
                           String shortName = a.name;
                           if (shortName.contains('—')) {
-                            // Example "Gym Rat — Bronze" -> "Gym Rat"
                             shortName = shortName.split('—').first.trim();
                           }
                           return _buildBadge(a.icon, shortName, a.isUnlocked);
@@ -369,21 +410,21 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     final isSuspended = stats.isSuspended;
 
     final Color bgColor = isSuspended
-        ? Colors.amber.shade50
-        : isExpired
         ? Colors.red.shade50
+        : isExpired
+        ? Colors.amber.shade50
         : const Color(0xFFE8F5E9);
 
     final Color badgeColor = isSuspended
-        ? Colors.amber.shade700
-        : isExpired
         ? Colors.red
+        : isExpired
+        ? Colors.amber.shade700
         : const Color(0xFF4CAF50);
 
     final Color subTextColor = isSuspended
-        ? Colors.amber.shade800
+        ? Colors.red.shade700
         : isExpired
-        ? Colors.red
+        ? Colors.amber.shade800
         : Colors.grey;
 
     final String badgeText = isSuspended
@@ -399,12 +440,12 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         : 'Active Subscription';
 
     final String expiryText = isSuspended
-        ? 'Your subscription is suspended — contact your gym'
+        ? 'Your access is suspended — contact your gym'
         : isExpired
-        ? 'Expired on ${stats.subscriptionEnd ?? ''} — Please renew'
+        ? 'Expired on ${stats.subscriptionEnd ?? ''} — contact your gym to renew'
         : stats.daysRemaining != null
-            ? 'Expires ${stats.subscriptionEnd ?? ''} (${stats.daysRemaining} days)'
-            : 'No active subscription';
+        ? 'Expires ${stats.subscriptionEnd ?? ''} (${stats.daysRemaining} days)'
+        : 'No active subscription';
 
     return Container(
       width: double.infinity,
@@ -512,18 +553,22 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
           children: [
             Icon(icon, color: const Color(0xFF4CAF50), size: 22),
             const SizedBox(width: 14),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -547,17 +592,30 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
             colorFilter: earned
                 ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
                 : const ColorFilter.matrix(<double>[
-                    0.2126, 0.7152, 0.0722, 0, 0,
-                    0.2126, 0.7152, 0.0722, 0, 0,
-                    0.2126, 0.7152, 0.0722, 0, 0,
-                    0, 0, 0, 1, 0,
+                    0.2126,
+                    0.7152,
+                    0.0722,
+                    0,
+                    0,
+                    0.2126,
+                    0.7152,
+                    0.0722,
+                    0,
+                    0,
+                    0.2126,
+                    0.7152,
+                    0.0722,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
                   ]),
             child: Opacity(
               opacity: earned ? 1.0 : 0.4,
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 32),
-              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 32)),
             ),
           ),
           const SizedBox(height: 8),

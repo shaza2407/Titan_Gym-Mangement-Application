@@ -382,11 +382,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       icon = Icons.cancel_outlined;
     } else if (stats.isSuspended) {
       label = 'Suspended';
-      color = const Color(0xFFF59E0B);
+      color = const Color(0xFFEF4444);
       icon = Icons.pause_circle_outline;
     } else if (stats.isExpired) {
       label = 'Expired';
-      color = const Color(0xFFEF4444);
+      color = const Color(0xFFF59E0B);
       icon = Icons.error_outline;
     } else {
       label = 'Active Member';
