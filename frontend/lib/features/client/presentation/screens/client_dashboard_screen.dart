@@ -16,6 +16,7 @@ import 'training_plan_screen.dart';
 import 'client_achievement_screen.dart';
 import '../controllers/client_achievement_controller.dart';
 import 'subscription_blocked_screen.dart';
+import '../../../shared/notifications/notification_badge_controller.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
@@ -29,6 +30,11 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   int _currentIndex = 0;
   late ClientDashboardController _ctrl;
   late ClientAchievementController _achievementCtrl;
+  late NotificationBadgeController _badgeCtrl;
+
+  static const int _kGym = 4;
+  static const int _kTraining = 5;
+  static const int _kAchievements = 6;
 
   @override
   void initState() {
@@ -38,6 +44,17 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
 
     _achievementCtrl = ClientAchievementController();
     _achievementCtrl.loadAchievements(widget.token);
+
+    _badgeCtrl = NotificationBadgeController();
+    _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _achievementCtrl.dispose();
+    _badgeCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -46,109 +63,16 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       providers: [
         ChangeNotifierProvider.value(value: _ctrl),
         ChangeNotifierProvider.value(value: _achievementCtrl),
+        ChangeNotifierProvider.value(value: _badgeCtrl),
       ],
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
-        appBar: _currentIndex == 0
-            ? AppBar(
-                backgroundColor: Colors.white,
-                elevation: 0,
-                automaticallyImplyLeading: false,
-                title: Consumer<ClientDashboardController>(
-                  builder: (context, ctrl, _) {
-                    final stats = ctrl.stats;
-
-                    return Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            63,
-                            163,
-                            77,
-                          ),
-                          child: const Icon(
-                            Icons.fitness_center,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              'My Dashboard',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              stats?.gymName ?? 'Welcome back!',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                actions: [
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.black,
-                        ),
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => NotificationsScreen(
-                              userId: getUserIdFromToken(widget.token),
-                              token: widget.token,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Text(
-                            '3',
-                            style: TextStyle(color: Colors.white, fontSize: 10),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.logout_outlined,
-                      color: Colors.black,
-                    ),
-                    onPressed: () => showLogoutDialog(context),
-                  ),
-                ],
-              )
-            : null,
+        appBar: _currentIndex == 0 ? _buildAppBar() : null,
         body: Consumer<ClientDashboardController>(
           builder: (context, ctrl, _) => _buildBody(ctrl),
         ),
         bottomNavigationBar: ClientBottomNav(
-          currentIndex: _currentIndex,
+          currentIndex: _currentIndex > 3 ? -1 : _currentIndex,
           onTap: (i) {
             if (i == 0) {
               _goHome();
@@ -161,12 +85,110 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     );
   }
 
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      title: Consumer<ClientDashboardController>(
+        builder: (context, ctrl, _) {
+          final stats = ctrl.stats;
+          return Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: const Color.fromARGB(255, 63, 163, 77),
+                child: const Icon(
+                  Icons.fitness_center,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'My Dashboard',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    stats?.gymName ?? 'Welcome back!',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+      actions: [
+        _buildNotificationButton(),
+        IconButton(
+          icon: const Icon(Icons.logout_outlined, color: Colors.black),
+          onPressed: () => showLogoutDialog(context),
+        ),
+      ],
+    );
+  }
+
+  // ── Notification button with red dot ─────────────────────────────────────
+  Widget _buildNotificationButton() {
+    return AnimatedBuilder(
+      animation: _badgeCtrl,
+      builder: (context, _) {
+        return IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.notifications_outlined, color: Colors.black),
+              if (_badgeCtrl.hasUnread)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => NotificationsScreen(
+                  userId: getUserIdFromToken(widget.token),
+                  token: widget.token,
+                ),
+              ),
+            );
+
+            if (!mounted) return;
+
+            _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildBody(ClientDashboardController ctrl) {
     final stats = ctrl.stats;
 
     switch (_currentIndex) {
       case 0:
         return _buildHomeTab(ctrl);
+
       case 1:
         if (_isAccessBlocked(stats)) {
           return SubscriptionBlockedScreen(
@@ -176,6 +198,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
           );
         }
         return ClientScheduleScreen(token: widget.token, onBack: _goHome);
+
       case 2:
         if (_isAccessBlocked(stats)) {
           return SubscriptionBlockedScreen(
@@ -185,14 +208,38 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
           );
         }
         return ClientScanScreen(token: widget.token, onBack: _goHome);
+
       case 3:
         return ClientProfileScreen(token: widget.token, onBack: _goHome);
+
+      case _kGym:
+        if (_isAccessBlocked(stats)) {
+          return SubscriptionBlockedScreen(
+            reason: _blockReason(stats!),
+            gymName: stats.gymName,
+            onBack: _goHome,
+          );
+        }
+        return ClientGymScreen(token: widget.token, onBack: _goHome);
+
+      case _kTraining:
+        if (_isAccessBlocked(stats)) {
+          return SubscriptionBlockedScreen(
+            reason: _blockReason(stats!),
+            gymName: stats.gymName,
+            onBack: _goHome,
+          );
+        }
+        return TrainingPlanScreen(token: widget.token, onBack: _goHome);
+
+      case _kAchievements:
+        return ClientAchievementScreen(token: widget.token, onBack: _goHome);
+
       default:
         return _buildHomeTab(ctrl);
     }
   }
 
-  // ── Subscription gating ────────────────────────────────────────────────
   bool _isAccessBlocked(DashboardStatsModel? stats) =>
       stats != null && (stats.isSuspended || stats.isExpired);
 
@@ -201,26 +248,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       ? SubscriptionBlockReason.suspended
       : SubscriptionBlockReason.expired;
 
-  void _navigateOrBlock(
-    BuildContext context,
-    DashboardStatsModel? stats,
-    WidgetBuilder builder,
-  ) {
-    if (_isAccessBlocked(stats)) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SubscriptionBlockedScreen(
-            reason: _blockReason(stats!),
-            gymName: stats.gymName,
-            onBack: () => Navigator.pop(context),
-          ),
-        ),
-      );
-      return;
-    }
-    Navigator.push(context, MaterialPageRoute(builder: builder));
-  }
+  void _navigateTo(int index) => setState(() => _currentIndex = index);
 
   void _goHome() {
     setState(() => _currentIndex = 0);
@@ -290,38 +318,19 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                     Icons.notifications_outlined,
                     'My Gym${stats?.gymName != null ? ' - ${stats!.gymName}' : ''}',
                     'View Gym info and announcements',
-                    () => _navigateOrBlock(
-                      context,
-                      ctrl.stats,
-                      (_) => ClientGymScreen(
-                        token: widget.token,
-                        onBack: () => Navigator.pop(context),
-                      ),
-                    ),
+                    () => _navigateTo(_kGym),
                   ),
                   _buildActionItem(
                     Icons.track_changes_outlined,
                     'Training Plans',
                     'Generate personalized workout plans',
-                    () => _navigateOrBlock(
-                      context,
-                      ctrl.stats,
-                      (_) => TrainingPlanScreen(token: widget.token),
-                    ),
+                    () => _navigateTo(_kTraining),
                   ),
                   _buildActionItem(
                     Icons.emoji_events_outlined,
                     'My Badges',
                     'View your achievements',
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              ClientAchievementScreen(token: widget.token),
-                        ),
-                      );
-                    },
+                    () => _navigateTo(_kAchievements),
                   ),
                 ],
               ),
@@ -544,18 +553,22 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
           children: [
             Icon(icon, color: const Color(0xFF4CAF50), size: 22),
             const SizedBox(width: 14),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

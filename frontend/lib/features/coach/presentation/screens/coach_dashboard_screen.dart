@@ -4,6 +4,7 @@ import 'package:frontend/features/coach/presentation/screens/request_class_scree
 import 'package:provider/provider.dart';
 import '../../../shared/logout_button.dart';
 import '../../../coach/presentation/screens/coach_ui_utils.dart';
+import '../../../shared/notifications/notification_badge_controller.dart';
 import '../controllers/coach_dashboard_controller.dart';
 import '../../domain/coach_dashboard_model.dart';
 import 'coach_schedule_screen.dart';
@@ -15,7 +16,11 @@ import 'coach_gyms_screen.dart';
 class CoachDashboardScreen extends StatefulWidget {
   final String token;
   final int initialIndex;
-  const CoachDashboardScreen({super.key, required this.token, this.initialIndex =0});
+  const CoachDashboardScreen({
+    super.key,
+    required this.token,
+    this.initialIndex = 0,
+  });
 
   @override
   State<CoachDashboardScreen> createState() => _CoachDashboardScreenState();
@@ -25,15 +30,18 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
   int _currentIndex = 0;
   late final CoachDashboardController _ctrl;
   late final List<Widget> _tabs;
+  late NotificationBadgeController _badgeCtrl;
+
   @override
   void initState() {
     super.initState();
     _ctrl = CoachDashboardController();
     _ctrl.loadAll(widget.token); // called once — not on every rebuild
     _currentIndex = widget.initialIndex; // set initial tab index
-    // Built once. IndexedStack keeps every tab mounted, so switching tabs
-    // never re-triggers initState or re-fetches data, and scroll position /
-    // in-progress edits on Schedule & Profile are preserved.
+
+    _badgeCtrl = NotificationBadgeController();
+    _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+
     _tabs = [
       ChangeNotifierProvider.value(
         value: _ctrl,
@@ -57,11 +65,21 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
   }
 
   @override
+  void dispose() {
+    _badgeCtrl.dispose();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CoachColors.background,
-      body: IndexedStack(index: _currentIndex, children: _tabs),
-      bottomNavigationBar: _buildBottomNav(),
+    return ChangeNotifierProvider.value(
+      value: _badgeCtrl,
+      child: Scaffold(
+        backgroundColor: CoachColors.background,
+        body: IndexedStack(index: _currentIndex, children: _tabs),
+        bottomNavigationBar: _buildBottomNav(),
+      ),
     );
   }
 
@@ -182,21 +200,50 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
         ),
         Row(
           children: [
-            Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => NotificationsScreen(
-                        userId: getUserIdFromToken(widget.token),
-                        token: widget.token,
-                      ),
-                    ),
+            AnimatedBuilder(
+              animation: _badgeCtrl,
+              builder: (context, _) {
+                return IconButton(
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.notifications_outlined),
+
+                      if (_badgeCtrl.hasUnread)
+                        Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            width: 9,
+                            height: 9,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-              ],
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NotificationsScreen(
+                          userId: getUserIdFromToken(widget.token),
+                          token: widget.token,
+                        ),
+                      ),
+                    );
+
+                    if (!mounted) return;
+
+                    _badgeCtrl.load(
+                      widget.token,
+                      getUserIdFromToken(widget.token),
+                    );
+                  },
+                );
+              },
             ),
             IconButton(
               icon: const Icon(Icons.logout_outlined),
@@ -279,12 +326,19 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
                 const SizedBox(height: 4), // Adds a tiny gap below the title
                 Row(
                   children: [
-                    const Icon(Icons.location_on_rounded, size: 14, color: Colors.grey),
+                    const Icon(
+                      Icons.location_on_rounded,
+                      size: 14,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         c.gymName ?? 'Unknown Gym',
-                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
