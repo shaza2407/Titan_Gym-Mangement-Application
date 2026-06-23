@@ -20,6 +20,7 @@ from app.services.client.client_schedule import (
     enroll,
     unenroll,
 )
+from app.services.coach.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/client/schedule", tags=["Client Schedule"])
 

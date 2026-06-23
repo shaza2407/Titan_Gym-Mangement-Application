@@ -20,6 +20,7 @@ from app.services.admin.attendance import (
     record_checkin,
     get_recent_checkins
 )
+from app.services.coach.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/client", tags=["Client Attendance"])
 

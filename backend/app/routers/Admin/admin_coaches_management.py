@@ -16,7 +16,7 @@ from app.schemas.coach.coach_schemas import (
     InviteCoachRequest, InviteCoachResponse,
     CoachListResponse, CoachListItem,
 )
-from app.email_utils import send_invitation_email
+from app.services.notifications.email_utils import send_invitation_email
 from app.dependencies.gym_member_managment import get_admin_gym
 
 router = APIRouter(prefix="/admin/gyms/{gym_id}/coaches", tags=["Admin - Coach Management"])

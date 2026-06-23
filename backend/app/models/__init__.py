@@ -22,8 +22,8 @@ from app.models.announcement import Announcement
 from app.models.retention_offer import RetentionOffer
 from app.models.subscription import Subscription
 
-__all__ = [User, Client, Coach, Admin,ClassSession,ClassRequest ,Gym, GymMachineInventory,
-           GymClientMembership, GymCoachMembership, MemberInvitation, Attendance,
-           Achievement , AchievementCategory , AchievementDifficulty , ClientAchievement , TrainingPlan,
-           DayStatus , PlanStatus , WorkoutStatus, ClassEnrollment, Notification, FcmToken, RetentionOffer , Announcement,
-           Subscription]
+__all__ = ["User", "Client", "Coach", "Admin", "ClassSession", "ClassRequest", "Gym", "GymMachineInventory",
+           "GymClientMembership", "GymCoachMembership", "MemberInvitation", "Attendance",
+           "Achievement", "AchievementCategory", "AchievementDifficulty", "ClientAchievement", "TrainingPlan",
+           "DayStatus", "PlanStatus", "WorkoutStatus", "ClassEnrollment", "Notification", "FcmToken", "RetentionOffer", "Announcement",
+           "Subscription"]

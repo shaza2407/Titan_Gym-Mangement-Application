@@ -15,6 +15,7 @@ from app.models.client import Client
 from app.models.training_plan import (
     TrainingPlan, PlanStatus,
     TrainingPlanTracking, WorkoutStatus,
+    TrainingPlanWeekProgress, DayStatus,
 )
 from app.schemas.client.TrainingPlanRequest import TrainingPlanRequest
 from app.schemas.client.TrainingPlanResponse import (
