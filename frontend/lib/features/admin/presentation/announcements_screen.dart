@@ -145,7 +145,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                     child: ElevatedButton.icon(
                     onPressed: () async {
                       final created = await Navigator.push<bool>(context,
-                      MaterialPageRoute(
+                      MaterialPageRoute(           
                         builder: (_) => CreateAnnouncementScreen(token: widget.token,gymId: widget.gymId,
                         ),
                        ),
@@ -209,24 +209,6 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                                   style: const TextStyle(
                                       color: Colors.grey, fontSize: 12)),
                               const SizedBox(height: 10),
-                              // Align(
-                              //   alignment: Alignment.centerRight,
-                              //   child: OutlinedButton.icon(
-                              //     onPressed: () => _deleteAnnouncement(a.id),
-                              //     icon: const Icon(Icons.delete_outline,
-                              //         size: 16, color: Colors.black),
-                              //     label: const Text('Delete',
-                              //         style: TextStyle(color: Colors.black)),
-                              //     style: OutlinedButton.styleFrom(
-                              //       backgroundColor: Colors.white,
-                              //       side: BorderSide(
-                              //           color: Colors.grey.shade300),
-                              //       shape: RoundedRectangleBorder(
-                              //         borderRadius: BorderRadius.circular(10),
-                              //       ),
-                              //     ),
-                              //   ),
-                              // ),
                             ],
                           ),
                         )),

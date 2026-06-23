@@ -6,16 +6,16 @@ from sqlalchemy import select
 from app.database import get_session
 from app.dependencies.auth import require_coach
 from app.models.coach import Coach
-from app.schemas.coach_schemas import (
+from app.schemas.coach.coach_schemas import (
     CoachDashboardStatsResponse,
     CoachProfileUpdate,
     CoachProfileResponse,
 )
-from app.services.coach_schedule import (
+from app.services.coach.coach_schedule import (
     get_coach_dashboard_stats,
     get_upcoming_classes,
 )
-from app.services.coach_profile import (
+from app.services.coach.coach_profile import (
     get_coach_profile,
     update_coach_profile,
 )

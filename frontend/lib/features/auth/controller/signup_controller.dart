@@ -48,7 +48,7 @@ class SignupController extends ChangeNotifier {
       Navigator.pushReplacementNamed(context, '/verify-email', arguments: emailController.text.trim());
     }
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
       isLoading = false;
       notifyListeners();

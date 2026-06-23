@@ -18,7 +18,7 @@ class RetentionOfferRepository {
   Future<RetentionDashboard> fetchDashboard() async {
     final url = '${ApiConstants.baseUrl}/retention/dashboard/$gymId';
     final res = await http.get(Uri.parse(url), headers: _headers);
-    print("DEBUG dashboard: ${res.body}");  // ← add this
+    print("DEBUG dashboard: ${res.body}"); 
     _checkStatus(res);
     return RetentionDashboard.fromJson(jsonDecode(res.body));
   }

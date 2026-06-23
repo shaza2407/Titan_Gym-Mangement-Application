@@ -14,14 +14,13 @@ from app.models.client import Client
 from app.models.training_plan import (
     TrainingPlan, PlanStatus,
     TrainingPlanTracking, WorkoutStatus,
-    TrainingPlanWeekProgress, DayStatus,
 )
-from app.schemas.TrainingPlanRequest import TrainingPlanRequest
-from app.schemas.TrainingPlanResponse import (
+from app.schemas.client.TrainingPlanRequest import TrainingPlanRequest
+from app.schemas.client.TrainingPlanResponse import (
     TrainingPlanResponse, TrainingPlanSummary, WeekPlan, DayPlan,
 )
-from app.services.gemini_agent import gemini_agent
-from app.services.achievement_engine import achievement_engine
+from app.services.client.gemini_agent import gemini_agent
+from app.services.coach.achievement_engine import achievement_engine
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
@@ -38,7 +37,7 @@ from reportlab.platypus import (
     KeepTogether,
 )
 from reportlab.platypus.flowables import HRFlowable
-from app.schemas.CompleteDayRequest import CompleteDayRequest
+from app.schemas.client.CompleteDayRequest import CompleteDayRequest
 
 router = APIRouter(prefix="/training-plans", tags=["AI Training Plans"])
 

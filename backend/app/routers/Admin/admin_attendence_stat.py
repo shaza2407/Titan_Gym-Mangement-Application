@@ -10,7 +10,7 @@ from app.models import Admin
 from app.models.attendance import Attendance
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.Gym import Gym
-from app.schemas.attendance_schema import (
+from app.schemas.client.attendance_schema import (
     AttendanceStatsResponse,
     WeeklyAttendanceResponse,
     QRCodeResponse,

@@ -18,24 +18,16 @@ void showLogoutDialog(BuildContext context) {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: Colors.grey),
-          ),
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(),
+          child: const Text('Cancel',style: TextStyle(color: Colors.grey),
         ),
+      ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pop(context);
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.of(context, rootNavigator: true).pop(); // close dialog
+            Navigator.of(context, rootNavigator: true).pushReplacementNamed('/login');
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-          ),
-          child: const Text(
-            'Sign Out',
-            style: TextStyle(color: Colors.white),
-          ),
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.black,),child: const Text('Sign Out',style: TextStyle(color: Colors.white), ),
         ),
       ],
     ),
