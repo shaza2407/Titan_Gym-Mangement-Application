@@ -58,10 +58,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     )
                   : null,
               title: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'Profile Settings',
+                    'Client Settings',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
@@ -70,53 +70,54 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     ),
                   ),
                   Text(
-                    'Manage your account details and goals',
-                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
+                    'Manage your account details',
+                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
                   ),
                 ],
               ),
+              centerTitle: true,
               actions: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.black,
-                  ),
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => NotificationsScreen(
-                          userId: getUserIdFromToken(widget.token),
-                          token: widget.token,
-                        ),
-                      ),
-                    );
+                // IconButton(
+                //   icon: const Icon(
+                //     Icons.notifications_outlined,
+                //     color: Colors.black,
+                //   ),
+                //   onPressed: () async {
+                //     await Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (_) => NotificationsScreen(
+                //           userId: getUserIdFromToken(widget.token),
+                //           token: widget.token,
+                //         ),
+                //       ),
+                //     );
 
-                    // Only re-check if opened standalone (not connected to gym)
-                    if (widget.onBack == null && mounted) {
-                      try {
-                        final meRes = await http.get(
-                          Uri.parse('${ApiConstants.baseUrl}/client/me'),
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ${widget.token}',
-                          },
-                        );
-                        if (meRes.statusCode == 200 && mounted) {
-                          final meData = jsonDecode(meRes.body);
-                          final isConnected = meData['is_connected'] as bool;
-                          if (isConnected && mounted) {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              '/client-dashboard',
-                              arguments: widget.token,
-                            );
-                          }
-                        }
-                      } catch (_) {}
-                    }
-                  },
-                ),
+                //     // Only re-check if opened standalone (not connected to gym)
+                //     if (widget.onBack == null && mounted) {
+                //       try {
+                //         final meRes = await http.get(
+                //           Uri.parse('${ApiConstants.baseUrl}/client/me'),
+                //           headers: {
+                //             'Content-Type': 'application/json',
+                //             'Authorization': 'Bearer ${widget.token}',
+                //           },
+                //         );
+                //         if (meRes.statusCode == 200 && mounted) {
+                //           final meData = jsonDecode(meRes.body);
+                //           final isConnected = meData['is_connected'] as bool;
+                //           if (isConnected && mounted) {
+                //             Navigator.pushReplacementNamed(
+                //               context,
+                //               '/client-dashboard',
+                //               arguments: widget.token,
+                //             );
+                //           }
+                //         }
+                //       } catch (_) {}
+                //     }
+                //   },
+                // ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.black),
                   onPressed: () => showLogoutDialog(context),
