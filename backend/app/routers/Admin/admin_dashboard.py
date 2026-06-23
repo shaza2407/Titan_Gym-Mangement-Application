@@ -7,7 +7,7 @@ from app.models.User import User
 from app.models.Admin import Admin
 from app.dependencies.auth import get_current_user
 from sqlalchemy import func
-from app.schemas.admin_profile import AdminProfileUpdate
+from app.schemas.admin.admin_profile import AdminProfileUpdate
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.coach import Coach
 from app.models import User
-from app.schemas.coach_schemas import CoachProfileUpdate
+from app.schemas.coach.coach_schemas import CoachProfileUpdate
 
 
 def _split_specializations(value: str | None) -> list[str] | None:

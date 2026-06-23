@@ -4,7 +4,7 @@ from sqlalchemy import select , func
 import secrets
 from datetime import timezone
 from datetime import datetime, timedelta, date ,date as date_type
-from app.services.notification_service import notify_invite
+from app.services.notifications.notification_service import notify_invite
 from dateutil.relativedelta import relativedelta
 from app.database import get_session
 from app.dependencies.auth import get_current_user
@@ -15,17 +15,19 @@ from app.models.notification import Notification
 from app.models.subscription import Subscription
 from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
 from app.models.member_invitation import MemberInvitation, InvitationStatus
-from app.schemas.UserRole import UserRole
-from app.schemas.renewMembershipRequest import RenewMembershipRequest
-from app.schemas.client_schemas import (
+from app.schemas.shared.UserRole import UserRole
+from app.schemas.admin.renewMembershipRequest import RenewMembershipRequest
+from app.schemas.client.client_schemas import (
     InviteClientRequest, InviteClientResponse,
     ClientListResponse, ClientListItem,
 )
+from app.email_utils import send_invitation_email
 from app.dependencies.gym_member_managment import get_admin_gym
 from app.models import Attendance
 
 
 router = APIRouter(prefix="/admin/gyms", tags=["Admin - Client Management"])
+
 # GET /admin/gyms/{gym_id}/clients
 @router.get("/{gym_id}/clients", response_model=ClientListResponse)
 async def list_clients(status_filter: str | None = None,
@@ -524,7 +526,7 @@ async def get_gym_member_count(
     gym_id: int,
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),):
-    
+
     count = (await db.execute(
         select(func.count(GymClientMembership.id))
         .where(GymClientMembership.gymID == gym_id)

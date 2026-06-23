@@ -6,16 +6,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_session
 from app.dependencies.auth import require_admin
-from app.services.notification_service import notify_gym_clients
+from app.services.notifications.notification_service import notify_gym_clients
 from app.models.Admin import Admin
 from app.models.class_session import ClassSession
 from app.models.Gym import Gym
-from app.schemas.schedule_schema import (
+from app.schemas.shared.schedule_schema import (
     CreateClassRequest,
     EditClassRequest,
     AdminScheduleStatsResponse,
 )
-from app.services.admin_schedule import (
+from app.services.admin.admin_schedule import (
     get_admin_schedule_stats,
     get_all_classes,
     create_class,
@@ -27,7 +27,7 @@ from app.services.admin_schedule import (
     get_class_members,
     get_gym_coaches,
 )
-from app.services.notification_service import notify_Coach_on_class_approval
+from app.services.notifications.notification_service import notify_Coach_on_class_approval
 
 router = APIRouter(prefix="/admin/schedule", tags=["Admin Schedule"])
 
@@ -187,9 +187,9 @@ async def approve_class_request(
     if not success:
         status_code = 404 if "not found" in (error or "").lower() else 409
         raise HTTPException(status_code, error)
-    
+
     gym_name = (await db.execute(select(Gym.gymName).where(Gym.gymID == gym_id))).scalar_one_or_none()
-    await notify_Coach_on_class_approval(   
+    await notify_Coach_on_class_approval(
         db=db,
         request_id=request_id,
         gym_id=gymID,
@@ -216,10 +216,10 @@ async def reject_class_request(
     success = await reject_request(request_id, gymID, db)
     if not success:
         raise HTTPException(404, "Request not found or already processed")
-    
+
     gym_name = (await db.execute(select(Gym.gymName).where(Gym.gymID == gym_id))).scalar_one_or_none()
 
-    await notify_Coach_on_class_approval(  
+    await notify_Coach_on_class_approval(
         db=db,
         request_id=request_id,
         gym_id=gymID,
@@ -231,5 +231,5 @@ async def reject_class_request(
             "request_id": str(request_id),
         },
     )
-    
+
     return {"message": "Request rejected"}

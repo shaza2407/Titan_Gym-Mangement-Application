@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import '../../data/training_plan_repository.dart';
 import '../../domain/training_plan_model.dart';
+import '../../../shared/api_constants.dart';
 
 class ClientTrainingPlanController extends ChangeNotifier {
   final TrainingPlanRepository _repo = TrainingPlanRepository();
@@ -259,8 +260,9 @@ class ClientTrainingPlanController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final baseUrl = ApiConstants.baseUrl; 
       final res = await http.get(
-        Uri.parse('http://127.0.0.1:8000/training-plans/${activePlan!.planID}/pdf'),
+        Uri.parse('${baseUrl}/training-plans/${activePlan!.planID}/pdf'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -271,10 +273,12 @@ class ClientTrainingPlanController extends ChangeNotifier {
         await file.writeAsBytes(res.bodyBytes);
         await OpenFilex.open(file.path);
       } else {
-        errorMessage = 'Failed to download PDF.';
+        errorMessage = 'Failed to download PDF (${res.statusCode}).';
+        notifyListeners();
       }
     } catch (e) {
-      errorMessage = 'Error saving PDF: $e';
+      errorMessage = 'Error downloading PDF: $e';
+      notifyListeners();
     } finally {
       isLoading = false;
       notifyListeners();

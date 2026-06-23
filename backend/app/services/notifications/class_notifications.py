@@ -3,7 +3,7 @@ from sqlalchemy import select
 from app.models.notification import FcmToken
 from app.models import User
 from app.models.client import Client
-from app.services.notification_service import send_push_notification ,save_notification
+from app.services.notifications.notification_service import send_push_notification ,save_notification
 from app.database import get_session
 
 

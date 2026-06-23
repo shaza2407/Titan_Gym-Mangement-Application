@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from app.schemas.UserRole import UserRole
+from app.schemas.shared.UserRole import UserRole
 
 class SignUpRequest(BaseModel):
     name: str
