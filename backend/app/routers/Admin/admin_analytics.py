@@ -14,7 +14,7 @@ from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.class_session import ClassSession
 from app.models.class_enrollment import ClassEnrollment
-from app.schemas.analytics_schemas import (
+from app.schemas.admin.analytics_schemas import (
     AnalyticsSummaryResponse,
     RevenueTrendResponse,
     MemberGrowthResponse,

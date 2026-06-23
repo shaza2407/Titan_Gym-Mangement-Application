@@ -9,10 +9,10 @@ from app.database import get_session
 from app.dependencies.auth import require_client
 from app.models.client import Client
 from app.models.notification import Notification
-from app.schemas.schedule_schema import ClientScheduleStatsResponse
+from app.schemas.shared.schedule_schema import ClientScheduleStatsResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from app.services.class_notifications import notify_class_reminder
-from app.services.client_schedule import (
+from app.services.notifications.class_notifications import notify_class_reminder
+from app.services.client.client_schedule import (
     get_client_schedule_stats,
     get_my_classes,
     browse_classes,

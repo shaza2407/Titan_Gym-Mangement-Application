@@ -8,7 +8,7 @@ from app.models.coach import Coach
 from app.models.announcement import Announcement
 from app.models.class_session import ClassSession
 from app.models.gym_coachs_membership import GymCoachMembership, CoachMembershipStatus
-from app.services.coach_schedule import _count_enrolled, _next_occurrence
+from app.services.coach.coach_schedule import _count_enrolled, _next_occurrence
 
 
 async def get_coach_active_gyms(user_id: int, db: AsyncSession)->list:

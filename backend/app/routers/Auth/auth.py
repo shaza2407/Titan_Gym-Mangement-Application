@@ -3,22 +3,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_session
 from app.models import User, Client, Coach, Admin
-from app.schemas import SignUpRequest, SignUpResponse, SignInRequest, SignInResponse
-from app.schemas.ForgotPasswordRequest import ForgotPasswordRequest
-from app.schemas.ResetPasswordRequest import ResetPasswordRequest
-from app.schemas.ResendVerficationRequest import ResendVerificationRequest    
-from app.schemas.VerifyEmailRequest import VerifyEmailRequest
+from app.schemas.auth import SignUpResponse
+from app.schemas.auth.ForgotPasswordRequest import ForgotPasswordRequest
+from app.schemas.auth.ResetPasswordRequest import ResetPasswordRequest
+from app.schemas.auth.ResendVerficationRequest import ResendVerificationRequest    
+from app.schemas.auth.VerifyEmailRequest import VerifyEmailRequest
 from app.models.member_invitation import MemberInvitation, InvitationStatus
 from passlib.context import CryptContext
 from jose import jwt
 import datetime
 import bcrypt
 import random
-from app.email_utils import send_verification_email, send_reset_email
-import secrets
+from app.services.notifications.email_utils import send_verification_email, send_reset_email
 
 from datetime import datetime, date, timedelta
 from app.models import GymClientMembership, GymCoachMembership
+from app.schemas.auth.SignInResponse import SignInResponse
+from app.schemas.auth.SignInRequest import SignInRequest
+from app.schemas.auth.SignUpRequest import SignUpRequest
+from app.schemas.auth.SignUpResponse import SignUpResponse
 
 router = APIRouter(prefix="/auth", tags=["Auth"])           #path prefix for all routes in this file, and tag for docs
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

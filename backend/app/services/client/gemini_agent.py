@@ -16,8 +16,8 @@ from fastapi import HTTPException
 from app.models.training_plan import TrainingPlan
 from app.models.client import Client
 from app.models.gymMachineInventory import GymMachineInventory
-from app.schemas.TrainingPlanRequest import TrainingPlanRequest
-from app.schemas.TrainingPlanResponse import TrainingPlanResponse, WeekPlan, DayPlan
+from app.schemas.client.TrainingPlanRequest import TrainingPlanRequest
+from app.schemas.client.TrainingPlanResponse import TrainingPlanResponse, WeekPlan, DayPlan
 
 logger = logging.getLogger(__name__)
 

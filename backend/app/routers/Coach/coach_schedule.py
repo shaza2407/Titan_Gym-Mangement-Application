@@ -8,13 +8,13 @@ from app.database import get_session
 from app.dependencies.auth import require_coach
 from app.models.coach import Coach
 from app.models.class_session import ClassSession
-from app.services.notification_service import notify_gym_clients
-from app.schemas.coach_schemas import (
+from app.services.notifications.notification_service import notify_gym_clients
+from app.schemas.coach.coach_schemas import (
     CoachGymLookUpResponse,
     CoachScheduleStatsResponse,
     CreateClassRequestPayload,
 )
-from app.services.coach_schedule import (
+from app.services.coach.coach_schedule import (
     get_schedule_stats,
     get_weekly_schedule,
     get_my_classes,
@@ -25,7 +25,7 @@ from app.services.coach_schedule import (
     remove_class_request,
     get_coach_gyms_lookup
 )
-from app.services.notification_service import notify_admin
+from app.services.notifications.notification_service import notify_admin
 from app.models.Gym import Gym
 
 router = APIRouter(prefix="/coach/schedule", tags=["Coach Schedule"])

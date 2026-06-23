@@ -13,7 +13,7 @@ from sqlalchemy.orm import selectinload
 from app.models.training_plan import TrainingPlan, PlanStatus
 from app.models.training_plan import TrainingPlanTracking, WorkoutStatus, TrainingPlanWeekProgress
 from app.models.client import Client
-from app.services.achievement_engine import achievement_engine
+from backend.app.services.coach.achievement_engine import achievement_engine
 
 logger = logging.getLogger(__name__)
 

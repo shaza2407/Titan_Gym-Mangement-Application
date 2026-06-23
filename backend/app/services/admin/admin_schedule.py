@@ -8,7 +8,7 @@ from app.models.class_request import ClassRequest, RequestStatus
 from app.models.class_enrollment import ClassEnrollment
 from app.models.coach import Coach
 from app.models import User
-from app.schemas.schedule_schema import CreateClassRequest, EditClassRequest
+from app.schemas.shared.schedule_schema import CreateClassRequest, EditClassRequest
 from app.models import GymCoachMembership
 from datetime import date, timedelta, datetime
 

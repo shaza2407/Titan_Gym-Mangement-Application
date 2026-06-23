@@ -10,9 +10,9 @@ from app.models.client import Client
 from app.models.Gym import Gym
 from app.models.announcement import Announcement
 from app.models.gym_clients_membership import GymClientMembership
-from app.schemas.gym import GymResponse
-from app.schemas.announcement_schema import AnnouncementResponse
-from app.services.admin_schedule import get_all_classes, DAY_NAMES
+from app.schemas.admin.gym import GymResponse
+from app.schemas.admin.announcement_schema import AnnouncementResponse
+from app.services.admin.admin_schedule import get_all_classes, DAY_NAMES
 from typing import List
 
 router = APIRouter(prefix="/client", tags=["Client - Gym"])
