@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from app.database import get_session
 from app.dependencies.auth import get_current_user
 from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
-from app.models.retention_offer import RetentionOffer
+from app.models.retention_offer import RetentionOffer, RetentionOfferRecipient
 from app.models.client import Client
 from app.models.User import User
 # from churn import predict_churn_risk
@@ -129,6 +129,7 @@ async def preview_members(gym_id: int, request: PreviewRequest, db: AsyncSession
 async def create_and_send_offer(gym_id: int, request: CreateOfferRequest, db: AsyncSession = Depends(get_session), current_user=Depends(get_current_user)):
     if not request.selected_member_ids:
         raise HTTPException(status_code=400, detail="No members selected")
+
     offer = RetentionOffer(
         gymId = gym_id,
         title = request.title,
@@ -140,6 +141,21 @@ async def create_and_send_offer(gym_id: int, request: CreateOfferRequest, db: As
         number_of_members = len(request.selected_member_ids),
     )
     db.add(offer) ## We need to send notification here
+    await db.flush()
+
+    for membership_id in request.selected_member_ids:
+        result = await db.execute(select(GymClientMembership).where(
+            GymClientMembership.id == membership_id
+        ))
+        membership = result.scalar_one_or_none()
+        risk = f"{await predict_churn_risk(membership, db)} Risk" if membership else "Unknown"
+        db.add(RetentionOfferRecipient(
+            offer_id=offer.id,
+            membership_id=membership_id,
+            risk_level=risk,
+        ))
+
+    print("Debug from send offer: ", request.selected_member_ids)
     await db.commit()
     await db.refresh(offer)
     return {
