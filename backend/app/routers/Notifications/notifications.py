@@ -22,6 +22,15 @@ async def get_notifications(user_id: int, db: AsyncSession = Depends(get_session
     )
     return result.scalars().all()
 
+@router.get("/{user_id}/unread-count")
+async def get_unread_count(user_id: int, db: AsyncSession = Depends(get_session)):
+    result = await db.execute(
+        select(func.count())
+        .select_from(Notification)
+        .where(Notification.user_id == user_id)
+    )
+    count = result.scalar()
+    return {"has_unread": count > 0}
 
 @router.patch("/{notification_id}/read")
 async def mark_read(notification_id: str, db: AsyncSession = Depends(get_session)):

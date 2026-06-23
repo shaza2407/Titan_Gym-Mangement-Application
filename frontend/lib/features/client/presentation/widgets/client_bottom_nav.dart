@@ -1,18 +1,7 @@
-// lib/features/client/presentation/widgets/client_bottom_nav.dart
-
 import 'package:flutter/material.dart';
 
-/// Shared bottom navigation bar used across all client screens.
-///
-/// Usage:
-/// ```dart
-/// bottomNavigationBar: ClientBottomNav(
-///   currentIndex: _currentIndex,
-///   onTap: (i) => setState(() => _currentIndex = i),
-/// ),
-/// ```
 class ClientBottomNav extends StatelessWidget {
-  final int currentIndex;
+  final int currentIndex; // -1 = no tab highlighted
   final ValueChanged<int> onTap;
 
   const ClientBottomNav({
@@ -23,11 +12,16 @@ class ClientBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // BottomNavigationBar requires a valid index, so clamp to 0 when none selected
+    final displayIndex = currentIndex < 0 ? 0 : currentIndex;
+
     return BottomNavigationBar(
-      currentIndex: currentIndex,
+      currentIndex: displayIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: const Color(0xFF4F46E5),
+      selectedItemColor: currentIndex < 0
+          ? Colors.grey // no tab active → treat all as unselected
+          : const Color(0xFF4F46E5),
       unselectedItemColor: Colors.grey,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Home'),

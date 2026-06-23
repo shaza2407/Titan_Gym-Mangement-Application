@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_achievement_controller.dart';
 import '../../domain/achievement_model.dart';
-import '../widgets/client_bottom_nav.dart';
 
 class ClientAchievementScreen extends StatefulWidget {
   final String token;
@@ -113,10 +112,6 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
                 ],
               );
             },
-          ),
-          bottomNavigationBar: ClientBottomNav(
-            currentIndex: 0, // reached from Home actions
-            onTap: (i) => Navigator.pop(context, i == 0 ? null : i),
           ),
         ),
       ),

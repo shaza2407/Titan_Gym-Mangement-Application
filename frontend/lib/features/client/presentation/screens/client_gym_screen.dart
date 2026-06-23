@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_gym_controller.dart';
 import '../../domain/gym_model.dart';
-import '../widgets/client_bottom_nav.dart';
 
 class ClientGymScreen extends StatefulWidget {
   final String token;
@@ -65,10 +64,6 @@ class _ClientGymScreenState extends State<ClientGymScreen> {
                 : ctrl.errorMessage != null
                 ? _buildError(ctrl)
                 : _buildBody(ctrl),
-            bottomNavigationBar: ClientBottomNav(
-              currentIndex: 0, // reached from Home actions
-              onTap: (i) => Navigator.pop(context, i == 0 ? null : i),
-            ),
           );
         },
       ),
@@ -176,7 +171,6 @@ class _ClientGymScreenState extends State<ClientGymScreen> {
               index: 0,
               icon: Icons.notifications_outlined,
               label: 'Announcements',
-              badgeCount: ctrl.announcements.length,
             ),
           ),
           Expanded(
