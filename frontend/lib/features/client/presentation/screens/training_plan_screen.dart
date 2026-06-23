@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_training_plan_controller.dart';
-import '../widgets/client_bottom_nav.dart';
+
 
 class TrainingPlanScreen extends StatefulWidget {
   final String token;
@@ -76,10 +76,6 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
 
             return _buildActivePlanView(ctrl);
           },
-        ),
-        bottomNavigationBar: ClientBottomNav(
-          currentIndex: 0, // reached from Home actions
-          onTap: (i) => Navigator.pop(context, i == 0 ? null : i),
         ),
       ),
     );
