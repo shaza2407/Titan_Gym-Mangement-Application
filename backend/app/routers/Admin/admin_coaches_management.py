@@ -2,10 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.services.notification_service import notify_invite
-
-
+from app.dependencies.auth import get_current_user
 from app.database import get_session
 from app.models.User import User
 from app.models.coach import Coach
@@ -17,8 +16,8 @@ from app.schemas.coach_schemas import (
     InviteCoachRequest, InviteCoachResponse,
     CoachListResponse, CoachListItem,
 )
-from app.email_utils import send_invitation_email
 from app.dependencies.gym_member_managment import get_admin_gym
+from app.services.notification_service import save_notification , send_push_notification
 
 router = APIRouter(prefix="/admin/gyms/{gym_id}/coaches", tags=["Admin - Coach Management"])
 
@@ -151,10 +150,8 @@ async def invite_member(body: InviteCoachRequest,
         db.add(inv)
 
     await db.commit()
-    await send_invitation_email(body.email, gym.gymName, inv.token)
-    await notify_invite(db, body.email, gym.gymName, "coach")
-
-    
+    # await send_invitation_email(body.email, gym.gymName, inv.token)
+    await notify_invite(db, body.email, gym.gymName, "coach", gym_id=gym.gymID, token=inv.token)
     return InviteCoachResponse(message="Invitation sent successfully.", email=body.email)
 
 
@@ -181,5 +178,115 @@ async def suspend_coach(
     await db.commit()
     return {"message": "Coach suspended successfully."}
 
+
+
+@router.post("/{member_id}/unsuspend")
+async def unsuspend_coach(
+    member_id: int,
+    db: AsyncSession = Depends(get_session),
+    gym: Gym = Depends(get_admin_gym),
+):
+    membership = (await db.execute(
+        select(GymCoachMembership)
+        .join(Coach, GymCoachMembership.coachID == Coach.coachID)
+        .where(
+            GymCoachMembership.gymID == gym.gymID,
+            Coach.userID == member_id,
+        )
+    )).scalar_one_or_none()
+
+    if not membership:
+        raise HTTPException(404, "Coach not found in this gym.")
+
+    membership.status = CoachMembershipStatus.active
+    await db.commit()
+    return {"message": "Client unsuspended successfully."}
+
+
+# POST /admin/gyms/{gym_id}/coaches/invitations/accept
+@router.post("/invitations/accept")
+async def accept_coach_invitation(
+    token: str,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    # 1. Find invitation
+    inv = (await db.execute(
+        select(MemberInvitation).where(
+            MemberInvitation.token == token,
+            MemberInvitation.status == InvitationStatus.pending,
+            MemberInvitation.invited_as == "coach",
+        )
+    )).scalar_one_or_none()
+
+    if not inv:
+        raise HTTPException(404, "Invitation not found or already used.")
+
+    # 2. Check not expired
+    if inv.expires_at < datetime.now(timezone.utc):
+        raise HTTPException(400, "Invitation has expired.")
+
+    # 3. Check email matches
+    if inv.email.lower() != current_user.email.lower():
+        raise HTTPException(403, "This invitation is not for your account.")
+
+    # 4. Get coach record
+    coach = (await db.execute(
+        select(Coach).where(Coach.userID == current_user.userID)
+    )).scalar_one_or_none()
+
+    if not coach:
+        raise HTTPException(404, "Coach profile not found.")
+
+    # 5. Check not already a coach in this gym
+    already = (await db.execute(
+        select(GymCoachMembership).where(
+            GymCoachMembership.coachID == coach.coachID,
+            GymCoachMembership.gymID == inv.gymID,
+        )
+    )).scalar_one_or_none()
+
+    if already:
+        raise HTTPException(400, "Already a coach in this gym.")
+
+    # 6. Create membership — no subscription, no expiry
+    membership = GymCoachMembership(
+        coachID=coach.coachID,
+        gymID=inv.gymID,
+        status=CoachMembershipStatus.active,
+    )
+    db.add(membership)
+
+    # 7. Mark invitation as accepted
+    inv.status = InvitationStatus.accepted
+
+    await db.commit()
+    return {"message": "Invitation accepted. You are now a coach at this gym!"}
+
+
+# POST /admin/gyms/{gym_id}/coaches/invitations/decline
+@router.post("/invitations/decline")
+async def decline_coach_invitation(
+    token: str,
+    db: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    inv = (await db.execute(
+        select(MemberInvitation).where(
+            MemberInvitation.token == token,
+            MemberInvitation.status == InvitationStatus.pending,
+            MemberInvitation.invited_as == "coach",
+        )
+    )).scalar_one_or_none()
+
+    if not inv:
+        raise HTTPException(404, "Invitation not found.")
+
+    if inv.email.lower() != current_user.email.lower():
+        raise HTTPException(403, "This invitation is not for your account.")
+
+    inv.status = InvitationStatus.declined
+    await db.commit()
+    return {"message": "Invitation declined."}
 
 

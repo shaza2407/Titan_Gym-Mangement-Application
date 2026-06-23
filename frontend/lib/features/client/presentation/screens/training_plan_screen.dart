@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_training_plan_controller.dart';
+import '../widgets/client_bottom_nav.dart';
 
 class TrainingPlanScreen extends StatefulWidget {
   final String token;
@@ -76,6 +77,10 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             return _buildActivePlanView(ctrl);
           },
         ),
+        bottomNavigationBar: ClientBottomNav(
+          currentIndex: 0, // reached from Home actions
+          onTap: (i) => Navigator.pop(context, i == 0 ? null : i),
+        ),
       ),
     );
   }
@@ -98,7 +103,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                     color: Color(0x1F4F46E5),
                     blurRadius: 30,
                     spreadRadius: 5,
-                  )
+                  ),
                 ],
               ),
               child: const SizedBox(
@@ -167,11 +172,14 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                       ),
                       Text(
                         'Tell us about your fitness targets, and we will formulate a personalized gym program based on real available equipment.',
-                        style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 12),
+                        style: TextStyle(
+                          color: Color(0xFFE2E8F0),
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -226,7 +234,10 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             style: const TextStyle(color: Colors.black, fontSize: 14),
             decoration: InputDecoration(
               hintText: 'e.g. Knee pain, lower back stiffness, none...',
-              hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+              hintStyle: const TextStyle(
+                color: Color(0xFF9CA3AF),
+                fontSize: 13,
+              ),
               filled: true,
               fillColor: const Color(0xFFF9FAFB),
               border: OutlineInputBorder(
@@ -321,7 +332,12 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
         decoration: const InputDecoration(border: InputBorder.none),
         style: const TextStyle(color: Colors.black, fontSize: 14),
         items: ctrl.goals
-            .map((g) => DropdownMenuItem(value: g, child: Text(g, style: const TextStyle(color: Colors.black))))
+            .map(
+              (g) => DropdownMenuItem(
+                value: g,
+                child: Text(g, style: const TextStyle(color: Colors.black)),
+              ),
+            )
             .toList(),
         onChanged: (val) => ctrl.setGoal(val!),
       ),
@@ -342,7 +358,9 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                 color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFFD1D5DB),
+                  color: isSelected
+                      ? const Color(0xFF4F46E5)
+                      : const Color(0xFFD1D5DB),
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -376,7 +394,15 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
         decoration: const InputDecoration(border: InputBorder.none),
         style: const TextStyle(color: Colors.black, fontSize: 14),
         items: ctrl.weekOptions
-            .map((w) => DropdownMenuItem(value: w, child: Text('$w Weeks', style: const TextStyle(color: Colors.black))))
+            .map(
+              (w) => DropdownMenuItem(
+                value: w,
+                child: Text(
+                  '$w Weeks',
+                  style: const TextStyle(color: Colors.black),
+                ),
+              ),
+            )
             .toList(),
         onChanged: (val) => ctrl.setWeeks(val!),
       ),
@@ -398,7 +424,15 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
         decoration: const InputDecoration(border: InputBorder.none),
         style: const TextStyle(color: Colors.black, fontSize: 14),
         items: ctrl.daysPerWeekOptions
-            .map((d) => DropdownMenuItem(value: d, child: Text('$d Days', style: const TextStyle(color: Colors.black))))
+            .map(
+              (d) => DropdownMenuItem(
+                value: d,
+                child: Text(
+                  '$d Days',
+                  style: const TextStyle(color: Colors.black),
+                ),
+              ),
+            )
             .toList(),
         onChanged: (val) => ctrl.setDaysPerWeek(val!),
       ),
@@ -418,7 +452,9 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
               color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFFD1D5DB),
+                color: isSelected
+                    ? const Color(0xFF4F46E5)
+                    : const Color(0xFFD1D5DB),
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -429,14 +465,20 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                   eq,
                   style: TextStyle(
                     color: isSelected ? const Color(0xFF4F46E5) : Colors.black,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
                 Icon(
-                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                  color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF9CA3AF),
+                  isSelected
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
+                  color: isSelected
+                      ? const Color(0xFF4F46E5)
+                      : const Color(0xFF9CA3AF),
                   size: 20,
-                )
+                ),
               ],
             ),
           ),
@@ -462,7 +504,11 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: const Color(0xFFE5E7EB)),
               boxShadow: const [
-                BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+                BoxShadow(
+                  color: Color(0x0A000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
               ],
             ),
             child: Column(
@@ -482,7 +528,10 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.download_rounded, color: Color(0xFF4F46E5)),
+                      icon: const Icon(
+                        Icons.download_rounded,
+                        color: Color(0xFF4F46E5),
+                      ),
                       onPressed: () => ctrl.downloadPlanPdf(widget.token),
                       tooltip: 'Download PDF',
                     ),
@@ -497,7 +546,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                           await ctrl.deletePlan(widget.token, plan.planID);
                         }
                       },
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -547,12 +596,16 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                   final success = await ctrl.completePlan(widget.token);
                   if (success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Plan completed! Congratulations!')),
+                      const SnackBar(
+                        content: Text('Plan completed! Congratulations!'),
+                      ),
                     );
                   } else if (!success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(ctrl.errorMessage ?? 'Failed to complete plan.'),
+                        content: Text(
+                          ctrl.errorMessage ?? 'Failed to complete plan.',
+                        ),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -567,7 +620,10 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
               ),
               child: const Text(
                 'Complete Program',
-                style: TextStyle(color: Color(0xFF4F46E5), fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Color(0xFF4F46E5),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -619,7 +675,9 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                 color: isSelected ? const Color(0xFF4F46E5) : Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFFD1D5DB),
+                  color: isSelected
+                      ? const Color(0xFF4F46E5)
+                      : const Color(0xFFD1D5DB),
                 ),
               ),
               child: Text(
@@ -649,7 +707,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
         ),
       );
     }
-    
+
     final week = ctrl.activePlan!.plan.firstWhere(
       (w) => w.week == ctrl.selectedWeekNumber,
       orElse: () => ctrl.activePlan!.plan.first,
@@ -670,9 +728,13 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             ),
             child: Text(
               'Theme: ${week.theme}',
-              style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 13, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Color(0xFF4F46E5),
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          )
+          ),
         ],
         ListView.builder(
           shrinkWrap: true,
@@ -680,9 +742,13 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
           itemCount: week.days.length,
           itemBuilder: (context, dayIndex) {
             final day = week.days[dayIndex];
-            final doneExercises = day.exercises.where((e) => e.isCompleted).length;
+            final doneExercises = day.exercises
+                .where((e) => e.isCompleted)
+                .length;
             final totalExercises = day.exercises.length;
-            final pct = totalExercises > 0 ? (doneExercises / totalExercises) : 0.0;
+            final pct = totalExercises > 0
+                ? (doneExercises / totalExercises)
+                : 0.0;
 
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -690,201 +756,316 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: day.isCompleted ? const Color(0xFF10B981).withValues(alpha: 0.4) : const Color(0xFFE5E7EB),
+                  color: day.isCompleted
+                      ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                      : const Color(0xFFE5E7EB),
                 ),
                 boxShadow: const [
-                  BoxShadow(color: Color(0x05000000), blurRadius: 10, offset: Offset(0, 4))
+                  BoxShadow(
+                    color: Color(0x05000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
                 ],
               ),
               child: Material(
                 color: Colors.transparent,
                 child: Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  data: Theme.of(
+                    context,
+                  ).copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
                     collapsedIconColor: Colors.black,
-                  iconColor: Colors.black,
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            day.day,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            day.focus,
-                            style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '$doneExercises/$totalExercises done',
-                            style: const TextStyle(color: Color(0xFF4F46E5), fontSize: 11, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          SizedBox(
-                            width: 60,
-                            height: 4,
-                            child: LinearProgressIndicator(
-                              value: pct,
-                              backgroundColor: const Color(0xFFF3F4F6),
-                              color: const Color(0xFF4F46E5),
-                            ),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Column(
-                        children: [
-                          if (day.notes != null && day.notes!.trim().isNotEmpty) ...[
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF9FAFB),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFE5E7EB)),
-                              ),
-                              child: Text(
-                                'Day Notes: ${day.notes}',
-                                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11, fontStyle: FontStyle.italic),
+                    iconColor: Colors.black,
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              day.day,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            Text(
+                              day.focus,
+                              style: const TextStyle(
+                                color: Color(0xFF6B7280),
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
-                          
-                          // Exercises
-                          ...List.generate(day.exercises.length, (exIndex) {
-                            final ex = day.exercises[exIndex];
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF9FAFB),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: ex.isCompleted ? const Color(0xFF10B981).withValues(alpha: 0.2) : const Color(0xFFE5E7EB),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '$doneExercises/$totalExercises done',
+                              style: const TextStyle(
+                                color: Color(0xFF4F46E5),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              width: 60,
+                              height: 4,
+                              child: LinearProgressIndicator(
+                                value: pct,
+                                backgroundColor: const Color(0xFFF3F4F6),
+                                color: const Color(0xFF4F46E5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Column(
+                          children: [
+                            if (day.notes != null &&
+                                day.notes!.trim().isNotEmpty) ...[
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF9FAFB),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: const Color(0xFFE5E7EB),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Day Notes: ${day.notes}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF6B7280),
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                  ),
                                 ),
                               ),
-                              child: Row(
-                                children: [
-                                  Checkbox(
-                                    value: ex.isCompleted,
-                                    activeColor: const Color(0xFF4F46E5),
-                                    checkColor: Colors.white,
-                                    side: const BorderSide(color: Color(0xFF9CA3AF)),
-                                    onChanged: (_) => ctrl.toggleExerciseCompletion(dayIndex, exIndex),
+                              const SizedBox(height: 12),
+                            ],
+
+                            // Exercises
+                            ...List.generate(day.exercises.length, (exIndex) {
+                              final ex = day.exercises[exIndex];
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF9FAFB),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: ex.isCompleted
+                                        ? const Color(
+                                            0xFF10B981,
+                                          ).withValues(alpha: 0.2)
+                                        : const Color(0xFFE5E7EB),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          ex.name,
-                                          style: TextStyle(
-                                            color: Colors.black87,
-                                            fontWeight: FontWeight.bold,
-                                            decoration: ex.isCompleted ? TextDecoration.lineThrough : null,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Checkbox(
+                                      value: ex.isCompleted,
+                                      activeColor: const Color(0xFF4F46E5),
+                                      checkColor: Colors.white,
+                                      side: const BorderSide(
+                                        color: Color(0xFF9CA3AF),
+                                      ),
+                                      onChanged: (_) =>
+                                          ctrl.toggleExerciseCompletion(
+                                            dayIndex,
+                                            exIndex,
                                           ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              'Sets: ${ex.sets}',
-                                              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            ex.name,
+                                            style: TextStyle(
+                                              color: Colors.black87,
+                                              fontWeight: FontWeight.bold,
+                                              decoration: ex.isCompleted
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
                                             ),
-                                            const SizedBox(width: 12),
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'Sets: ${ex.sets}',
+                                                style: const TextStyle(
+                                                  color: Color(0xFF6B7280),
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                'Reps: ${ex.reps}',
+                                                style: const TextStyle(
+                                                  color: Color(0xFF6B7280),
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (ex.notes != null &&
+                                              ex.notes!.trim().isNotEmpty) ...[
                                             Text(
-                                              'Reps: ${ex.reps}',
-                                              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11),
+                                              'Note: ${ex.notes}',
+                                              style: const TextStyle(
+                                                color: Color(0xFF9CA3AF),
+                                                fontSize: 10,
+                                              ),
                                             ),
                                           ],
-                                        ),
-                                        if (ex.notes != null && ex.notes!.trim().isNotEmpty) ...[
-                                          Text(
-                                            'Note: ${ex.notes}',
-                                            style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 10),
-                                          )
                                         ],
-                                      ],
+                                      ),
                                     ),
-                                  )
-                                ],
-                              ),
-                            );
-                          }),
-                          const SizedBox(height: 12),
-                          
-                          // Log day complete button
-                          if (!day.isCompleted) ...[
-                            SizedBox(
-                              width: double.infinity,
-                              height: 46,
-                              child: ElevatedButton(
-                                onPressed: doneExercises > 0
-                                    ? () => _showLogMinutesDialog(ctrl, dayIndex)
-                                    : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF4F46E5),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                  ],
+                                ),
+                              );
+                            }),
+                            const SizedBox(height: 12),
+
+                            // Log day complete button
+                            if (!day.isCompleted) ...[
+                              SizedBox(
+                                width: double.infinity,
+                                height: 46,
+                                child: ElevatedButton(
+                                  onPressed: doneExercises > 0
+                                      ? () => _showLogMinutesDialog(
+                                          ctrl,
+                                          dayIndex,
+                                        )
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF4F46E5),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Complete Workout Day',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                                child: const Text(
-                                  'Complete Workout Day',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                            ] else ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                width: double.infinity,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFECFDF5),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFFA7F3D0),
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: Color(0xFF10B981),
+                                      size: 16,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Workout Logged & Completed!',
+                                      style: TextStyle(
+                                        color: Color(0xFF065F46),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                          ] else ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              width: double.infinity,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFECFDF5),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFA7F3D0)),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.check_circle, color: Color(0xFF10B981), size: 16),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Workout Logged & Completed!',
-                                    style: TextStyle(color: Color(0xFF065F46), fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                          ]
-                        ],
+                              const SizedBox(height: 8),
+                            ],
+                          ],
+                        ),
                       ),
-                    )
-                  ],
+                    ],
                   ),
                 ),
               ),
             );
           },
         ),
+        if (week.days.isNotEmpty && week.days.every((d) => d.isCompleted)) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () async {
+                final confirm = await _showConfirm(
+                  'Complete Week',
+                  'Are you sure you want to mark this entire week as completed?',
+                );
+                if (confirm == true) {
+                  final success = await ctrl.logWeekCompletion(widget.token);
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Week completed successfully!'),
+                        backgroundColor: Color(0xFF10B981),
+                      ),
+                    );
+                  } else if (!success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          ctrl.errorMessage ?? 'Failed to complete week.',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Mark Week as Completed',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -918,9 +1099,11 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                 suffixStyle: const TextStyle(color: Color(0xFF4F46E5)),
                 filled: true,
                 fillColor: const Color(0xFFF9FAFB),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-            )
+            ),
           ],
         ),
         actions: [
@@ -947,7 +1130,9 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
               } else if (!success && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(ctrl.errorMessage ?? 'Failed to log workout.'),
+                    content: Text(
+                      ctrl.errorMessage ?? 'Failed to log workout.',
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -956,8 +1141,14 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4F46E5),
             ),
-            child: const Text('Save Log', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          )
+            child: const Text(
+              'Save Log',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -971,12 +1162,12 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           title,
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.black87),
-        ),
+        content: Text(message, style: const TextStyle(color: Colors.black87)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -984,11 +1175,15 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text(
+              'Proceed',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            child: const Text('Proceed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          )
+          ),
         ],
       ),
     );

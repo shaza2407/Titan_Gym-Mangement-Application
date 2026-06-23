@@ -24,18 +24,18 @@ class ClientListItem {
   });
 
   factory ClientListItem.fromJson(Map<String, dynamic> json) {
-    return ClientListItem(
-      id: json['id'],
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
-      status: json['status'] ?? 'pending',
-      phone: json['phone'],
-      subscription: json['subscription'],
-      subscriptionEnd: json['subscription_end'],
-      visits: json['visits'],
-      joined: json['joined'],
-      invitationSent: json['invitation_sent'],
-    );
+  return ClientListItem(
+    id:     (json['id'] ?? 0) as int,   
+    name:    json['name']    ?? '',
+    email:   json['email']   ?? '',
+    status:  json['status']  ?? 'pending',
+    phone:   json['phone'],
+    subscription:    json['subscription'],
+    subscriptionEnd: json['subscription_end'],
+    visits:  (json['visits'] as int?), 
+    joined:          json['joined'],
+    invitationSent:  json['invitation_sent'],
+  );
   }
 }
 
@@ -134,20 +134,44 @@ class AdminApiService {
     throw Exception('Failed to load clients: ${res.statusCode}');
   }
 
-  static Future<void> inviteClient(int gymId, String email, String token) async {
-    final res = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/invite'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'email': email}),
-    );
-    if (res.statusCode != 200 && res.statusCode != 201) {
-      final detail = jsonDecode(res.body)['detail'] ?? 'Unknown error';
-      throw Exception(detail);
-    }
+  static Future<void> inviteClient(
+  int gymId,
+  String email,
+  String token, {
+  String subscriptionType = 'monthly',
+  int subscriptionMonths = 1,
+  int subscriptionPrice = 0,
+  }) async {
+  final res = await http.post(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/invite'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'email': email,
+      'subscription_type': subscriptionType,
+      'subscription_months': subscriptionMonths,
+      'subscription_price': subscriptionPrice,
+    }),
+  );
+  if (res.statusCode != 201) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to send invite');
   }
+}
+
+static Future<void> cancelInvitation(int gymId, String email, String token) async {
+  final res = await http.delete(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/invitations/$email'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to cancel invitation');
+  }
+}
 
   static Future<void> suspendClient(int gymId, int clientId, String token) async {
     final res = await http.post(
@@ -162,6 +186,16 @@ class AdminApiService {
       throw Exception(detail);
     }
   }
+
+  static Future<void> unsuspendClient(int gymId, int memberId, String token) async {
+  final res = await http.post(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$memberId/unsuspend'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to unsuspend');
+  }
+}
 
 
   // Coaches
@@ -208,6 +242,16 @@ class AdminApiService {
     }
   }
 
+static Future<void> unsuspendCoach(int gymId, int memberId, String token) async {
+  final res = await http.post(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/coaches/$memberId/unsuspend'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to unsuspend');
+  }
+}
+
 // Admin Profile
 static Future<AdminProfile> fetchAdminProfile(String token) async {
   final res = await http.get(
@@ -231,8 +275,8 @@ static Future<void> updateAdminProfile({
   String? newPassword,
 }) async {
   final body = {
-    'name': name,
-    'phone': phone,
+    'name': name.isEmpty ? null : name,
+    'phone': phone.isEmpty ? null : phone,
     if (currentPassword != null && currentPassword.isNotEmpty)
       'current_password': currentPassword,
     if (newPassword != null && newPassword.isNotEmpty)
@@ -247,11 +291,46 @@ static Future<void> updateAdminProfile({
     },
     body: jsonEncode(body),
   );
+
   if (res.statusCode != 200) {
-    final detail = jsonDecode(res.body)['detail'] ?? 'Unknown error';
-    throw Exception(detail);
+    final detail = jsonDecode(res.body)['detail'];
+    if (detail is List && detail.isNotEmpty) {
+      final msg = (detail.first['message'] as String? ) ?? 
+                  (detail.first['msg'] as String? ?? 'Unknown error').replaceAll('Value error, ', '');
+      throw Exception(msg);
+    }
+    throw Exception(detail ?? 'Unknown error');
   }
 }
+
+static Future<void> updateGym({
+  required int gymId,
+  required String token,
+  required String gymName,
+  required String gymType,
+  required String location,
+  required String openingHours,
+  required String closingHours,
+}) async {
+  final res = await http.patch(
+    Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'gymName': gymName,
+      'gymType': gymType,
+      'location': location,
+      'openingHours': openingHours,
+      'closingHours': closingHours,
+    }),
+  );
+  if (res.statusCode != 200) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to update gym');
+  }
+}
+
 }
 
 //admin profile models
@@ -275,15 +354,15 @@ class AdminProfile {
   });
 
   factory AdminProfile.fromJson(Map<String, dynamic> json) {
-    return AdminProfile(
-      adminID:    json['adminID'],
-      userID:     json['userID'],
-      name:       json['name']       ?? '',
-      email:      json['email']      ?? '',
-      phone:      json['phone'],
-      createdAt:  json['created_at'],
-      totalGyms:  json['total_gyms'] ?? 0,
-    );
-  }
+  return AdminProfile(
+    adminID:   (json['adminID']    ?? 0) as int,
+    userID:    (json['userID']     ?? 0) as int,
+    name:       json['name']       ?? '',
+    email:      json['email']      ?? '',
+    phone:      json['phone'],
+    createdAt:  json['created_at'],
+    totalGyms: (json['total_gyms'] ?? 0) as int,
+  );
+} 
 }
 

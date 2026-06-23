@@ -48,3 +48,8 @@ bcrypt==4.0.1
 firebase-admin==7.4.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
+xgboost
+joblib
+numpy
+scikit-learn
+apscheduler

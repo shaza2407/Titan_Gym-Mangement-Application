@@ -40,20 +40,28 @@ class ClientRepository {
 
   // PUT /client/profile
   Future<ClientProfileModel> updateProfile(
-    String token,
-    Map<String, dynamic> data,
-  ) async {
-    final response = await http.put(
-      Uri.parse('${ApiConstants.baseUrl}/client/profile'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(data),
-    );
-    if (response.statusCode == 200) {
-      return ClientProfileModel.fromJson(jsonDecode(response.body));
-    }
-    throw Exception('Failed to update profile');
+  String token,
+  Map<String, dynamic> data,
+) async {
+  final response = await http.put(
+    Uri.parse('${ApiConstants.baseUrl}/client/profile'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode(data),
+  );
+  if (response.statusCode == 200) {
+    return ClientProfileModel.fromJson(jsonDecode(response.body));
   }
+
+  final detail = jsonDecode(response.body)['detail'];
+  if (detail is List && detail.isNotEmpty) {
+    final msg = (detail.first['message'] as String?) ??
+        (detail.first['msg'] as String? ?? 'Unknown error')
+            .replaceAll('Value error, ', '');
+    throw Exception(msg);
+  }
+  throw Exception(detail ?? 'Failed to update profile');
+}
 }

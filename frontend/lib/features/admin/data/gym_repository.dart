@@ -6,8 +6,6 @@ class GymModel {
   final int gymID;
   final int adminID;
   final String gymName;
-  final double subscriptionPrice;
-  final double yearlySubscriptionPrice;
   final String location;
   final String qrCode;
   final String gymType;
@@ -18,8 +16,6 @@ class GymModel {
     required this.gymID,
     required this.adminID,
     required this.gymName,
-    required this.subscriptionPrice,
-    required this.yearlySubscriptionPrice,
     required this.location,
     required this.qrCode,
     required this.gymType,
@@ -32,8 +28,6 @@ class GymModel {
       gymID:                   json['gymID'],
       adminID:                 json['adminID'],
       gymName:                 json['gymName'],
-      subscriptionPrice:       (json['subscriptionPrice'] as num).toDouble(),
-      yearlySubscriptionPrice: (json['yearlySubscriptionPrice'] as num).toDouble(),
       location:                json['location'],
       qrCode:                  json['QRCode'] ?? '',
       gymType:                 json['gymType'],
@@ -49,7 +43,7 @@ class GymDashboardStats {
   final int totalMembers;
   final int activeSubscriptions;
   final int todayAttendance;
-  final double monthlyRevenue;
+  final int totalClasses;
 
   GymDashboardStats({
     required this.gymID,
@@ -57,7 +51,7 @@ class GymDashboardStats {
     required this.totalMembers,
     required this.activeSubscriptions,
     required this.todayAttendance,
-    required this.monthlyRevenue,
+    required this.totalClasses,
   });
 
   factory GymDashboardStats.fromJson(Map<String, dynamic> json) {
@@ -67,7 +61,7 @@ class GymDashboardStats {
       totalMembers:        json['totalMembers'],
       activeSubscriptions: json['activeSubscriptions'],
       todayAttendance:     json['todayAttendance'],
-      monthlyRevenue:      (json['monthlyRevenue'] as num).toDouble(),
+      totalClasses:        (json['totalClasses'] ?? 0) as int,
     );
   }
 }
@@ -112,13 +106,11 @@ class GymRepository {
 Future<GymModel> createGym({
     required String token,
     required String gymName,
-    required double subscriptionPrice,
-    required double yearlySubscriptionPrice,
     required String location,
     required String gymType,
     required String openingHours,
     required String closingHours,
-    List<Map<String, dynamic>> machines = const [], // ← add this
+    List<Map<String, dynamic>> machines = const [],
 
   }) async {
     final response = await http.post(
@@ -126,8 +118,6 @@ Future<GymModel> createGym({
       headers: _headers(token),
       body: jsonEncode({
         'gymName':                   gymName,
-        'subscriptionPrice':         subscriptionPrice,
-        'yearlySubscriptionPrice':   yearlySubscriptionPrice,
         'location':                  location,
         'gymType':                   gymType,
         'openingHours':              openingHours,
@@ -154,5 +144,47 @@ Future<int> getTotalMembers({required String token}) async {
   } else {
     throw Exception(jsonDecode(response.body)['error getting total members ']);
   }
+}
+
+Future<int> getGymMemberCount({
+  required String token,
+  required int gymId,
+}) async {
+  final response = await http.get(
+    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/member-count'),
+    headers: _headers(token),
+  );
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body)['count'] as int;
+  }
+  return 0;
+}
+
+Future<int> getGymCoachCount({
+  required String token,
+  required int gymId,
+}) async {
+  final response = await http.get(
+    Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId/coach-count'),
+    headers: _headers(token),
+  );
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body)['count'] as int;
+  }
+  return 0;
+}
+
+Future<int> getGymClassCount({
+  required String token,
+  required int gymId,
+}) async {
+  final response = await http.get(
+    Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId/class-count'),
+    headers: _headers(token),
+  );
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body)['count'] as int;
+  }
+  return 0;
 }
 }

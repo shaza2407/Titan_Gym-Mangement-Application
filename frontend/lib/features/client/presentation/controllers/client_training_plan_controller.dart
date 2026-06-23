@@ -163,6 +163,12 @@ class ClientTrainingPlanController extends ChangeNotifier {
       final day = week.days[dayIndex];
       final total = day.exercises.length;
       final completed = day.exercises.where((e) => e.isCompleted).length;
+      final completedIndices = <int>[];
+      for (int i = 0; i < day.exercises.length; i++) {
+        if (day.exercises[i].isCompleted) {
+          completedIndices.add(i);
+        }
+      }
 
       // Call API
       await _repo.completeDay(
@@ -173,6 +179,7 @@ class ClientTrainingPlanController extends ChangeNotifier {
         completedExercises: completed,
         totalExercises: total,
         durationMinutes: durationMinutes,
+        completedExerciseIndices: completedIndices,
       );
 
       day.isCompleted = true;
@@ -182,6 +189,25 @@ class ClientTrainingPlanController extends ChangeNotifier {
       errorMessage = e.toString();
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<bool> logWeekCompletion(String token) async {
+    if (activePlan == null) return false;
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repo.completeWeek(token, activePlan!.planID, selectedWeekNumber);
+      await loadActivePlan(token);
+      return true;
+    } catch (e) {
+      errorMessage = e.toString();
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 

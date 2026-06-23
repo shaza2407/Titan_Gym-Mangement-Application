@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../data/analytics_models.dart';
 import '../data/analytics_service.dart';
+import '../../shared/logout_button.dart';
+
 
 class AnalyticsScreen extends StatefulWidget{
   final String token;
@@ -68,9 +70,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const BackButton(color: Colors.black87),
+        // leading: const BackButton(color: Colors.black87),
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -80,6 +83,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 style: TextStyle(color: Colors.grey, fontSize: 12)),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.black),
+            onPressed: () => showLogoutDialog(context),
+          ),
+        ],
+
       ),
       body: _loading ? const Center(child: CircularProgressIndicator(color: _primary))
           : _error != null ? _buildError()

@@ -7,7 +7,9 @@ from dateutil.relativedelta import relativedelta
 import pytz
 from app.database import get_session
 from app.dependencies.auth import get_current_user
+from app.models import Admin, Subscription
 from app.models.attendance import Attendance
+from app.models import User, Admin, Coach
 from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.class_session import ClassSession
@@ -23,43 +25,40 @@ from app.schemas.analytics_schemas import (
 router = APIRouter(prefix="/admin/analytics", tags=["Admin - Analytics"])
 
 ## help function
-async def _verify_gym_owner(gym_id: int, admin_id: int, db: AsyncSession) -> Gym:
-    result = await db.execute(select(Gym).where(Gym.gymID == gym_id, Gym.adminID == admin_id))
+async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
+    result = await db.execute(select(Admin).where(Admin.userID == user_id))
+    admin = result.scalar_one_or_none()
+    if not admin:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found")
+
+    result = await db.execute(select(Gym).where(Gym.gymID == gym_id, Gym.adminID == admin.adminID))
     gym = result.scalar_one_or_none()
     if not gym:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Gym not found")
+
     return gym
 
-async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
-    monthly_result = await db.execute(
-        select(func.count(GymClientMembership.id)).where(
-            GymClientMembership.gymID == gym.gymID,
-            # GymClientMembership.status == "active",
-            GymClientMembership.subscription == "Monthly",
-            cast(GymClientMembership.joined_at, Date) >= start_date,
-            cast(GymClientMembership.joined_at, Date) <= end_date,
-        )
-    )
-    annual_result = await db.execute(
-        select(func.count(GymClientMembership.id)).where(
-            GymClientMembership.gymID == gym.gymID,
-            # GymClientMembership.status == "active",
-            GymClientMembership.subscription == "Annual",
-            cast(GymClientMembership.joined_at, Date) >= start_date,
-            cast(GymClientMembership.joined_at, Date) <= end_date,
-        )
-    )
 
-    monthly_count = monthly_result.scalar_one_or_none() or 0
-    annual_count = annual_result.scalar_one_or_none() or 0
-    return monthly_count * gym.subscriptionPrice + annual_count * (gym.yearlySubscriptionPrice or gym.subscriptionPrice * 12)
+async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
+    result = await db.execute(
+        select(func.sum(Subscription.supscriptionPrice * Subscription.duration_count))
+        .join(GymClientMembership, Subscription.gymClientMebershipID == GymClientMembership.id)
+        .where(
+            GymClientMembership.gymID == gym.gymID,
+            cast(Subscription.billingDate, Date) >= start_date,
+            cast(Subscription.billingDate, Date) <= end_date,
+        )
+    )
+    return result.scalar_one() or 0
 
 
 
 ## /admin/analytics/{gym_id}/summary
 @router.get("/{gym_id}/summary", response_model=AnalyticsSummaryResponse)
 async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
+    print("Analytics summary requested for gym_id:", gym_id)
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
+    print("finished _verify_gym_owner:", gym_id)
     today = date.today()
     month_start = today.replace(day=1)
     days_elapsed = today.day  # days from the 1st up to and including today
@@ -78,6 +77,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
         select(func.count(GymClientMembership.id)).where(
             GymClientMembership.gymID == gym.gymID,
             GymClientMembership.status == "active",
+            GymClientMembership.subscription_end >= today,
         )
     )
     active_members = active_result.scalar_one_or_none() or 0
@@ -135,6 +135,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     )
     prev_month_classes = prev_classes_result.scalar_one_or_none() or 0
     new_classes_this_month: int = active_classes - prev_month_classes
+    print("return done for :", gym_id)
 
     return AnalyticsSummaryResponse(
         total_revenue=this_month_revenue,

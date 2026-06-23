@@ -1,6 +1,7 @@
 // lib/features/admin/presentation/admin_shell.dart
 
 import 'package:flutter/material.dart';
+import 'admin_schedule_screen.dart';
 import 'gym_dashboard_screen.dart';
 import 'admin_profile.dart';
 import 'analytics_screen.dart';
@@ -19,44 +20,76 @@ class AdminShell extends StatefulWidget {
 class _AdminShellState extends State<AdminShell> {
   int _currentIndex = 0;
 
-  @override
+ @override
   Widget build(BuildContext context) {
-    return Scaffold(
+  return PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, _) {
+      if (_navigatorKeys[_currentIndex].currentState?.canPop() == true) {
+        _navigatorKeys[_currentIndex].currentState?.pop();
+      }
+    },
+    child: Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: _buildBody(),
       bottomNavigationBar: _buildBottomBar(),
+      ),
     );
   }
+final _navigatorKeys = [
+  GlobalKey<NavigatorState>(),
+  GlobalKey<NavigatorState>(),
+  GlobalKey<NavigatorState>(),
+  GlobalKey<NavigatorState>(),
+];
 
-  Widget _buildBody() {
-    switch (_currentIndex) {
-      case 0:
-        return GymDashboardScreen(
-          token: widget.token,
-          gym: widget.gym,
-          onTabChange: _onTap,        
-        );
-      case 1:
-        return AnalyticsScreen(
-          token: widget.token,
-          gymId: widget.gym.gymID,
-          onTabChange: _onTap,
-        );
-      case 2:
-        return const Center(child: Text('Schedule - Coming Soon'));
-      case 3:
-        return AdminProfileScreen(
-          token: widget.token,
-          gymId: widget.gym.gymID,
-          onTabChange: _onTap,);
-      default:
-        return GymDashboardScreen(
-          token: widget.token,
-          gym: widget.gym,
-          onTabChange: _onTap,
-        );
-    }
-  }
+Widget _buildBody() {
+  return IndexedStack(
+    index: _currentIndex,
+    children: [
+      Navigator(
+        key: _navigatorKeys[0],
+        onGenerateRoute: (_) => MaterialPageRoute(
+          builder: (_) => GymDashboardScreen(
+            token: widget.token,
+            gym: widget.gym,
+            onTabChange: _onTap,
+          ),
+        ),
+      ),
+      Navigator(
+        key: _navigatorKeys[1],
+        onGenerateRoute: (_) => MaterialPageRoute(
+          builder: (_) => AnalyticsScreen(
+            token: widget.token,
+            gymId: widget.gym.gymID,
+            onTabChange: _onTap,
+          ),
+        ),
+      ),
+      Navigator(
+        key: _navigatorKeys[2],
+        onGenerateRoute: (_) => MaterialPageRoute(
+          builder: (_) => AdminScheduleScreen(
+            token: widget.token,
+            gymId: widget.gym.gymID,
+            onTabChange: _onTap,
+          ),
+        ),
+      ),
+      Navigator(
+        key: _navigatorKeys[3],
+        onGenerateRoute: (_) => MaterialPageRoute(
+          builder: (_) => AdminProfileScreen(
+            token: widget.token,
+            gymId: widget.gym.gymID,
+            onTabChange: _onTap,
+          ),
+        ),
+      ),
+    ],
+  );
+}
 
   Widget _buildBottomBar() {
     final items = [
@@ -101,7 +134,11 @@ class _AdminShellState extends State<AdminShell> {
   }
 
   void _onTap(int index) {
-    if (index == _currentIndex) return;
+    if (index == _currentIndex) {
+    // Pop to root of current tab if already selected
+      _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+      return;
+    }
     setState(() => _currentIndex = index);
   }
 }

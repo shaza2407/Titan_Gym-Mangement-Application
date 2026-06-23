@@ -60,18 +60,20 @@ class CoachProfileController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      String? phone = phoneController.text.trim().isEmpty ? null : phoneController.text.trim();
+      
       profile = await _repo.updateProfile(token, {
-        'name':             nameController.text.trim(),
-        'phone':            phoneController.text.trim(),
-        'bio':              bioController.text.trim(),
-        'specializations':  selectedSpecializations,
-        'certifications':   certificationsController.text.trim(),
+        'name':             nameController.text.trim().isEmpty ? null : nameController.text.trim(),
+        'phone':            phone,
+        'bio':              bioController.text.trim().isEmpty ? null : bioController.text.trim(),
+        'specializations':  selectedSpecializations.isEmpty ? null : selectedSpecializations,
+        'certifications':   certificationsController.text.trim().isEmpty ? null : certificationsController.text.trim(),
         'years_experience': int.tryParse(yearsExperienceController.text.trim()),
         'date_of_birth':    dateOfBirth,
       });
       return true;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceAll('Exception: ', '');
       return false;
     } finally {
       isSaving = false;

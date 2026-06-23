@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_achievement_controller.dart';
 import '../../domain/achievement_model.dart';
+import '../widgets/client_bottom_nav.dart';
 
 class ClientAchievementScreen extends StatefulWidget {
   final String token;
@@ -11,7 +12,8 @@ class ClientAchievementScreen extends StatefulWidget {
   const ClientAchievementScreen({super.key, required this.token, this.onBack});
 
   @override
-  State<ClientAchievementScreen> createState() => _ClientAchievementScreenState();
+  State<ClientAchievementScreen> createState() =>
+      _ClientAchievementScreenState();
 }
 
 class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
@@ -73,19 +75,35 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
           body: Consumer<ClientAchievementController>(
             builder: (context, ctrl, _) {
               if (ctrl.isLoading) {
-                return const Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5)));
+                return const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF4F46E5)),
+                );
               }
 
               if (ctrl.errorMessage != null) {
-                return Center(child: Text(ctrl.errorMessage!, style: const TextStyle(color: Colors.red)));
+                return Center(
+                  child: Text(
+                    ctrl.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                );
               }
 
               if (ctrl.achievements.isEmpty) {
-                return const Center(child: Text('No achievements available.', style: TextStyle(color: Color(0xFF6B7280))));
+                return const Center(
+                  child: Text(
+                    'No achievements available.',
+                    style: TextStyle(color: Color(0xFF6B7280)),
+                  ),
+                );
               }
 
-              final unlocked = ctrl.achievements.where((a) => a.isUnlocked).toList();
-              final locked = ctrl.achievements.where((a) => !a.isUnlocked).toList();
+              final unlocked = ctrl.achievements
+                  .where((a) => a.isUnlocked)
+                  .toList();
+              final locked = ctrl.achievements
+                  .where((a) => !a.isUnlocked)
+                  .toList();
 
               return TabBarView(
                 children: [
@@ -96,6 +114,10 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
               );
             },
           ),
+          bottomNavigationBar: ClientBottomNav(
+            currentIndex: 0, // reached from Home actions
+            onTap: (i) => Navigator.pop(context, i == 0 ? null : i),
+          ),
         ),
       ),
     );
@@ -104,7 +126,10 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
   Widget _buildList(List<AchievementModel> list) {
     if (list.isEmpty) {
       return const Center(
-        child: Text('No achievements found here.', style: TextStyle(color: Color(0xFF6B7280))),
+        child: Text(
+          'No achievements found here.',
+          style: TextStyle(color: Color(0xFF6B7280)),
+        ),
       );
     }
     return ListView.builder(
@@ -130,7 +155,11 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
           width: isUnlocked ? 2 : 1,
         ),
         boxShadow: const [
-          BoxShadow(color: Color(0x05000000), blurRadius: 8, offset: Offset(0, 2))
+          BoxShadow(
+            color: Color(0x05000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
@@ -140,7 +169,9 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
             height: 60,
             width: 60,
             decoration: BoxDecoration(
-              color: isUnlocked ? const Color(0xFFEEF2FF) : const Color(0xFFF3F4F6),
+              color: isUnlocked
+                  ? const Color(0xFFEEF2FF)
+                  : const Color(0xFFF3F4F6),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -148,17 +179,30 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
                 colorFilter: isUnlocked
                     ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
                     : const ColorFilter.matrix(<double>[
-                        0.2126, 0.7152, 0.0722, 0, 0,
-                        0.2126, 0.7152, 0.0722, 0, 0,
-                        0.2126, 0.7152, 0.0722, 0, 0,
-                        0, 0, 0, 1, 0,
+                        0.2126,
+                        0.7152,
+                        0.0722,
+                        0,
+                        0,
+                        0.2126,
+                        0.7152,
+                        0.0722,
+                        0,
+                        0,
+                        0.2126,
+                        0.7152,
+                        0.0722,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
                       ]),
                 child: Opacity(
                   opacity: isUnlocked ? 1.0 : 0.4,
-                  child: Text(
-                    ach.icon,
-                    style: const TextStyle(fontSize: 32),
-                  ),
+                  child: Text(ach.icon, style: const TextStyle(fontSize: 32)),
                 ),
               ),
             ),
@@ -177,18 +221,27 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: isUnlocked ? Colors.black : const Color(0xFF6B7280),
+                          color: isUnlocked
+                              ? Colors.black
+                              : const Color(0xFF6B7280),
                         ),
                       ),
                     ),
                     if (isUnlocked)
-                      const Icon(Icons.check_circle, color: Color(0xFF4F46E5), size: 20),
+                      const Icon(
+                        Icons.check_circle,
+                        color: Color(0xFF4F46E5),
+                        size: 20,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   ach.description,
-                  style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                  style: const TextStyle(
+                    color: Color(0xFF6B7280),
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -196,11 +249,19 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
                   children: [
                     Text(
                       '${ach.currentValue} / ${ach.target} ${ach.unit}',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
                     ),
                     Text(
                       '${ach.progressPercentage}%',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4F46E5),
+                      ),
                     ),
                   ],
                 ),
@@ -210,7 +271,9 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
                   child: LinearProgressIndicator(
                     value: ach.progressPercentage / 100,
                     backgroundColor: const Color(0xFFE5E7EB),
-                    color: isUnlocked ? const Color(0xFF10B981) : const Color(0xFF4F46E5),
+                    color: isUnlocked
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFF4F46E5),
                     minHeight: 8,
                   ),
                 ),

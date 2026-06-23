@@ -1,7 +1,8 @@
 # app/schemas/coach_schemas.py
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr ,field_validator
 from datetime import date, time, datetime
+import datetime as dt
 from typing import Optional, List
 
 
@@ -17,7 +18,7 @@ class CoachUpcomingClassResponse(BaseModel):
     id:              int
     title:           str
     day_of_week:     Optional[str] = None
-    date:            Optional[date] = None # type: ignore
+    date:            Optional[dt.date] = None # type: ignore
     start_time:      time
     duration:        int
     gym_name:        Optional[str] = None
@@ -40,7 +41,7 @@ class CoachClassResponse(BaseModel):
     id:              int
     title:           str
     day_of_week:     Optional[str] = None
-    date:            Optional[date] = None # type: ignore
+    date:            Optional[dt.date] = None # type: ignore
     start_time:      time
     duration:        int
     is_recurring:    bool
@@ -65,7 +66,7 @@ class CreateClassRequestPayload(BaseModel):
     gym_id:         int
     is_recurring:   bool = True
     day_of_week:    Optional[str]  = None
-    requested_date: Optional[date] = None
+    requested_date: Optional[dt.date] = None
     requested_time: time
     duration:       int
     max_capacity:   int
@@ -101,7 +102,15 @@ class CoachProfileUpdate(BaseModel):
     certifications:   Optional[str]  = None
     years_experience: Optional[int]  = None
     date_of_birth:    Optional[date] = None
-
+ 
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, v):
+        if v is None:
+            return v
+        if not v.startswith('01') or len(v) != 11 or not v.isdigit():
+            raise ValueError('Phone must be 11 digits and start with 01')
+        return v
 
 class CoachProfileResponse(BaseModel):
     userID:           int
@@ -151,5 +160,19 @@ class CoachGymLookUpResponse(BaseModel):
     id: int
     name: str
 
+    class Config:
+        from_attributes = True
+
+
+# ── Coach Gyms ───
+class CoachGymResponse(BaseModel):
+    gym_id: int
+    name: str
+    address: Optional[str] = None
+    status: str
+    clients_count: int
+    classes_count: int
+    next_class: Optional[CoachUpcomingClassResponse] = None
+    
     class Config:
         from_attributes = True

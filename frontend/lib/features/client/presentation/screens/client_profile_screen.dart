@@ -5,6 +5,11 @@ import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
 import '../../../shared/logout_button.dart';
 import '../../../auth/presentation/forget_password_page.dart';
+import '../../../Services/notifications_screen.dart';
+import '../../../Services/token_helper.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../../shared/api_constants.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
@@ -34,27 +39,24 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
           if (ctrl.isLoading) {
             return const Scaffold(
               backgroundColor: Color(0xFFF3F4F6),
-              body: Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5))),
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xFF4F46E5)),
+              ),
             );
           }
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF3F4F6), // Light theme background
+            backgroundColor: const Color(0xFFF3F4F6),
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0.5,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {
-                  if (widget.onBack != null) {
-                    widget.onBack!();
-                  } else if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  } else {
-                    Navigator.pushReplacementNamed(context, '/login');
-                  }
-                },
-              ),
+              automaticallyImplyLeading: false,
+              leading: widget.onBack != null
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.black),
+                      onPressed: () => widget.onBack!(),
+                    )
+                  : null,
               title: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -75,6 +77,47 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               ),
               actions: [
                 IconButton(
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.black,
+                  ),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NotificationsScreen(
+                          userId: getUserIdFromToken(widget.token),
+                          token: widget.token,
+                        ),
+                      ),
+                    );
+
+                    // Only re-check if opened standalone (not connected to gym)
+                    if (widget.onBack == null && mounted) {
+                      try {
+                        final meRes = await http.get(
+                          Uri.parse('${ApiConstants.baseUrl}/client/me'),
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ${widget.token}',
+                          },
+                        );
+                        if (meRes.statusCode == 200 && mounted) {
+                          final meData = jsonDecode(meRes.body);
+                          final isConnected = meData['is_connected'] as bool;
+                          if (isConnected && mounted) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/client-dashboard',
+                              arguments: widget.token,
+                            );
+                          }
+                        }
+                      } catch (_) {}
+                    }
+                  },
+                ),
+                IconButton(
                   icon: const Icon(Icons.logout, color: Colors.black),
                   onPressed: () => showLogoutDialog(context),
                 ),
@@ -84,6 +127,41 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  // ── Not connected banner ────────────────────────
+                  if (widget.onBack == null)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFF59E0B)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Color(0xFFB45309),
+                            size: 18,
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'You are not connected to a gym yet. Complete your profile and contact your gym admin.',
+                              style: TextStyle(
+                                color: Color(0xFFB45309),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   // ── Avatar Card ─────────────────────────────────
                   _buildAvatarCard(ctrl),
                   const SizedBox(height: 16),
@@ -173,7 +251,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Text(
                         ctrl.errorMessage!,
-                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
 
@@ -218,7 +299,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4F46E5), // Indigo Accent
+                        backgroundColor: const Color(0xFF4F46E5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -235,7 +316,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     );
   }
 
-  // ── Widgets ──────────────────────────────────────────────────────────────
+  // ── Widgets ───────────────────────────────────────────────────────────────
 
   Widget _buildAvatarCard(ClientProfileController ctrl) {
     final name = ctrl.profile?.name ?? '';
@@ -251,7 +332,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: const [
-          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -271,7 +356,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
           const SizedBox(height: 12),
           Text(
             name,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 4),
           _buildMembershipBadge(ctrl),
@@ -290,19 +379,19 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     if (stats == null || stats.membershipStatus == null) {
       label = 'No Subscription';
       color = const Color(0xFF9CA3AF);
-      icon  = Icons.cancel_outlined;
+      icon = Icons.cancel_outlined;
     } else if (stats.isSuspended) {
       label = 'Suspended';
-      color = const Color(0xFFF59E0B);
-      icon  = Icons.pause_circle_outline;
+      color = const Color(0xFFEF4444);
+      icon = Icons.pause_circle_outline;
     } else if (stats.isExpired) {
       label = 'Expired';
-      color = const Color(0xFFEF4444);
-      icon  = Icons.error_outline;
+      color = const Color(0xFFF59E0B);
+      icon = Icons.error_outline;
     } else {
       label = 'Active Member';
       color = const Color(0xFF4F46E5);
-      icon  = Icons.verified;
+      icon = Icons.verified;
     }
 
     return Container(
@@ -319,7 +408,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -341,7 +434,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: const [
-          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -386,7 +483,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: Color(0xFF111827),
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -425,7 +526,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       children: [
         const Text(
           'Date of Birth',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: Color(0xFF111827),
+          ),
         ),
         const SizedBox(height: 8),
         GestureDetector(
@@ -477,7 +582,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     fontSize: 14,
                   ),
                 ),
-                const Icon(Icons.calendar_today, size: 18, color: Color(0xFF4F46E5)),
+                const Icon(
+                  Icons.calendar_today,
+                  size: 18,
+                  color: Color(0xFF4F46E5),
+                ),
               ],
             ),
           ),
@@ -493,7 +602,11 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: Color(0xFF111827),
+          ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -514,7 +627,6 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     );
   }
 
-  // ── Security ─────────────────────────────────────────────────────────────
   Widget _buildSecurityCard() {
     return Container(
       width: double.infinity,
@@ -522,12 +634,20 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.lock_outline, color: Color(0xFF4F46E5), size: 20),
               SizedBox(width: 8),
               Text(
@@ -568,16 +688,28 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: Color(0xFF111827),
+          ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           initialValue: value,
-          hint: Text('Select $label', style: const TextStyle(color: Color(0xFF9CA3AF))),
+          hint: Text(
+            'Select $label',
+            style: const TextStyle(color: Color(0xFF9CA3AF)),
+          ),
           dropdownColor: Colors.white,
           style: const TextStyle(color: Colors.black, fontSize: 14),
           items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(color: Colors.black))))
+              .map(
+                (e) => DropdownMenuItem(
+                  value: e,
+                  child: Text(e, style: const TextStyle(color: Colors.black)),
+                ),
+              )
               .toList(),
           onChanged: onChanged,
           decoration: InputDecoration(

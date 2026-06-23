@@ -98,7 +98,8 @@ async def checkin(
     if not gym:
         raise HTTPException(404, "Gym not found")
 
-    if not gym.QRCode or payload.qr_code.strip() != gym.QRCode.strip():
+    expected_qr_data = f"TITAN-GYM-{gym.gymID}-{gym.gymName.upper().replace(' ', '-')}"
+    if payload.qr_code.strip() != expected_qr_data:
         raise HTTPException(400, "This QR code doesn't belong to your gym")
 
     gym_name = gym.gymName if gym else "Gym"
@@ -110,7 +111,7 @@ async def checkin(
     )
 
     # ── Fire achievement engine ──────────────────────────────────────────────
-    # await achievement_engine.on_checkin(membership.clientID, db)
+    await achievement_engine.on_checkin(membership.clientID, db)
 
     # Custom welcome message based on check-in time
     now = datetime.now(timezone.utc)

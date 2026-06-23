@@ -178,7 +178,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
                 ],
               ),
               OutlinedButton.icon(
-                onPressed: () => _downloadQR(qr.qrIdentifier),
+                onPressed: () {
+                  final gymName = widget.gym.gymName.toUpperCase().replaceAll(' ', '-');
+                  final expectedQrData = 'TITAN-GYM-${widget.gym.gymID}-$gymName';
+                  _downloadQR(expectedQrData);
+                },
                 icon: const Icon(Icons.download, size: 16),
                 label: const Text('Download'),
                 style: OutlinedButton.styleFrom(
@@ -244,12 +248,12 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
       final bytes = byteData!.buffer.asUint8List();
 
       /// 3. save to gallery
-final result = await SaverGallery.saveImage(
-  bytes,
-  fileName: 'gym_qr_$data',
-  skipIfExists: false,
-  // androidRelativePath: 'Pictures',
-);
+      final result = await SaverGallery.saveImage(
+        bytes,
+        fileName: 'gym_qr_$data.png',
+        skipIfExists: false,
+        // androidRelativePath: 'Pictures',
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.isSuccess ? 'QR code saved to gallery' : 'Failed to save')),

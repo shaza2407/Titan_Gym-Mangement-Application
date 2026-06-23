@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.database import get_session
 from app.dependencies.auth import require_client
@@ -55,7 +56,7 @@ async def _get_client_id(current_user, db: AsyncSession) -> int:
 
 async def _get_owned_plan(plan_id: int, client_id: int, db: AsyncSession) -> TrainingPlan:
     result = await db.execute(
-        select(TrainingPlan).where(
+        select(TrainingPlan).options(selectinload(TrainingPlan.tracking)).where(
             TrainingPlan.planID   == plan_id,
             TrainingPlan.clientID == client_id,
         )
@@ -70,22 +71,49 @@ def _parse_plan_json(plan: TrainingPlan) -> list[WeekPlan]:
     try:
         data  = json.loads(plan.plan_json)
         weeks = data.get("plan", [])
-        return [
-            WeekPlan(
-                week  = w.get("week", 0),
-                theme = w.get("theme"),
-                days  = [
+        
+        # Build tracking lookup: (week_number, day_number) -> tracking row
+        # using plan.tracking if loaded, else empty.
+        tracking_lookup = {}
+        try:
+            for t in getattr(plan, "tracking", []):
+                if t.status == WorkoutStatus.COMPLETED or t.status == WorkoutStatus.PARTIAL:
+                    tracking_lookup[(t.week_number, t.day_number)] = t
+        except Exception:
+            pass
+
+        parsed_weeks = []
+        for w in weeks:
+            week_num = w.get("week", 0)
+            parsed_days = []
+            for d_idx, d in enumerate(w.get("days", [])):
+                day_num = d_idx + 1
+                trk = tracking_lookup.get((week_num, day_num))
+                completed_indices = set(trk.completed_exercises_list or []) if trk else set()
+                
+                exercises = []
+                for e_idx, e in enumerate(d.get("exercises", [])):
+                    if isinstance(e, dict):
+                        e["isCompleted"] = e_idx in completed_indices
+                    exercises.append(e)
+
+                parsed_days.append(
                     DayPlan(
                         day       = str(d.get("day", "")),
                         focus     = d.get("focus", ""),
-                        exercises = d.get("exercises", []),
+                        exercises = exercises,
                         notes     = d.get("notes"),
+                        isCompleted = (trk.status == WorkoutStatus.COMPLETED) if trk else False
                     )
-                    for d in w.get("days", [])
-                ],
+                )
+            parsed_weeks.append(
+                WeekPlan(
+                    week  = week_num,
+                    theme = w.get("theme"),
+                    days  = parsed_days,
+                )
             )
-            for w in weeks
-        ]
+        return parsed_weeks
     except (json.JSONDecodeError, TypeError):
         raise HTTPException(status_code=500, detail="Stored plan data is corrupt.")
 
@@ -128,6 +156,10 @@ async def generate_training_plan(
         raise HTTPException(status_code=404, detail=str(exc))
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc))
+
+    # Trigger plan generated achievement
+    await achievement_engine.on_plan_generated(client_id, db)
+    
     return plan
 
 
@@ -276,13 +308,16 @@ async def duplicate_plan(
     return clone
 
 
+from pydantic import BaseModel
+class CompleteWeekRequest(BaseModel):
+    week_number: int
+
 # ── POST /training-plans/{id}/complete-day ───────────────────────────────────
 
 @router.post(
     "/{plan_id}/complete-day",
     summary="Mark a day's workout as completed",
 )
-@router.post("/{plan_id}/complete-day")
 async def complete_day(
     plan_id: int,
     request: CompleteDayRequest,
@@ -294,6 +329,7 @@ async def complete_day(
     completed_exercises = request.completed_exercises
     total_exercises = request.total_exercises
     duration_minutes = request.duration_minutes
+    completed_exercise_indices = request.completed_exercise_indices
     client_id = await _get_client_id(current_user, db)
     plan      = await _get_owned_plan(plan_id, client_id, db)
 
@@ -323,6 +359,7 @@ async def complete_day(
             planned_exercises     = total_exercises,
             completed_exercises   = completed_exercises,
             completion_percentage = completion,
+            completed_exercises_list = completed_exercise_indices,
             status                = WorkoutStatus.COMPLETED if completion >= 80 else WorkoutStatus.PARTIAL,
             duration_minutes      = duration_minutes,
             completed_at          = datetime.now(timezone.utc),
@@ -332,6 +369,7 @@ async def complete_day(
         tracking.tracking_date         = datetime.now(timezone.utc).date()
         tracking.completed_exercises   = completed_exercises
         tracking.completion_percentage = completion
+        tracking.completed_exercises_list = completed_exercise_indices
         tracking.status                = WorkoutStatus.COMPLETED if completion >= 80 else WorkoutStatus.PARTIAL
         tracking.duration_minutes      = duration_minutes
         tracking.completed_at          = datetime.now(timezone.utc)
@@ -342,6 +380,52 @@ async def complete_day(
     await _check_auto_complete(client_id, plan, db)
 
     return {"message": "Day logged.", "completion_percentage": round(completion, 1)}
+
+
+# ── POST /training-plans/{id}/complete-week ──────────────────────────────────
+
+@router.post(
+    "/{plan_id}/complete-week",
+    summary="Mark a week's workouts as completed",
+)
+async def complete_week(
+    plan_id: int,
+    request: CompleteWeekRequest,
+    current_user=Depends(require_client),
+    db: AsyncSession = Depends(get_session),
+):
+    week_number = request.week_number
+    client_id = await _get_client_id(current_user, db)
+    plan      = await _get_owned_plan(plan_id, client_id, db)
+
+    if plan.status == PlanStatus.COMPLETED:
+        raise HTTPException(status_code=400, detail="Plan is already completed.")
+
+    res = await db.execute(
+        select(TrainingPlanWeekProgress).where(
+            TrainingPlanWeekProgress.clientID    == client_id,
+            TrainingPlanWeekProgress.planID      == plan_id,
+            TrainingPlanWeekProgress.week_number == week_number,
+        )
+    )
+    week_progress = res.scalar_one_or_none()
+
+    if not week_progress:
+        week_progress = TrainingPlanWeekProgress(
+            clientID        = client_id,
+            planID          = plan_id,
+            week_number     = week_number,
+            week_end_date   = datetime.now(timezone.utc).date(),
+            week_status     = DayStatus.COMPLETED,
+        )
+        db.add(week_progress)
+    else:
+        week_progress.week_end_date = datetime.now(timezone.utc).date()
+        week_progress.week_status   = DayStatus.COMPLETED
+
+    await db.commit()
+
+    return {"message": "Week marked as completed."}
 
 
 # ── PATCH /training-plans/{id}/complete ──────────────────────────────────────
@@ -367,8 +451,10 @@ async def complete_training_plan(
     await db.commit()
     await db.refresh(plan)
 
-    # Trigger achievement update
+    # Trigger plan completed achievement
     await achievement_engine.on_plan_completed(client_id, db)
+    # Trigger workout logged achievement
+    await achievement_engine.on_workout_logged(client_id, db)
 
     return plan
 

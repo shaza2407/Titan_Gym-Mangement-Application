@@ -300,7 +300,7 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                     : ctrl.isCheckingIn
                     ? 'Verifying...'
                     : ctrl.canCheckin
-                    ? 'Simulate Check-In'
+                    ? 'Press to open Camera'
                     : ctrl.status?.reason == 'already_checked_in'
                     ? 'Checked In Today'
                     : 'Access Suspended',

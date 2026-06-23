@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/coach_profile_controller.dart';
+import '../../../shared/logout_button.dart';
 
 class CoachProfileScreen extends StatefulWidget {
   final String token;
@@ -61,7 +62,16 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
+                
               ),
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.black),
+                  onPressed: () => showLogoutDialog(context),
+                ),
+              ],
+              
             ),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -441,3 +451,4 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
     );
   }
 }
+
