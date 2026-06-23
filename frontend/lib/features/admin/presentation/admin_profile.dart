@@ -50,18 +50,19 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               elevation: 0,
               automaticallyImplyLeading: false,
               title: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+              mainAxisSize: MainAxisSize.min,
+              children: [
                   Text(
                     'Admin Profile',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   Text(
-                    'Manage your account information',
+                    'Manage your account details',
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
