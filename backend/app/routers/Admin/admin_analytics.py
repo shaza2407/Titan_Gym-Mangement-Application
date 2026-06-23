@@ -45,9 +45,8 @@ async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
 async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
     result = await db.execute(
         select(func.sum(Subscription.supscriptionPrice * Subscription.duration_count))
-        .join(GymClientMembership, Subscription.gymClientMebershipID == GymClientMembership.id)
         .where(
-            GymClientMembership.gymID == gym.gymID,
+            Subscription.gymID == gym.gymID,
             cast(Subscription.billingDate, Date) >= start_date,
             cast(Subscription.billingDate, Date) <= end_date,
         )

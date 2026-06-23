@@ -5,11 +5,7 @@ import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
 import '../../../shared/logout_button.dart';
 import '../../../auth/presentation/forget_password_page.dart';
-import '../../../Services/notifications_screen.dart';
-import '../../../Services/token_helper.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../../../shared/api_constants.dart';
+
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
