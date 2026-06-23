@@ -16,8 +16,8 @@ class ClassSession(Base):
     is_recurring    = Column(Boolean, default=True)        # True = weekly, False = one-time
 
     # foreign keys
-    gymID           = Column(Integer, ForeignKey("gyms.gymID"), nullable=True)
-    coach_id        = Column(Integer, ForeignKey("coaches.coachID"), nullable=False)
+    gymID           = Column(Integer, ForeignKey("gyms.gymID" ,ondelete="CASCADE"), nullable=True)
+    coach_id        = Column(Integer, ForeignKey("coaches.coachID" ,ondelete="CASCADE"), nullable=False)
 
     current_clients = Column(Integer, default=0)
     max_clients     = Column(Integer, nullable=False)

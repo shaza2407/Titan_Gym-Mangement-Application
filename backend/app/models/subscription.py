@@ -7,7 +7,7 @@ class Subscription(Base):
     __tablename__ = "subscriptions"
 
     subscriptionID = Column(Integer, primary_key=True, index=True)
-    gymClientMebershipID = Column(Integer, ForeignKey("gym_client_memberships.id"), nullable=False)
+    gymClientMebershipID = Column(Integer, ForeignKey("gym_client_memberships.id" ,  ondelete="CASCADE"), nullable=False)
     supscriptionPrice    = Column(Integer, nullable=False)
     duration_count     = Column(Integer, nullable=False)   #number of months or years
     billingDate    = Column(DateTime(timezone= False),server_default=func.now(), nullable=False)  

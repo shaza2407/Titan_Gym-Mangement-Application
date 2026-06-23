@@ -401,7 +401,7 @@ async def accept_invitation(
     if not client:
         raise HTTPException(404, "Client profile not found.")
 
-    #only block if there's an ACTIVE membership at this exact gym
+    # only block if there's an ACTIVE membership at this exact gym
     already_active = (await db.execute(
         select(GymClientMembership).where(
             GymClientMembership.clientID == client.clientID,
@@ -413,7 +413,7 @@ async def accept_invitation(
     if already_active:
         raise HTTPException(400, "Already a member of this gym.")
 
-    #if a suspended membership exists at this SAME gym, clean it up before re-inserting
+    # delete any existing membership at this same gym (cascade handles its children)
     old_membership = (await db.execute(
         select(GymClientMembership).where(
             GymClientMembership.clientID == client.clientID,
@@ -422,32 +422,23 @@ async def accept_invitation(
     )).scalar_one_or_none()
 
     if old_membership:
-        #delete subscription rows tied to the old membership first
-        old_subscriptions = (await db.execute(
-            select(Subscription).where(
-                Subscription.gymClientMebershipID == old_membership.id
-            )
-        )).scalars().all()
-
-        for s in old_subscriptions:
-            await db.delete(s)
-
         await db.delete(old_membership)
         await db.flush()
 
-    #suspend all other active memberships across every OTHER gym
-    other_active = (await db.execute(
+    # delete all memberships at every other gym (cascade handles their children)
+    other_memberships = (await db.execute(
         select(GymClientMembership).where(
             GymClientMembership.clientID == client.clientID,
-            GymClientMembership.status == ClientMembershipStatus.active,
             GymClientMembership.gymID != gym_id,
         )
     )).scalars().all()
 
-    for m in other_active:
-        m.status = ClientMembershipStatus.suspended
+    for m in other_memberships:
+        await db.delete(m)
 
-    #create fresh membership
+    await db.flush()
+
+    # create fresh membership
     membership = GymClientMembership(
         clientID=client.clientID,
         gymID=gym_id,
@@ -458,7 +449,7 @@ async def accept_invitation(
     db.add(membership)
     await db.flush()
 
-    #create subscription record
+    # create subscription record
     subscription = Subscription(
         gymClientMebershipID=membership.id,
         supscriptionPrice=inv.subscription_price,

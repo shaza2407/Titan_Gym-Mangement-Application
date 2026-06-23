@@ -53,7 +53,7 @@ class _InvitationScreenState extends State<InvitationScreen> {
                 title: const Text('Switch Gym Membership?'),
                 content: Text(
                   'You currently have an active membership at $otherGyms. '
-                  'Accepting this invitation will suspend it. Continue?',
+                  'Accepting this invitation will cancel it. Continue?',
                 ),
                 actions: [
                   TextButton(

@@ -34,6 +34,6 @@ class RetentionOfferRecipient(Base):
     __tablename__ = "retention_offer_recipients"
 
     id = Column(Integer, primary_key=True, index=True)
-    offer_id = Column(Integer, ForeignKey("retention_offers.id"), nullable=False)
-    membership_id = Column(Integer, ForeignKey("gym_client_memberships.id"), nullable=False)
+    offer_id = Column(Integer, ForeignKey("retention_offers.id" ,ondelete="CASCADE"), nullable=False)
+    membership_id = Column(Integer, ForeignKey("gym_client_memberships.id" , ondelete="CASCADE"), nullable=False)
     risk_level = Column(String, nullable=True)  # snapshot at send time: "High Risk", "Mid Risk", "Low Risk"

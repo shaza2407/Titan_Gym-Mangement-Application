@@ -13,7 +13,7 @@ class MemberInvitation(Base):           #for both clients and coaches
     __tablename__ = "member_invitations"
 
     id = Column(Integer, primary_key=True, index=True)
-    gymID = Column("gymID", Integer, ForeignKey("gyms.gymID"), nullable=False)
+    gymID = Column("gymID", Integer, ForeignKey("gyms.gymID" ,ondelete="CASCADE"), nullable=False)
     email = Column(String, nullable=False)
     token = Column(String, nullable=False, unique=True)
     status = Column(Enum(InvitationStatus), default=InvitationStatus.pending)

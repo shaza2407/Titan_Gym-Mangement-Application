@@ -102,14 +102,22 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
     actions: [
       IconButton(
         icon: const Icon(Icons.notifications_outlined, color: Colors.black),
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => NotificationsScreen(
+        onPressed: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => NotificationsScreen(
               userId: getUserIdFromToken(widget.token),
               token: widget.token,
+              onDataChanged: () {
+                context.read<AdminGymController>().loadDashboardStats(
+                  token: widget.token,
+                  gymId: widget.gym.gymID,
+                );
+              },
             ),
           ),
-        ),
+        );
+      },
       ),
       IconButton(
         icon: const Icon(Icons.settings_outlined, color: Colors.black),

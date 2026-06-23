@@ -6,5 +6,5 @@ class Admin(Base):
     __tablename__ = "administrators"
 
     adminID = Column("adminID", Integer, primary_key=True, index=True)
-    userID  = Column("userID", Integer, ForeignKey("users.userID"), nullable=False)
+    userID  = Column("userID", Integer, ForeignKey("users.userID" , ondelete="CASCADE"), nullable=False)
 
