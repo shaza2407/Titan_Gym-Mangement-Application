@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pip._internal.operations.install import wheel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, cast, Date, extract, case, or_, and_
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, timezone
 from dateutil.relativedelta import relativedelta
 import pytz
 from app.database import get_session
@@ -63,6 +63,9 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
     print("finished _verify_gym_owner:", gym_id)
     today = date.today()
+    print("Time1: ", datetime.now(timezone.utc))
+    print("Time1: ", today)
+
     month_start = today.replace(day=1)
     days_elapsed = today.day  # days from the 1st up to and including today
     prev_month_start = (month_start - relativedelta(months=1))
