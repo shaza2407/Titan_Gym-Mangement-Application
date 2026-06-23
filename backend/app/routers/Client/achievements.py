@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
 from app.dependencies.auth import require_client
 from app.models.client import Client
-from app.services.achievement_engine import achievement_engine
+from app.services.coach.achievement_engine import achievement_engine
 
 from sqlalchemy import select
 

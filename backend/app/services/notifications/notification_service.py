@@ -11,7 +11,7 @@ import os
 
 if not firebase_admin._apps:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    cred_path = os.path.join(BASE_DIR, "..", "serviceAccountKey.json")
+    cred_path = os.path.join(BASE_DIR, "..", "../serviceAccountKey.json")
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 
@@ -121,7 +121,7 @@ async def notify_gym_clients(db: AsyncSession, gym_id: int, title: str, body: st
             GymClientMembership.status == "active",
         )
     )
-    client_ids = result.scalars().all()  # ← list of ints, not a result object
+    client_ids = result.scalars().all()  # list of ints, not a result object
     if not client_ids:
         return
 

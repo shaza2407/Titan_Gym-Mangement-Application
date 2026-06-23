@@ -10,7 +10,7 @@ from app.models.gym_coachs_membership import GymCoachMembership
 from app.models.Gym import Gym
 from app.models.coach import Coach
 from app.models import User
-from app.schemas.coach_schemas import CreateClassRequestPayload
+from app.schemas.coach.coach_schemas import CreateClassRequestPayload
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

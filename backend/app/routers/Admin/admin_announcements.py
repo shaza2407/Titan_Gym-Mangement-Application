@@ -7,8 +7,8 @@ from app.database import get_session
 from app.dependencies.auth import require_admin
 from app.models.Admin import Admin
 from app.models.Gym import Gym
-from app.schemas.announcement_schema import CreateAnnouncementRequest, AnnouncementResponse
-from app.services.announcement_service import (
+from app.schemas.admin.announcement_schema import CreateAnnouncementRequest, AnnouncementResponse
+from app.services.admin.announcement_service import (
     get_announcements,
     create_announcement,
 )

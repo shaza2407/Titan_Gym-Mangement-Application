@@ -6,7 +6,7 @@ class ApiConstants {
   static late String baseUrl;
 
   static Future<void> initialize() async {
-    const String realDeviceIp = 'http://192.168.1.24:8000';
+    const String realDeviceIp = 'http://192.168.1.4:8000';
 
     if (kIsWeb) {
       baseUrl = 'http://localhost:8000';

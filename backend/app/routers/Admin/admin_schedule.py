@@ -6,14 +6,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_session
 from app.dependencies.auth import require_admin
+from app.services.notifications.notification_service import notify_gym_clients
 from app.models.Admin import Admin
+from app.models.class_session import ClassSession
 from app.models.Gym import Gym
-from app.schemas.schedule_schema import (
+from app.schemas.shared.schedule_schema import (
     CreateClassRequest,
     EditClassRequest,
     AdminScheduleStatsResponse,
 )
-from app.services.admin_schedule import (
+from app.services.admin.admin_schedule import (
     get_admin_schedule_stats,
     get_all_classes,
     create_class,
@@ -25,7 +27,7 @@ from app.services.admin_schedule import (
     get_class_members,
     get_gym_coaches,
 )
-from app.services.notification_service import notify_Coach_on_class_approval
+from app.services.notifications.notification_service import notify_Coach_on_class_approval
 
 router = APIRouter(prefix="/admin/schedule", tags=["Admin Schedule"])
 
@@ -119,9 +121,31 @@ async def remove_class(
     db: AsyncSession = Depends(get_session),
 ):
     gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+
+    # Fetch before deleting
+    class_session = (await db.execute(
+        select(ClassSession).where(ClassSession.id == session_id)
+    )).scalar_one_or_none()
+
+    if not class_session:
+        raise HTTPException(404, "Class not found")
+
     success = await delete_class(session_id, gymID, db)
     if not success:
         raise HTTPException(404, "Class not found")
+
+    await notify_gym_clients(
+        db=db,
+        gym_id=gymID,
+        title="Class Cancelled",
+        body=f"The {class_session.title} class has been cancelled.",
+        type="class_cancelled",
+        data={
+            "class_id": str(session_id),
+            "gym_id": str(gymID),
+            "class_title": class_session.title,
+        }
+    )
     return {"message": "Class deleted successfully"}
 
 

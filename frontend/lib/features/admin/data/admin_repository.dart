@@ -24,18 +24,18 @@ class ClientListItem {
   });
 
   factory ClientListItem.fromJson(Map<String, dynamic> json) {
-    return ClientListItem(
-      id: json['id'],
-      name: json['name'] ?? '',
-      email: json['email'] ?? '',
-      status: json['status'] ?? 'pending',
-      phone: json['phone'],
-      subscription: json['subscription'],
-      subscriptionEnd: json['subscription_end'],
-      visits: json['visits'],
-      joined: json['joined'],
-      invitationSent: json['invitation_sent'],
-    );
+  return ClientListItem(
+    id:     (json['id'] ?? 0) as int,   
+    name:    json['name']    ?? '',
+    email:   json['email']   ?? '',
+    status:  json['status']  ?? 'pending',
+    phone:   json['phone'],
+    subscription:    json['subscription'],
+    subscriptionEnd: json['subscription_end'],
+    visits:  (json['visits'] as int?), 
+    joined:          json['joined'],
+    invitationSent:  json['invitation_sent'],
+  );
   }
 }
 
@@ -287,8 +287,8 @@ static Future<void> updateAdminProfile({
   String? newPassword,
 }) async {
   final body = {
-    'name': name,
-    'phone': phone,
+    'name': name.isEmpty ? null : name,
+    'phone': phone.isEmpty ? null : phone,
     if (currentPassword != null && currentPassword.isNotEmpty)
       'current_password': currentPassword,
     if (newPassword != null && newPassword.isNotEmpty)
@@ -303,9 +303,15 @@ static Future<void> updateAdminProfile({
     },
     body: jsonEncode(body),
   );
+
   if (res.statusCode != 200) {
-    final detail = jsonDecode(res.body)['detail'] ?? 'Unknown error';
-    throw Exception(detail);
+    final detail = jsonDecode(res.body)['detail'];
+    if (detail is List && detail.isNotEmpty) {
+      final msg = (detail.first['message'] as String? ) ?? 
+                  (detail.first['msg'] as String? ?? 'Unknown error').replaceAll('Value error, ', '');
+      throw Exception(msg);
+    }
+    throw Exception(detail ?? 'Unknown error');
   }
 }
 
@@ -360,15 +366,15 @@ class AdminProfile {
   });
 
   factory AdminProfile.fromJson(Map<String, dynamic> json) {
-    return AdminProfile(
-      adminID:    json['adminID'],
-      userID:     json['userID'],
-      name:       json['name']       ?? '',
-      email:      json['email']      ?? '',
-      phone:      json['phone'],
-      createdAt:  json['created_at'],
-      totalGyms:  json['total_gyms'] ?? 0,
-    );
-  }
+  return AdminProfile(
+    adminID:   (json['adminID']    ?? 0) as int,
+    userID:    (json['userID']     ?? 0) as int,
+    name:       json['name']       ?? '',
+    email:      json['email']      ?? '',
+    phone:      json['phone'],
+    createdAt:  json['created_at'],
+    totalGyms: (json['total_gyms'] ?? 0) as int,
+  );
+} 
 }
 

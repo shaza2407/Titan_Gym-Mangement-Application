@@ -12,7 +12,7 @@ from app.models.client import Client
 from app.models.User import User
 # from churn import predict_churn_risk
 from app.routers.Admin.churn import predict_churn_risk
-from app.schemas.retention_offer import (
+from app.schemas.admin.retention_offer import (
     PreviewRequest, MemberPreview, CreateOfferRequest, RetentionDashboardResponse, OfferHistoryItem
 )
 

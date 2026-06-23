@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.database import get_session
-from app.schemas.gym import GymCreate, GymUpdate, GymResponse
-from app.services import gym as gym_crud
+from app.schemas.admin.gym import GymCreate, GymUpdate, GymResponse
+from app.services.admin import gym as gym_crud
 from app.models import User , Admin
 from app.dependencies.auth import require_admin
-from app.schemas.gym import GymCreate, GymUpdate, GymResponse, GymDashboardStats 
+from app.schemas.admin.gym import GymCreate, GymUpdate, GymResponse, GymDashboardStats 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select

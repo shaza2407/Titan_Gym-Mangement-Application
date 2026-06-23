@@ -53,7 +53,7 @@ class ClientProfileController extends ChangeNotifier {
           : null;
       dateOfBirth                     = profile!.dateOfBirth;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
       isLoading = false;
       notifyListeners();
@@ -77,7 +77,7 @@ class ClientProfileController extends ChangeNotifier {
       });
       return true;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceAll('Exception: ', '');
       return false;
     } finally {
       isSaving = false;

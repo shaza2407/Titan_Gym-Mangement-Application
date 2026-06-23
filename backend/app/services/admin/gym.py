@@ -8,7 +8,7 @@ from io import BytesIO
 from sqlalchemy import or_, and_
 import calendar
 from app.models import Gym , GymMachineInventory
-from app.schemas.gym import GymCreate, GymUpdate
+from app.schemas.admin.gym import GymCreate, GymUpdate
 from sqlalchemy import func
 from app.models.class_session import ClassSession
 from datetime import date, datetime, timezone

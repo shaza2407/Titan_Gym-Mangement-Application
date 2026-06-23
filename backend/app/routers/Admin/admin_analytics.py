@@ -16,8 +16,7 @@ from app.models.class_session import ClassSession
 from app.models.class_enrollment import ClassEnrollment
 from app.models.retention_offer import RetentionOfferRecipient
 from app.models.client import Client
-
-from app.schemas.analytics_schemas import (
+from app.schemas.admin.analytics_schemas import (
     AnalyticsSummaryResponse,
     RevenueTrendResponse,
     MemberGrowthResponse,

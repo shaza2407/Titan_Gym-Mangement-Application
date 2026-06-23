@@ -25,6 +25,11 @@ from app.routers.Client import gym_info
 from app.routers.Admin import retention_offer
 
 app = FastAPI(title="Titan Gym Management System")
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
