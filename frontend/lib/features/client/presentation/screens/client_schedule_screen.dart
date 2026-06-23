@@ -32,10 +32,11 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
     final parts = c.startTime.split(':');
     final hour = int.tryParse(parts[0]) ?? 0;
     final min = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
+    final localClassDate = classDate.toLocal();
     final classDateTime = DateTime(
-      classDate.year,
-      classDate.month,
-      classDate.day,
+      localClassDate.year,
+      localClassDate.month,
+      localClassDate.day,
       hour,
       min,
     );
@@ -43,16 +44,17 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
   }
 
   bool _isBrowsePast(ClassModel c) {
-    if (c.nextDate == null) return true;
+    if (c.nextDate == null) return false;
     final classDate = DateTime.tryParse(c.nextDate!);
-    if (classDate == null) return true;
+    if (classDate == null) return false;
     final parts = c.startTime.split(':');
     final hour = int.tryParse(parts[0]) ?? 0;
     final min = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
+    final localClassDate = classDate.toLocal();
     final classDateTime = DateTime(
-      classDate.year,
-      classDate.month,
-      classDate.day,
+      localClassDate.year,
+      localClassDate.month,
+      localClassDate.day,
       hour,
       min,
     );
@@ -551,7 +553,7 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: ctrl.days.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (_, i) {
               final day = ctrl.days[i];
               final selected = (ctrl.selectedDay ?? 'All') == day;

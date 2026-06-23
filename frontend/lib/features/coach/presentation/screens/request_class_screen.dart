@@ -65,7 +65,7 @@ class _RequestClassScreenState extends State<RequestClassScreen> {
                           child: CircularProgressIndicator(),
                         ))
                       : DropdownButtonFormField<int>(
-                          value: c.selectedGymId, 
+                          initialValue: c.selectedGymId, 
                           hint: const Text('Select gym location'),
                           items: c.gyms.map((CoachGymLookupModel gym) {
                             return DropdownMenuItem<int>(
@@ -88,7 +88,7 @@ class _RequestClassScreenState extends State<RequestClassScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Recurring (weekly)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        Switch(value: c.isRecurring, onChanged: c.setRecurring, activeColor: const Color(0xFF4F46E5)),
+                        Switch(value: c.isRecurring, onChanged: c.setRecurring, activeThumbColor: const Color(0xFF4F46E5)),
                       ],
                     ),
                     const SizedBox(height: 8),

@@ -219,7 +219,7 @@ class _ClassFormScreenState extends State<ClassFormScreen> {
 
                 _buildLabel('Coach'),
                 DropdownButtonFormField<int>(
-                  value: _selectedCoachId,
+                  initialValue: _selectedCoachId,
                   hint: const Text('Select a coach'),
                   icon: const Icon(
                     Icons.keyboard_arrow_down_rounded,
@@ -263,7 +263,7 @@ class _ClassFormScreenState extends State<ClassFormScreen> {
                 if (_isRecurring) ...[
                   _buildLabel('Day of Week'),
                   DropdownButtonFormField<String>(
-                    value: _selectedDay,
+                    initialValue: _selectedDay,
                     icon: const Icon(
                       Icons.keyboard_arrow_down_rounded,
                       color: _Palette.primary,
@@ -303,8 +303,9 @@ class _ClassFormScreenState extends State<ClassFormScreen> {
                           child: child!,
                         ),
                       );
-                      if (picked != null)
+                      if (picked != null) {
                         setState(() => _selectedDate = picked);
+                      }
                     },
                   ),
                 ],
@@ -414,9 +415,9 @@ class _ClassFormScreenState extends State<ClassFormScreen> {
                 onPressed: _isSubmitting ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _Palette.primary,
-                  disabledBackgroundColor: _Palette.primary.withOpacity(0.6),
+                  disabledBackgroundColor: _Palette.primary.withValues(alpha: 0.6),
                   elevation: 0,
-                  shadowColor: _Palette.primary.withOpacity(0.35),
+                  shadowColor: _Palette.primary.withValues(alpha: 0.35),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

@@ -1,6 +1,5 @@
 from pydantic import BaseModel
-from datetime import date
-from typing import Optional
+from typing import Optional, List
 
 class CompleteDayRequest(BaseModel):
     week_number: int
@@ -8,3 +7,4 @@ class CompleteDayRequest(BaseModel):
     completed_exercises: int
     total_exercises: int
     duration_minutes: Optional[int] = None
+    completed_exercise_indices: List[int] = []

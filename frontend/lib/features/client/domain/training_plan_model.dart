@@ -21,6 +21,7 @@ class ExerciseModel {
       sets: json['sets']?.toString() ?? '',
       reps: json['reps']?.toString() ?? '',
       notes: json['notes']?.toString(),
+      isCompleted: json['isCompleted'] ?? false,
     );
   }
 
@@ -62,6 +63,7 @@ class DayPlanModel {
       focus: json['focus']?.toString() ?? '',
       exercises: exercises,
       notes: json['notes']?.toString(),
+      isCompleted: json['isCompleted'] ?? false,
     );
   }
 

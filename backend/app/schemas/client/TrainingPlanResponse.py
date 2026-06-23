@@ -10,6 +10,7 @@ class DayPlan(BaseModel):
     focus:     str
     exercises: List[Any]
     notes:     Optional[str] = None
+    isCompleted: bool = False
 
 
 class WeekPlan(BaseModel):

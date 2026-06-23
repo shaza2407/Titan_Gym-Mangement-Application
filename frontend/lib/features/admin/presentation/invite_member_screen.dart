@@ -133,7 +133,7 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
+                      color: accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.person_add, color: accentColor),
@@ -357,7 +357,7 @@ class _InviteMemberScreenState extends State<InviteMemberScreen> {
                   padding: const EdgeInsets.symmetric(
                       vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.08),
+                    color: accentColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(

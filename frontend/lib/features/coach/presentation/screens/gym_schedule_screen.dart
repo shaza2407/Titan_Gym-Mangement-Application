@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../controllers/gym_schedule_controller.dart';
 import 'coach_ui_utils.dart';
 import 'coach_dashboard_screen.dart';
-import '../widgets/coach_bottom_nav.dart';
+import '../widgets/custom_bottom_nav.dart';
 
 class GymScheduleScreen extends StatefulWidget {
   final String token;

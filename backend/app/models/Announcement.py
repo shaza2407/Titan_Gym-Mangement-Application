@@ -1,4 +1,4 @@
-# models/announcement.py
+# models/Announcement.py
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, String
 from sqlalchemy.sql import func
 from app.database import Base

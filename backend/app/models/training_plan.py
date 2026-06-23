@@ -17,7 +17,7 @@ Versioning rules
 import enum
 from sqlalchemy import (
     Column, Integer, String, Text, Boolean, Float,
-    DateTime, Date, ForeignKey, Enum as SAEnum
+    DateTime, Date, ForeignKey, Enum as SAEnum, JSON
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -116,6 +116,7 @@ class TrainingPlanTracking(Base):
     planned_exercises     = Column(Integer, default=0)
     completed_exercises   = Column(Integer, default=0)
     completion_percentage = Column(Float,   default=0.0)
+    completed_exercises_list = Column(JSON, nullable=True)
 
     status                = Column(SAEnum(WorkoutStatus), default=WorkoutStatus.PLANNED)
     duration_minutes      = Column(Integer, nullable=True)
