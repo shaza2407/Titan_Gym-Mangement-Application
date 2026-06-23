@@ -187,9 +187,9 @@ async def approve_class_request(
     if not success:
         status_code = 404 if "not found" in (error or "").lower() else 409
         raise HTTPException(status_code, error)
-    
+
     gym_name = (await db.execute(select(Gym.gymName).where(Gym.gymID == gym_id))).scalar_one_or_none()
-    await notify_Coach_on_class_approval(   
+    await notify_Coach_on_class_approval(
         db=db,
         request_id=request_id,
         gym_id=gymID,
@@ -216,10 +216,10 @@ async def reject_class_request(
     success = await reject_request(request_id, gymID, db)
     if not success:
         raise HTTPException(404, "Request not found or already processed")
-    
+
     gym_name = (await db.execute(select(Gym.gymName).where(Gym.gymID == gym_id))).scalar_one_or_none()
 
-    await notify_Coach_on_class_approval(  
+    await notify_Coach_on_class_approval(
         db=db,
         request_id=request_id,
         gym_id=gymID,
@@ -231,5 +231,5 @@ async def reject_class_request(
             "request_id": str(request_id),
         },
     )
-    
+
     return {"message": "Request rejected"}

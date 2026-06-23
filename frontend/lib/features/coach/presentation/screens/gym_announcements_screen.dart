@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/coach_gyms_controller.dart';
 import 'coach_ui_utils.dart';
-import '../widgets/coach_bottom_nav.dart';
+import '../widgets/custom_bottom_nav.dart';
 import 'coach_dashboard_screen.dart';
 import 'coach_gyms_screen.dart';
 
@@ -89,7 +89,7 @@ class _GymAnnouncementsScreenState extends State<GymAnnouncementsScreen> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16),
                             itemCount: ctrl.announcements.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 16),
                             itemBuilder: (context, index) => AnnouncementCard(
                               announcement: ctrl.announcements[index],

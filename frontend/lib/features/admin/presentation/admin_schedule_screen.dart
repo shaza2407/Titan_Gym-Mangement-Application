@@ -394,9 +394,9 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: capacityColor.withOpacity(0.1),
+              color: capacityColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: capacityColor.withOpacity(0.3)),
+              border: Border.all(color: capacityColor.withValues(alpha: 0.3)),
             ),
             child: Text(
               '${c.currentClients}/${c.maxClients}',
@@ -524,7 +524,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: AdminScheduleController.days.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (_, i) {
               final day = AdminScheduleController.days[i];
               final selected = ctrl.selectedDay == day;
@@ -602,7 +602,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -1088,7 +1088,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: snapshot.data!.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (_, i) {
                         final m = snapshot.data![i];
                         return ListTile(

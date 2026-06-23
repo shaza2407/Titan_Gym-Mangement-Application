@@ -238,7 +238,7 @@ class _CreateAnnouncementScreenState extends State<CreateAnnouncementScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonFormField<String>(
-        value: value,           // ← was initialValue (doesn't exist)
+        initialValue: value,           // ← was initialValue (doesn't exist)
         decoration: InputDecoration(
           labelText: label,
           border: InputBorder.none,

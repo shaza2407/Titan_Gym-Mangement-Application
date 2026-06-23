@@ -129,7 +129,7 @@ ACHIEVEMENTS += _chain(
 # 8) Class Enthusiast – total classes attended
 ACHIEVEMENTS += _chain(
     "class_enthusiast", "Class Enthusiast",
-    "Total group classes attended",
+    "Total group classes enrolled in",
     "🧘", AchievementCategory.CLASS,
     targets=[5, 15, 30, 60, 120],
     unit="classes",
@@ -154,6 +154,26 @@ ACHIEVEMENTS += _chain(
     targets=[5, 15, 30, 50, 100],
     unit="badges",
     points_per_level=[30, 80, 150, 300, 600],
+)
+
+# 11) Workout Warrior – total workouts completed
+ACHIEVEMENTS += _chain(
+    "workout_warrior", "Workout Warrior",
+    "Total workout days completed",
+    "🏋️", AchievementCategory.TRAINING,
+    targets=[5, 15, 30, 60, 100],
+    unit="workouts",
+    points_per_level=[30, 80, 150, 300, 600],
+)
+
+# 12) Plan Pioneer – total AI plans generated
+ACHIEVEMENTS += _chain(
+    "plan_pioneer", "Plan Pioneer",
+    "Total AI training plans generated",
+    "🤖", AchievementCategory.TRAINING,
+    targets=[1, 3, 5, 10, 25],
+    unit="plans",
+    points_per_level=[20, 50, 100, 250, 500],
 )
 
 
