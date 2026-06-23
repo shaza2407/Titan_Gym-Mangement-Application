@@ -47,10 +47,7 @@ class ClientDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Client Details',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16)),
+                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
             Text('View client information',
                 style: TextStyle(color: Colors.grey, fontSize: 12)),
           ],
@@ -65,10 +62,7 @@ class ClientDetailScreen extends StatelessWidget {
             ),
             child: Text(
               member.status,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600),
+              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -180,11 +174,8 @@ class _DetailRow extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: const TextStyle(color: Colors.grey, fontSize: 11)),
-            Text(value,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14)),
+            Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           ],
         ),
       ],
@@ -203,9 +194,7 @@ class _SubCell extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-          Text(value,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 14)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
         ],
       ),
     );

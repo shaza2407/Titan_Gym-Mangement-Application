@@ -242,15 +242,27 @@ static Future<void> cancelInvitation(int gymId, String email, String token) asyn
     }
   }
 
-static Future<void> unsuspendCoach(int gymId, int memberId, String token) async {
-  final res = await http.post(
-    Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/coaches/$memberId/unsuspend'),
-    headers: {'Authorization': 'Bearer $token'},
-  );
-  if (res.statusCode != 200) {
-    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to unsuspend');
+  static Future<void> unsuspendCoach(int gymId, int memberId, String token) async {
+    final res = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/coaches/$memberId/unsuspend'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (res.statusCode != 200) {
+      throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to unsuspend');
+    }
   }
-}
+
+  /// Get retention offer details
+  static Future<Map<String, dynamic>> getOfferDetails(int gymId, int offerId, String token) async {
+    final res = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/admin/analytics/$gymId/retention-offers/$offerId'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (res.statusCode != 200) {
+      throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to load offer details');
+    }
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
 
 // Admin Profile
 static Future<AdminProfile> fetchAdminProfile(String token) async {

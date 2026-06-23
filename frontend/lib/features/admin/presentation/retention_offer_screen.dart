@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../controller/retention_offer_controller.dart';
 import '../data/retention_offer_model.dart';
+import 'offer_details_screen.dart';
 
 class RetentionOfferScreen extends StatelessWidget {
   final String token;
@@ -136,7 +137,7 @@ class RetentionOfferScreen extends StatelessWidget {
             ),
           )
         else
-          ...dashboard.offerHistory.map((o) => _buildHistoryCard(o)),
+          ...dashboard.offerHistory.map((o) => _buildHistoryCard(context, o)),
       ],
     );
   }
@@ -166,32 +167,40 @@ class RetentionOfferScreen extends StatelessWidget {
   }
 
   /// 2- History Card
-  Widget _buildHistoryCard(OfferHistoryItem offer) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14),),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHistoryCard(BuildContext context, OfferHistoryItem offer) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OfferDetailsScreen(token: token, gymId: gymId, offerId: offer.id),
+          ),
+      ),
+      child:  Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14),),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(offer.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 4),
+                  Text('Sent: ${offer.createdAt}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(offer.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                _chip('${offer.membersCount} members', const Color(0xFFEEEEEE), Colors.black87),
                 const SizedBox(height: 4),
-                Text('Sent: ${offer.createdAt}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                _chip(_formatTargetType(offer.targetType), const Color(0xFFF0EEFF), const Color(0xFF4F46E5)),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _chip('${offer.membersCount} members', const Color(0xFFEEEEEE), Colors.black87),
-              const SizedBox(height: 4),
-              _chip(_formatTargetType(offer.targetType), const Color(0xFFF0EEFF), const Color(0xFF4F46E5)),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
