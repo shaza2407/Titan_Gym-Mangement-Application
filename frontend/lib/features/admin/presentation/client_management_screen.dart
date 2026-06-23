@@ -513,13 +513,18 @@ class _ClientCard extends StatelessWidget {
           // Active/Expired/Suspended stats
           if (!isPending) ...[
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _InfoCell(
                     label: 'Subscription',
                     value: member.subscription ?? '—'),
-                _InfoCell(
-                    label: 'Visits',
-                    value: '${member.visits ?? 0}'),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Visits', style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                    Text('${member.visits ?? 0}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),
