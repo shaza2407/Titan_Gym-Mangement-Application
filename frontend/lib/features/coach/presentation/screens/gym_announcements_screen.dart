@@ -89,7 +89,7 @@ class _GymAnnouncementsScreenState extends State<GymAnnouncementsScreen> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16),
                             itemCount: ctrl.announcements.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 16),
                             itemBuilder: (context, index) => AnnouncementCard(
                               announcement: ctrl.announcements[index],

@@ -18,7 +18,7 @@ from sqlalchemy import select, and_, func, distinct
 from app.models.achievement import Achievement, AchievementCategory
 from app.models.attendance import Attendance
 from app.models.client_achievement import ClientAchievement
-from app.models.training_plan import TrainingPlan, PlanStatus
+from app.models.training_plan import TrainingPlan, PlanStatus, TrainingPlanTracking, WorkoutStatus
 from app.models.gym_clients_membership import GymClientMembership
 
 # from app.models.client_class_enrollment import ClientClassEnrollment // not do yet
@@ -45,18 +45,35 @@ class AchievementEngine:
         await self._update_weekend_warrior(client_id, db)
         await self._update_streak(client_id, db)
         await self._update_perfect_week(client_id, db)
+        await db.flush()
         await self._update_badge_collector(client_id, db)
         await db.commit()
 
     async def on_class_attended(self, client_id: int, db: AsyncSession) -> None:
         """Call after a client attends a class."""
         await self._update_class_enthusiast(client_id, db)
+        await db.flush()
         await self._update_badge_collector(client_id, db)
         await db.commit()
 
     async def on_plan_completed(self, client_id: int, db: AsyncSession) -> None:
         """Call when a training plan status becomes COMPLETED."""
         await self._update_training_plan_completion(client_id, db)
+        await db.flush()
+        await self._update_badge_collector(client_id, db)
+        await db.commit()
+
+    async def on_workout_logged(self, client_id: int, db: AsyncSession) -> None:
+        """Call when a day's workout is marked as COMPLETED."""
+        await self._update_workout_warrior(client_id, db)
+        await db.flush()
+        await self._update_badge_collector(client_id, db)
+        await db.commit()
+
+    async def on_plan_generated(self, client_id: int, db: AsyncSession) -> None:
+        """Call when an AI training plan is generated."""
+        await self._update_plan_pioneer(client_id, db)
+        await db.flush()
         await self._update_badge_collector(client_id, db)
         await db.commit()
 
@@ -99,7 +116,7 @@ class AchievementEngine:
     ) -> None:
         """Visits within the current calendar month: 5 / 10 / 20 / 35 / 50"""
 
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
 
         month_start = now.replace(
             day=1,
@@ -145,7 +162,7 @@ class AchievementEngine:
             )
             .where(
                 GymClientMembership.clientID == client_id,
-                Attendance.check_in_hour < 7,
+                func.extract('hour', Attendance.checked_in) < 7,
             )
         )
 
@@ -168,7 +185,7 @@ class AchievementEngine:
             )
             .where(
                 GymClientMembership.clientID == client_id,
-                Attendance.check_in_hour >= 20,
+                func.extract('hour', Attendance.checked_in) >= 20,
             )
         )
 
@@ -234,15 +251,14 @@ class AchievementEngine:
         Number of weeks in which the client checked in on 5 distinct days.
         """
 
+        week_trunc = func.date_trunc("week", Attendance.checked_in)
+
         result = await db.execute(
             select(
                 func.count(
-                    distinct(Attendance.check_in_date)
+                    distinct(func.date(Attendance.checked_in))
                 ).label("days"),
-                func.date_trunc(
-                    "week",
-                    Attendance.checked_in,
-                ).label("week_start"),
+                week_trunc.label("week_start"),
             )
             .join(
                 GymClientMembership,
@@ -251,15 +267,10 @@ class AchievementEngine:
             .where(
                 GymClientMembership.clientID == client_id,
             )
-            .group_by(
-                func.date_trunc(
-                    "week",
-                    Attendance.checked_in,
-                )
-            )
+            .group_by(week_trunc)
             .having(
                 func.count(
-                    distinct(Attendance.check_in_date)
+                    distinct(func.date(Attendance.checked_in))
                 ) >= 5
             )
         )
@@ -315,6 +326,35 @@ class AchievementEngine:
             count,
             db,
         )
+
+    async def _update_workout_warrior(
+        self,
+        client_id: int,
+        db: AsyncSession,
+    ) -> None:
+        """Total workout days completed: 5 / 15 / 30 / 60 / 100"""
+        result = await db.execute(
+            select(func.count(TrainingPlanTracking.trackingID))
+            .where(
+                TrainingPlanTracking.clientID == client_id,
+                TrainingPlanTracking.status == WorkoutStatus.COMPLETED,
+            )
+        )
+        count = result.scalar() or 0
+        await self._apply_progress("workout_warrior", client_id, count, db)
+
+    async def _update_plan_pioneer(
+        self,
+        client_id: int,
+        db: AsyncSession,
+    ) -> None:
+        """Total AI plans generated: 1 / 3 / 5 / 10 / 25"""
+        result = await db.execute(
+            select(func.count(TrainingPlan.planID))
+            .where(TrainingPlan.clientID == client_id)
+        )
+        count = result.scalar() or 0
+        await self._apply_progress("plan_pioneer", client_id, count, db)
 
     # ── Badge Collector ───────────────────────────────────────────────────────
 
@@ -466,16 +506,16 @@ class AchievementEngine:
         """
 
         result = await db.execute(
-            select(Attendance.check_in_date)
+            select(func.date(Attendance.checked_in))
             .join(
                 GymClientMembership,
                 Attendance.membershipID == GymClientMembership.id,
             )
             .where(
                 GymClientMembership.clientID == client_id,
-                Attendance.check_in_date.isnot(None),
+                Attendance.checked_in.isnot(None),
             )
-            .order_by(Attendance.check_in_date.desc())
+            .order_by(func.date(Attendance.checked_in).desc())
         )
 
         raw_dates = result.scalars().all()

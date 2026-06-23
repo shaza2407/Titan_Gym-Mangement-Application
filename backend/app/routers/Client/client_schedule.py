@@ -20,6 +20,7 @@ from app.services.client_schedule import (
     enroll,
     unenroll,
 )
+from app.services.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/client/schedule", tags=["Client Schedule"])
 
@@ -106,6 +107,9 @@ async def enroll_class(
             id=f"class_reminder_{session_id}_{client.clientID}_{class_date}",
             replace_existing=True,
         )
+
+    # Trigger achievement update for enrolling in a class
+    await achievement_engine.on_class_attended(client.clientID, db)
 
     return result
 

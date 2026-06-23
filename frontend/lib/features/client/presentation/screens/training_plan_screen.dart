@@ -1017,6 +1017,55 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             );
           },
         ),
+        if (week.days.isNotEmpty && week.days.every((d) => d.isCompleted)) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () async {
+                final confirm = await _showConfirm(
+                  'Complete Week',
+                  'Are you sure you want to mark this entire week as completed?',
+                );
+                if (confirm == true) {
+                  final success = await ctrl.logWeekCompletion(widget.token);
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Week completed successfully!'),
+                        backgroundColor: Color(0xFF10B981),
+                      ),
+                    );
+                  } else if (!success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          ctrl.errorMessage ?? 'Failed to complete week.',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Mark Week as Completed',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

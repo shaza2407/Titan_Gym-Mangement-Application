@@ -82,7 +82,7 @@ class RetentionOfferScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFFF0EEFF),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF4F46E5).withOpacity(0.3)),
+            border: Border.all(color: const Color(0xFF4F46E5).withValues(alpha: 0.3)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,7 +571,7 @@ class RetentionOfferScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF0EEFF),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF4F46E5).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF4F46E5).withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
