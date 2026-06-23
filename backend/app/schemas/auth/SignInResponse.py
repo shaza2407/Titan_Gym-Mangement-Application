@@ -1,6 +1,6 @@
 
 from pydantic import BaseModel
-from app.schemas.UserRole import UserRole
+from app.schemas.shared.UserRole import UserRole
 from typing import Optional
 
 class SignInResponse(BaseModel):

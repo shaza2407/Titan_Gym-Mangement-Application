@@ -117,7 +117,8 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             ),
             const SizedBox(height: 32),
             const Text(
-              'Gemini AI is Generating...',
+              'Your Training Plan is Being Generated',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.black,
                 fontSize: 22,

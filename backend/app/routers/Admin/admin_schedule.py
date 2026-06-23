@@ -6,16 +6,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_session
 from app.dependencies.auth import require_admin
-from app.services.notification_service import notify_gym_clients
+from app.services.notifications.notification_service import notify_gym_clients
 from app.models.Admin import Admin
 from app.models.class_session import ClassSession
 from app.models.Gym import Gym
-from app.schemas.schedule_schema import (
+from app.schemas.shared.schedule_schema import (
     CreateClassRequest,
     EditClassRequest,
     AdminScheduleStatsResponse,
 )
-from app.services.admin_schedule import (
+from app.services.admin.admin_schedule import (
     get_admin_schedule_stats,
     get_all_classes,
     create_class,
@@ -27,7 +27,7 @@ from app.services.admin_schedule import (
     get_class_members,
     get_gym_coaches,
 )
-from app.services.notification_service import notify_Coach_on_class_approval
+from app.services.notifications.notification_service import notify_Coach_on_class_approval
 
 router = APIRouter(prefix="/admin/schedule", tags=["Admin Schedule"])
 

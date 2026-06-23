@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies.auth import get_session, require_coach
-from app.schemas.coach_schemas import CoachGymResponse
-from app.services.coach_gyms import get_coach_active_gyms, get_coach_announcements
+from app.schemas.coach.coach_schemas import CoachGymResponse
+from app.services.coach.coach_gyms import get_coach_active_gyms, get_coach_announcements
 from app.models.coach import Coach
 from app.models.User import User
-from app.services.admin_schedule import get_all_classes
+from app.services.admin.admin_schedule import get_all_classes
 
 router = APIRouter(prefix="/coach/gyms", tags=["Coach Gyms"])
 

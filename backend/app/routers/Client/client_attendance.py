@@ -6,21 +6,20 @@ from sqlalchemy import select
 from datetime import datetime, date, timezone
 from app.database import get_session
 from app.dependencies.auth import require_client
-from app.models import Client, GymClientMembership, Gym  # Added Gym import
-from app.schemas.attendance_schema import (
+from app.models import Client, GymClientMembership, Gym  
+from app.schemas.client.attendance_schema import (
     CheckinStatusResponse,
     CheckinResponse,
     CheckinRecord,
     CheckinHistoryResponse,
     CheckinRequest,
 )
-from app.services.attendance import (
+from app.services.admin.attendance import (
     get_membership,
     already_checked_in_today,
     record_checkin,
     get_recent_checkins
 )
-from app.services.achievement_engine import achievement_engine  # Add achievement engine
 
 router = APIRouter(prefix="/client", tags=["Client Attendance"])
 

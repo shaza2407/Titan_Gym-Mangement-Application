@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import date
 from app.models import User, Client
-from app.schemas.client_profile_schema import ClientProfileUpdate, ClientProfileResponse
+from app.schemas.client.client_profile_schema import ClientProfileUpdate, ClientProfileResponse
 
 
 def _calculate_age(dob: date) -> int:
