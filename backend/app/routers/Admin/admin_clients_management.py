@@ -21,7 +21,7 @@ from app.schemas.client.client_schemas import (
     InviteClientRequest, InviteClientResponse,
     ClientListResponse, ClientListItem,
 )
-from app.services.notifications.email_utils import send_invitation_email
+# from app.services.notifications.email_utils import send_invitation_email
 from app.dependencies.gym_member_managment import get_admin_gym
 from app.models import Attendance
 
