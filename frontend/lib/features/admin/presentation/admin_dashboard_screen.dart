@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/admin/presentation/admin_shell.dart';
+import 'package:frontend/features/admin/presentation/widgets/admin_bottom_navbar.dart';
 import 'package:provider/provider.dart';
 import '../controller/admin_gym_controller.dart';
 import '../data/gym_repository.dart';
