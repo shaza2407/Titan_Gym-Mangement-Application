@@ -323,7 +323,7 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
     );
   }
 
-  Widget _buildQuickActions(CoachDashboardController ctrl) {
+ Widget _buildQuickActions(CoachDashboardController ctrl) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -342,18 +342,17 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
             style: TextStyle(color: Colors.grey, fontSize: 13),
           ),
           const SizedBox(height: 16),
-
-          _buildActionItem(
-            Icons.calendar_month_outlined,
-            'My Gyms',
-            'View gyms you are coaching at',
-            () => setState(() => _currentIndex = 2),
+          QuickActionItem(
+            icon: Icons.business, // Changed slightly so it's not the exact same as below
+            title: 'My Gyms',
+            subtitle: 'View gyms you are coaching at',
+            onTap: () => setState(() => _currentIndex = 2),
           ),
-          _buildActionItem(
-            Icons.calendar_month_outlined,
-            'Request Class',
-            'Open a request to add a new class',
-            () async {
+          QuickActionItem(
+            icon: Icons.calendar_month_outlined,
+            title: 'Request Class',
+            subtitle: 'Open a request to add a new class',
+            onTap: () async {
               final scheduleCtrl = CoachScheduleController();
               Navigator.push(
                 context,
@@ -367,59 +366,13 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
               ctrl.loadAll(widget.token);
             },
           ),
-          _buildActionItem(
-            Icons.person_outline,
-            'My Profile',
-            'Update your coach information',
-            () => setState(() => _currentIndex = 3),
+          QuickActionItem(
+            icon: Icons.person_outline,
+            title: 'My Profile',
+            subtitle: 'Update your coach information',
+            onTap: () => setState(() => _currentIndex = 3),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionItem(
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade200),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: const Color.fromARGB(255, 206, 132, 28),
-              size: 22,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
-          ],
-        ),
       ),
     );
   }
@@ -451,5 +404,80 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
       'Sunday',
     ];
     return '${days[now.weekday - 1]}, ${months[now.month]} ${now.day}, ${now.year}';
+  }
+}
+
+
+class QuickActionItem extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const QuickActionItem({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  State<QuickActionItem> createState() => _QuickActionItemState();
+}
+
+class _QuickActionItemState extends State<QuickActionItem> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: _isHovered ? const Color.fromARGB(255, 206, 132, 28) : Colors.grey.shade200,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                widget.icon,
+                color: const Color.fromARGB(255, 206, 132, 28),
+                size: 22,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      widget.subtitle,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: _isHovered ? const Color.fromARGB(255, 206, 132, 28) : Colors.grey,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

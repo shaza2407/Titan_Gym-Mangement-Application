@@ -624,36 +624,37 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                   ),
                 ),
               ),
-              GestureDetector(
-                onTap: () async {
-                  final confirm = await showConfirmDialog(
-                    context,
-                    title: 'Cancel Request',
-                    content:
-                        'Are you sure you want to delete this class request?',
-                    confirmLabel: 'Cancel Request',
-                  );
-                  if (confirm == true) {
-                    final success = await ctrl.deleteRequest(
-                      widget.token,
-                      r.id,
+              if(r.status.toLowerCase() == 'pending')
+                GestureDetector(
+                  onTap: () async {
+                    final confirm = await showConfirmDialog(
+                      context,
+                      title: 'Cancel Request',
+                      content:
+                          'Are you sure you want to delete this class request?',
+                      confirmLabel: 'Cancel Request',
                     );
-                    if (success && mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Request cancelled'),
-                          backgroundColor: Colors.green,
-                        ),
+                    if (confirm == true) {
+                      final success = await ctrl.deleteRequest(
+                        widget.token,
+                        r.id,
                       );
+                      if (success && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Request cancelled'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
                     }
-                  }
-                },
-                child: const Icon(
-                  Icons.close_rounded,
-                  color: Colors.grey,
-                  size: 22,
+                  },
+                  child: const Icon(
+                    Icons.close_rounded,
+                    color: Colors.grey,
+                    size: 22,
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 8),
