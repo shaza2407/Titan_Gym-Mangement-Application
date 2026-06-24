@@ -140,7 +140,7 @@ async def invite_member(body: InviteClientRequest,
     )).scalar_one_or_none()
 
     if not existing_user:
-        raise HTTPException(404, "No user found with this email.")
+        raise HTTPException(422, "No user found with this email.")
 
     #check if it's a client
     if existing_user.role != UserRole.client:
