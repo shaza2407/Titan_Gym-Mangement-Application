@@ -140,10 +140,8 @@ class ClientTrainingPlanController extends ChangeNotifier {
     
     exercise.isCompleted = !exercise.isCompleted;
     
-    // Recalculate day completion
-    final total = day.exercises.length;
-    final completed = day.exercises.where((e) => e.isCompleted).length;
-    day.isCompleted = (completed == total && total > 0);
+    // We intentionally DO NOT auto-complete the day here, because the user must 
+    // explicitly tap "Complete Workout Day" to log their duration and hit the API.
     
     notifyListeners();
     return true;

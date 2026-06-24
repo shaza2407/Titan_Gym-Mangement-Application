@@ -23,6 +23,7 @@ from app.schemas.client.TrainingPlanResponse import (
 )
 from app.services.client.gemini_agent import gemini_agent
 from app.services.coach.achievement_engine import achievement_engine
+from app.services.client.training_plan_tracker import training_plan_tracker
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
@@ -375,6 +376,9 @@ async def complete_day(
         tracking.completed_at          = datetime.now(timezone.utc)
 
     await db.commit()
+
+    # Update weekly progress metrics
+    await training_plan_tracker._update_weekly_progress(client_id, plan_id, db)
 
     # Auto-complete plan if all workouts done
     await _check_auto_complete(client_id, plan, db)
