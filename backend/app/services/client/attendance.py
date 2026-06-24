@@ -1,38 +1,39 @@
-
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, cast, Date, distinct
 from datetime import datetime, date, timedelta
 from app.models.attendance import Attendance
-from app.models.gym_clients_membership import GymClientMembership ,ClientMembershipStatus
+from app.models.gym_clients_membership import GymClientMembership, ClientMembershipStatus
 
 _DOW = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
-async def get_membership(clientID: int, db: AsyncSession) -> GymClientMembership:
+async def get_membership(clientID: int, gymID: int, db: AsyncSession) -> GymClientMembership:
     result = await db.execute(
         select(GymClientMembership).where(
             GymClientMembership.clientID == clientID,
+            GymClientMembership.gymID == gymID,
         )
     )
     return result.scalar_one_or_none()
 
 
-async def already_checked_in_today(membershipID: int, db: AsyncSession) -> bool:
+async def already_checked_in_today(client_id: int, gym_id: int, db: AsyncSession) -> bool:
     today = date.today()
     result = await db.execute(
         select(Attendance).where(
-            Attendance.membershipID == membershipID,
-            cast(Attendance.checked_in, Date) == today
+            Attendance.clientID == client_id,
+            Attendance.gymID == gym_id,
+            cast(Attendance.checked_in, Date) == today,
         )
     )
     return result.scalar_one_or_none() is not None
 
 
-async def record_checkin(membershipID: int, db: AsyncSession) -> Attendance:
-    now = datetime.now()  # local time
+async def record_checkin(client_id: int, gym_id: int, db: AsyncSession) -> Attendance:
+    now = datetime.now()
     attendance = Attendance(
-        membershipID=membershipID,
+        clientID=client_id,
+        gymID=gym_id,
         checked_in=now,
         day_of_week=_DOW[now.weekday()],
     )
@@ -42,24 +43,28 @@ async def record_checkin(membershipID: int, db: AsyncSession) -> Attendance:
     return attendance
 
 
-async def get_recent_checkins(membershipID: int, db: AsyncSession, limit: int = 10):
+async def get_recent_checkins(client_id: int, gym_id: int, db: AsyncSession, limit: int = 10):
     result = await db.execute(
         select(Attendance)
-        .where(Attendance.membershipID == membershipID)
+        .where(
+            Attendance.clientID == client_id,
+            Attendance.gymID == gym_id,
+        )
         .order_by(Attendance.checked_in.desc())
         .limit(limit)
     )
     return result.scalars().all()
 
 
-async def get_dashboard_stats(membershipID: int, db: AsyncSession) -> dict:
+async def get_dashboard_stats(client_id: int, gym_id: int, db: AsyncSession) -> dict:
     today = date.today()
     start_of_week = today - timedelta(days=today.weekday())
 
     # Total visits
     total_result = await db.execute(
         select(func.count(Attendance.id)).where(
-            Attendance.membershipID == membershipID
+            Attendance.clientID == client_id,
+            Attendance.gymID == gym_id,
         )
     )
     total_visits = total_result.scalar() or 0
@@ -67,8 +72,9 @@ async def get_dashboard_stats(membershipID: int, db: AsyncSession) -> dict:
     # Days this week
     week_result = await db.execute(
         select(func.count(distinct(cast(Attendance.checked_in, Date)))).where(
-            Attendance.membershipID == membershipID,
-            cast(Attendance.checked_in, Date) >= start_of_week
+            Attendance.clientID == client_id,
+            Attendance.gymID == gym_id,
+            cast(Attendance.checked_in, Date) >= start_of_week,
         )
     )
     days_this_week = week_result.scalar() or 0
@@ -76,7 +82,10 @@ async def get_dashboard_stats(membershipID: int, db: AsyncSession) -> dict:
     # Streak
     streak_result = await db.execute(
         select(cast(Attendance.checked_in, Date))
-        .where(Attendance.membershipID == membershipID)
+        .where(
+            Attendance.clientID == client_id,
+            Attendance.gymID == gym_id,
+        )
         .distinct()
         .order_by(cast(Attendance.checked_in, Date).desc())
     )
