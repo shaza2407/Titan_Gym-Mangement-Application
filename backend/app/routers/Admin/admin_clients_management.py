@@ -45,12 +45,11 @@ async def list_clients(status_filter: str | None = None,
                              )).all()
 
     visit_counts_result = await db.execute(
-        select(Attendance.membershipID, func.count(Attendance.id).label("visits"))
-        .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
-        .where(GymClientMembership.gymID == gym.gymID)
-        .group_by(Attendance.membershipID)
+        select(Attendance.clientID, func.count(Attendance.id).label("visits"))
+        .where(Attendance.gymID == gym.gymID)
+        .group_by(Attendance.clientID)
     )
-    visit_map = {r.membershipID: r.visits for r in visit_counts_result.all()}
+    visit_map = {r.clientID: r.visits for r in visit_counts_result.all()}
 
     member_emails = set()
 
@@ -68,7 +67,6 @@ async def list_clients(status_filter: str | None = None,
         else:
             display_status = membership.status.value
 
-        #only suppress pending card if membership is active or expired (not suspended)
         if display_status in ("active", "expired"):
             member_emails.add(user.email.lower())
 
@@ -80,7 +78,7 @@ async def list_clients(status_filter: str | None = None,
             status=display_status,
             subscription=membership.subscription,
             subscription_end=membership.subscription_end,
-            visits=visit_map.get(membership.id, 0),
+            visits=visit_map.get(client.clientID, 0),
             joined=membership.joined_at,
             invitation_sent=None,
         ))
@@ -95,7 +93,6 @@ async def list_clients(status_filter: str | None = None,
     for inv in invitations:
         if search and search.lower() not in inv.email.lower():
             continue
-        #skip pending card only if active or expired membership exists for this email
         if inv.email.lower() in member_emails:
             continue
         members.append(ClientListItem(

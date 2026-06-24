@@ -44,7 +44,7 @@ class SignupController extends ChangeNotifier {
 
     if (phoneController.text.trim().isEmpty) {
       fieldErrors['phone'] = 'Phone number is required';
-    } else if (!RegExp(r'^\+?[0-9]{7,15}$')
+    } else if (!RegExp(r'^\+?[0-9]{11}$')
         .hasMatch(phoneController.text.trim())) {
       fieldErrors['phone'] = 'Enter a valid phone number';
     }
@@ -95,7 +95,7 @@ class SignupController extends ChangeNotifier {
         );
       }
     } catch (e) {
-      errorMessage = e.toString().replaceAll('Exception: ', '');
+      errorMessage = e.toString().replaceAll('Error: ', '');
     } finally {
       isLoading = false;
       notifyListeners();

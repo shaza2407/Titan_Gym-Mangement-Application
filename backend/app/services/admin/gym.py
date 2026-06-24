@@ -111,9 +111,8 @@ async def get_dashboard_stats(db: AsyncSession, gym_id: int, admin_id: int) -> d
     today_start = datetime(today.year, today.month, today.day)
     attendance = await db.execute(
         select(func.count(Attendance.id))
-        .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
         .filter(
-            GymClientMembership.gymID == gym_id,
+            Attendance.gymID == gym_id,
             Attendance.checked_in >= today_start,
         )
     )
