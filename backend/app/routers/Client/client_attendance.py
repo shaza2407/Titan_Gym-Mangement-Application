@@ -14,7 +14,7 @@ from app.schemas.client.attendance_schema import (
     CheckinHistoryResponse,
     CheckinRequest,
 )
-from backend.app.services.client.attendance import (
+from app.services.client.attendance import (
     get_membership,
     already_checked_in_today,
     record_checkin,

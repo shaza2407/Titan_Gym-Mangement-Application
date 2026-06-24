@@ -4,7 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
 import '../../../shared/logout_button.dart';
-import '../../../auth/presentation/forget_password_page.dart';
+import '../../../auth/presentation/screens/forget_password_page.dart';
+import '../../../shared/api_constants.dart';
+import '../../../Services/notifications_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../../Services/token_helper.dart';
 
 
 class ClientProfileScreen extends StatefulWidget {
@@ -73,47 +78,47 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               ),
               centerTitle: true,
               actions: [
-                // IconButton(
-                //   icon: const Icon(
-                //     Icons.notifications_outlined,
-                //     color: Colors.black,
-                //   ),
-                //   onPressed: () async {
-                //     await Navigator.push(
-                //       context,
-                //       MaterialPageRoute(
-                //         builder: (_) => NotificationsScreen(
-                //           userId: getUserIdFromToken(widget.token),
-                //           token: widget.token,
-                //         ),
-                //       ),
-                //     );
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.black,
+                  ),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NotificationsScreen(
+                          userId: getUserIdFromToken(widget.token),
+                          token: widget.token,
+                        ),
+                      ),
+                    );
 
-                //     // Only re-check if opened standalone (not connected to gym)
-                //     if (widget.onBack == null && mounted) {
-                //       try {
-                //         final meRes = await http.get(
-                //           Uri.parse('${ApiConstants.baseUrl}/client/me'),
-                //           headers: {
-                //             'Content-Type': 'application/json',
-                //             'Authorization': 'Bearer ${widget.token}',
-                //           },
-                //         );
-                //         if (meRes.statusCode == 200 && mounted) {
-                //           final meData = jsonDecode(meRes.body);
-                //           final isConnected = meData['is_connected'] as bool;
-                //           if (isConnected && mounted) {
-                //             Navigator.pushReplacementNamed(
-                //               context,
-                //               '/client-dashboard',
-                //               arguments: widget.token,
-                //             );
-                //           }
-                //         }
-                //       } catch (_) {}
-                //     }
-                //   },
-                // ),
+                    // Only re-check if opened standalone (not connected to gym)
+                    if (widget.onBack == null && mounted) {
+                      try {
+                        final meRes = await http.get(
+                          Uri.parse('${ApiConstants.baseUrl}/client/me'),
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ${widget.token}',
+                          },
+                        );
+                        if (meRes.statusCode == 200 && mounted) {
+                          final meData = jsonDecode(meRes.body);
+                          final isConnected = meData['is_connected'] as bool;
+                          if (isConnected && mounted) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              '/client-dashboard',
+                              arguments: widget.token,
+                            );
+                          }
+                        }
+                      } catch (_) {}
+                    }
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.black),
                   onPressed: () => showLogoutDialog(context),
