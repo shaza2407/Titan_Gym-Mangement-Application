@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../controller/signup_controller.dart';
+import '../controllers/signup_controller.dart';
 import 'package:provider/provider.dart';
-
 
 class SignupScreen extends StatelessWidget {
   final controller = SignupController();
@@ -18,15 +17,17 @@ class SignupScreen extends StatelessWidget {
           child: SingleChildScrollView(
             padding: EdgeInsets.all(24),
             child: Consumer<SignupController>(
-              builder: (context, ctrl, _) => Column(                
+              builder: (context, ctrl, _) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo
+                  // Back button
                   GestureDetector(
                     onTap: () => Navigator.pushNamed(context, '/login'),
                     child: Icon(Icons.arrow_back),
                   ),
                   SizedBox(height: 8),
+
+                  // Logo
                   Center(
                     child: CircleAvatar(
                       radius: 40,
@@ -42,36 +43,50 @@ class SignupScreen extends StatelessWidget {
                   SizedBox(height: 32),
 
                   // Fields
-                  _buildField('Full Name', 'Enter your full name', ctrl.fullNameController),
-                  _buildField('Email', 'Enter your email', ctrl.emailController),
-                  _buildField('Phone Number', 'Enter your phone number', ctrl.phoneController),
+                  _buildField('Full Name', 'Enter your full name', ctrl.fullNameController,
+                      errorText: ctrl.fieldErrors['fullName']),
+                  _buildField('Email', 'Enter your email', ctrl.emailController,
+                      errorText: ctrl.fieldErrors['email']),
+                  _buildField('Phone Number', 'Enter your phone number', ctrl.phoneController,
+                      errorText: ctrl.fieldErrors['phone']),
 
                   // Role Dropdown
                   Text('I am a', style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    initialValue: ctrl.selectedRole,
+                    value: ctrl.selectedRole,
                     hint: Text('Select your role'),
-                    items: ctrl.roles.map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
-                    onChanged: (String? value) => ctrl.setRole(value),  
+                    items: ctrl.roles
+                        .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                        .toList(),
+                    onChanged: (String? value) => ctrl.setRole(value),
                     decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      errorText: ctrl.fieldErrors['role'],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
+                    ),
+                  ),
                   SizedBox(height: 16),
 
-                  _buildField('Password', 'Create a password', ctrl.passwordController, obscure: true),
-                  _buildField('Confirm Password', 'Confirm your password', ctrl.confirmController, obscure: true),
+                  _buildField('Password', 'Create a password', ctrl.passwordController,
+                      obscure: true, errorText: ctrl.fieldErrors['password']),
+                  _buildField('Confirm Password', 'Confirm your password', ctrl.confirmController,
+                      obscure: true, errorText: ctrl.fieldErrors['confirm']),
 
-                  // Error
-                  if (ctrl.errorMessage != null)
-                    Text(ctrl.errorMessage!, style: TextStyle(color: Colors.red)),
+                  // Global error (API errors)
+                  if (ctrl.errorMessage != null) ...[
+                    SizedBox(height: 4),
+                    Text(ctrl.errorMessage!, style: TextStyle(color: Colors.red, fontSize: 13)),
+                    SizedBox(height: 8),
+                  ],
 
                   SizedBox(height: 24),
 
-                  // Button
+                  // Sign Up button
                   SizedBox(
                     width: double.infinity,
                     height: 54,
@@ -86,22 +101,22 @@ class SignupScreen extends StatelessWidget {
                           : Text('Sign Up', style: TextStyle(fontSize: 16, color: Colors.white)),
                     ),
                   ),
-                  // At the bottom, after the Sign Up button
+
                   SizedBox(height: 16),
+
+                  // Sign in link
                   Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text("Already have an account? "),
-                        GestureDetector(
+                        _HoverTextButton(
+                          label: 'Sign in',
                           onTap: () => Navigator.pushNamed(context, '/login'),
-                          child: 
-                            _HoverTextButton(label: 'Sign in',onTap: () => Navigator.pushNamed(context, '/login'),),
-
-                              ),
-                            ],
-                          ),
                         ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -111,7 +126,13 @@ class SignupScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildField(String label, String hint, TextEditingController ctrl, {bool obscure = false}) {
+  Widget _buildField(
+    String label,
+    String hint,
+    TextEditingController ctrl, {
+    bool obscure = false,
+    String? errorText,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -124,7 +145,11 @@ class SignupScreen extends StatelessWidget {
             hintText: hint,
             filled: true,
             fillColor: Colors.grey[100],
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            errorText: errorText,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
         SizedBox(height: 16),
@@ -132,8 +157,6 @@ class SignupScreen extends StatelessWidget {
     );
   }
 }
-
-
 
 class _HoverTextButton extends StatefulWidget {
   final String label;
@@ -166,20 +189,12 @@ class __HoverTextButtonState extends State<_HoverTextButton> {
         child: Text(
           widget.label,
           style: TextStyle(
-            color: _isPressed
-                ? const Color(0xFF3730A3)  
-                : const Color(0xFF4F46E5), 
-            decoration: _isHovered
-                ? TextDecoration.underline
-                : TextDecoration.none,
-            decorationColor: _isPressed
-                ? const Color(0xFF3730A3)
-                : const Color(0xFF4F46E5),
+            color: _isPressed ? const Color(0xFF3730A3) : const Color(0xFF4F46E5),
+            decoration: _isHovered ? TextDecoration.underline : TextDecoration.none,
+            decorationColor: _isPressed ? const Color(0xFF3730A3) : const Color(0xFF4F46E5),
           ),
         ),
       ),
     );
   }
 }
-
-

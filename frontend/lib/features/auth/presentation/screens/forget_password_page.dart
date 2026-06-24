@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../controller/forget_password_controller.dart';
+import '../controllers/forget_password_controller.dart';
 import 'password_reset_success_screen.dart';
 
 class ForgotPasswordPage extends StatelessWidget {

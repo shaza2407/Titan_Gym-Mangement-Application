@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import '../data/auth_repository.dart';
+import '../../data/auth_repository.dart';
+import '../../domain/i_auth_repository.dart';
+import '../../domain/auth_model.dart'; 
 
 class ForgotPasswordController extends ChangeNotifier {
-  final AuthRepository _repo = AuthRepository();
+  final IAuthRepository _repo;
+
+  ForgotPasswordController({IAuthRepository? repo}) : _repo = repo ?? AuthRepository();
 
   final emailController = TextEditingController();
   final codeController = TextEditingController();
@@ -28,7 +32,7 @@ class ForgotPasswordController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _repo.forgotPassword(email: emailController.text.trim());
+    await _repo.forgotPassword(ForgotPasswordRequest(email: emailController.text.trim()));
       sentEmail = emailController.text.trim();
       codeSent = true;
     } catch (e) {
@@ -54,11 +58,11 @@ class ForgotPasswordController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _repo.resetPassword(
+      await _repo.resetPassword(ResetPasswordRequest(
         email: sentEmail!,
         code: codeController.text.trim(),
         newPassword: passwordController.text,
-      );
+    ));
       return true;
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');

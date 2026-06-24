@@ -1,0 +1,967 @@
+{
+  "info": {
+    "_postman_id": "ff278196-dbe5-4b09-b94f-6ecf40f15152",
+    "name": "Titan Test Space",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "40474443",
+    "_collection_link": "https://go.postman.co/collection/40474443-ff278196-dbe5-4b09-b94f-6ecf40f15152?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication Tests",
+      "item": [
+        {
+          "name": "Sign Up - normal path (coach)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 Created\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"userID\");",
+                  "    pm.expect(response).to.have.property(\"name\");",
+                  "    pm.expect(response).to.have.property(\"email\");",
+                  "    pm.expect(response).to.have.property(\"phone\");",
+                  "    pm.expect(response).to.have.property(\"role\");",
+                  "});",
+                  "",
+                  "// // ─── Field Values Match Request ────────────────────────────────",
+                  "pm.test(\"Returned user data matches the role\", function () {",
+                  "    pm.expect(response.role).to.eql(\"coach\");",
+                  "});",
+                  "",
+                  "// ─── Password Not Exposed ──────────────────────────────────────",
+                  "pm.test(\"Password is not returned in response\", function () {",
+                  "    pm.expect(response).to.not.have.property(\"password\");",
+                  "});",
+                  "",
+                  "// ─── ID is valid ───────────────────────────────────────────────",
+                  "pm.test(\"User ID is present and non-empty\", function () {",
+                  "    pm.expect(response.userID).to.exist;",
+                  "    pm.expect(response.userID).to.be.a(\"number\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"coach name\",\n  \"email\": \"coach@gym.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"coach\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign Up - normal path (client)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 Created\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"userID\");",
+                  "    pm.expect(response).to.have.property(\"name\");",
+                  "    pm.expect(response).to.have.property(\"email\");",
+                  "    pm.expect(response).to.have.property(\"phone\");",
+                  "    pm.expect(response).to.have.property(\"role\");",
+                  "});",
+                  "",
+                  "// // ─── Field Values Match Request ────────────────────────────────",
+                  "pm.test(\"Returned user data matches the role\", function () {",
+                  "    pm.expect(response.role).to.eql(\"client\");",
+                  "});",
+                  "",
+                  "// ─── Password Not Exposed ──────────────────────────────────────",
+                  "pm.test(\"Password is not returned in response\", function () {",
+                  "    pm.expect(response).to.not.have.property(\"password\");",
+                  "});",
+                  "",
+                  "// ─── ID is valid ───────────────────────────────────────────────",
+                  "pm.test(\"User ID is present and non-empty\", function () {",
+                  "    pm.expect(response.userID).to.exist;",
+                  "    pm.expect(response.userID).to.be.a(\"number\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"client name\",\n  \"email\": \"client@gym.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"client\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign Up - normal path (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 Created\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"userID\");",
+                  "    pm.expect(response).to.have.property(\"name\");",
+                  "    pm.expect(response).to.have.property(\"email\");",
+                  "    pm.expect(response).to.have.property(\"phone\");",
+                  "    pm.expect(response).to.have.property(\"role\");",
+                  "});",
+                  "",
+                  "// ─── Field Values Match Request ────────────────────────────────",
+                  "pm.test(\"Returned user data matches the role\", function () {",
+                  "    pm.expect(response.role).to.eql(\"admin\");",
+                  "});",
+                  "",
+                  "// ─── Password Not Exposed ──────────────────────────────────────",
+                  "pm.test(\"Password is not returned in response\", function () {",
+                  "    pm.expect(response).to.not.have.property(\"password\");",
+                  "});",
+                  "",
+                  "// ─── ID is valid ───────────────────────────────────────────────",
+                  "pm.test(\"User ID is present and non-empty\", function () {",
+                  "    pm.expect(response.userID).to.exist;",
+                  "    pm.expect(response.userID).to.be.a(\"number\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"admin name\",\n  \"email\": \"admin@gym.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign Up - already registered emaill",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"detail\");",
+                  "});",
+                  "",
+                  "// ─── Field Values Match Request ────────────────────────────────",
+                  "pm.test(\"Returned user data matches sent payload\", function () {",
+                  "    pm.expect(response.detail).to.eql(\"Email already registered\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"shaza\",\n  \"email\": \"shazawagdy@test.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign Up - invalid mobile number",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 422 Unprocessable Entity\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Detail Array Exists ───────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response contains a detail array\", function () {",
+                  "    pm.expect(response).to.have.property(\"detail\");",
+                  "    pm.expect(response.detail).to.be.an(\"array\");",
+                  "    pm.expect(response.detail).to.have.length.above(0);",
+                  "});",
+                  "",
+                  "// ─── Error Points to Phone Field ──────────────────────────────",
+                  "pm.test(\"Error location points to phone field\", function () {",
+                  "    const error = response.detail[0];",
+                  "    pm.expect(error.loc).to.include(\"phone\");",
+                  "});",
+                  "",
+                  "// ─── Error Type ────────────────────────────────────────────────",
+                  "pm.test(\"Error type is value_error\", function () {",
+                  "    const error = response.detail[0];",
+                  "    pm.expect(error.type).to.eql(\"value_error\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── No User Created ───────────────────────────────────────────",
+                  "pm.test(\"No user data is returned on validation failure\", function () {",
+                  "    pm.expect(response).to.not.have.property(\"userID\");",
+                  "    pm.expect(response).to.not.have.property(\"token\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"coach name\",\n  \"email\": \"coach@gym.com\",\n  \"phone\": \"010000000\",\n  \"password\": \"12345678\",\n  \"role\": \"coach\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign Up - invalid password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 422 Unprocessable Entity\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Detail Array Exists ───────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response contains a detail array\", function () {",
+                  "    pm.expect(response).to.have.property(\"detail\");",
+                  "    pm.expect(response.detail).to.be.an(\"array\");",
+                  "    pm.expect(response.detail).to.have.length.above(0);",
+                  "});",
+                  "",
+                  "// ─── Error Points to Phone Field ──────────────────────────────",
+                  "pm.test(\"Error location points to phone field\", function () {",
+                  "    const error = response.detail[0];",
+                  "    pm.expect(error.loc).to.include(\"password\");",
+                  "});",
+                  "",
+                  "// ─── Error Type ────────────────────────────────────────────────",
+                  "pm.test(\"Error type is value_error\", function () {",
+                  "    const error = response.detail[0];",
+                  "    pm.expect(error.type).to.eql(\"value_error\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── No User Created ───────────────────────────────────────────",
+                  "pm.test(\"No user data is returned on validation failure\", function () {",
+                  "    pm.expect(response).to.not.have.property(\"userID\");",
+                  "    pm.expect(response).to.not.have.property(\"token\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"coach name\",\n  \"email\": \"coach@gym.com\",\n  \"phone\": \"01234567899\",\n  \"password\": \"1234567\",\n  \"role\": \"coach\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "verify email - normal path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 Created\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"message\");",
+                  "",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\" : \"shaza@test.com\",\n    \"code\" : \"488003\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/verify-email",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "verify-email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "verify email - invalid token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"detail\");",
+                  "",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\" : \"client@gym.com\",\n    \"code\" : \"9336335\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/verify-email",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "verify-email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign In - normal path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"access_token\");",
+                  "    pm.expect(response).to.have.property(\"role\");",
+                  "    pm.expect(response).to.have.property(\"userID\");",
+                  "});",
+                  "",
+                  "// // ─── Field Values Match Request ────────────────────────────────",
+                  "pm.test(\"Returned user data matches the role\", function () {",
+                  "    pm.expect(response.role).to.eql(\"admin\");",
+                  "});",
+                  "",
+                  "// ─── Password Not Exposed ──────────────────────────────────────",
+                  "pm.test(\"Password is not returned in response\", function () {",
+                  "    pm.expect(response).to.not.have.property(\"password\");",
+                  "});",
+                  "",
+                  "// ─── ID is valid ───────────────────────────────────────────────",
+                  "pm.test(\"User ID is present and non-empty\", function () {",
+                  "    pm.expect(response.userID).to.exist;",
+                  "    pm.expect(response.userID).to.be.a(\"number\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"shazawagdy@test.com\",\n  \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign In - invalid email or password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"detail\");",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"wrong@test.com\",\n  \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign In - unverified email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 403 Forbidden\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"detail\");",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"coach@gym.com\",\n  \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "resend verification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"message\");",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"coach@gym.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/resend-verification",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "resend-verification"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "forget password - normal path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"message\");",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"shaza@test.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "forget password - invalid email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"detail\");",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"wrong@test.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
