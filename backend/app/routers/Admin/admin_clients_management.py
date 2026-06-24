@@ -441,8 +441,8 @@ async def accept_invitation(
         duration_count=inv.duration_count,
     )
     db.add(subscription)
-
-    inv.status = InvitationStatus.accepted
+    db.delete(inv)
+    # inv.status = InvitationStatus.accepted
 
     await db.commit()
     return {"message": "Invitation accepted. You are now a member!"}
@@ -469,7 +469,8 @@ async def decline_invitation(
     if inv.email.lower() != current_user.email.lower():
         raise HTTPException(403, "This invitation is not for your account.")
 
-    inv.status = InvitationStatus.declined
+    # inv.status = InvitationStatus.declined
+    db.delete(inv)
     await db.commit()
     return {"message": "Invitation declined."}
 

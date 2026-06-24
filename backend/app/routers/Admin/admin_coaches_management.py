@@ -257,8 +257,9 @@ async def accept_coach_invitation(
     )
     db.add(membership)
 
-    # 7. Mark invitation as accepted
-    inv.status = InvitationStatus.accepted
+    # 7.just delete the invitation from database
+    # inv.status = InvitationStatus.accepted
+    db.delete(inv)
 
     await db.commit()
     return {"message": "Invitation accepted. You are now a coach at this gym!"}
@@ -285,7 +286,8 @@ async def decline_coach_invitation(
     if inv.email.lower() != current_user.email.lower():
         raise HTTPException(403, "This invitation is not for your account.")
 
-    inv.status = InvitationStatus.declined
+    # inv.status = InvitationStatus.declined
+    db.delete(inv)
     await db.commit()
     return {"message": "Invitation declined."}
 

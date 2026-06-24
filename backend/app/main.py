@@ -8,7 +8,7 @@ from app.routers.Admin import admin_clients_management
 from app.routers.Auth import auth
 from app.routers.Admin import admin_coaches_management
 from app.routers.Admin import gym
-from app.routers.Admin import admin_dashboard
+from app.routers.Admin import admin_profile
 from app.routers.Client import client_dashboard
 from app.routers.Client import client_attendance
 from app.routers.Client import achievements
@@ -76,7 +76,7 @@ app.include_router(gym_info.router)
 
 # admin routers
 app.include_router(admin_schedule.router)
-app.include_router(admin_dashboard.router)
+app.include_router(admin_profile.router)
 app.include_router(admin_announcements.router)
 app.include_router(admin_attendence_stat.router)
 app.include_router(admin_analytics.router)
