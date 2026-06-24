@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import '../data/auth_repository.dart';
+import '../../data/auth_repository.dart';
+import '../../domain/i_auth_repository.dart';
+import '../../domain/auth_model.dart';
 
 class VerifyEmailController extends ChangeNotifier {
-  final AuthRepository _repo = AuthRepository();
+  final IAuthRepository _repo;
+
+  VerifyEmailController({IAuthRepository? repo})
+      : _repo = repo ?? AuthRepository();
 
   final codeController = TextEditingController();
 
@@ -25,8 +30,10 @@ class VerifyEmailController extends ChangeNotifier {
 
     try {
       await _repo.verifyEmail(
-        email: email,
-        code: codeController.text.trim(),
+        VerifyEmailRequest(
+          email: email,
+          code: codeController.text.trim(),
+        ),
       );
       if (context.mounted) {
         Navigator.pushReplacementNamed(context, '/login');
@@ -46,7 +53,7 @@ class VerifyEmailController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _repo.resendVerification(email: email);
+      await _repo.resendVerification(email);
       successMessage = 'Verification code resent successfully';
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');

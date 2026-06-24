@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/logout_button.dart';
 import '../controller/admin_profile_controller.dart';
-import '../../auth/presentation/forget_password_page.dart';
+import '../../auth/presentation/screens/forget_password_page.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   final String token;

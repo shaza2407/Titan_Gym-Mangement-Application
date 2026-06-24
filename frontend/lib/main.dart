@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'features/auth/presentation/signup_screen.dart';
-import 'features/auth/presentation/login_screen.dart';
+import 'features/auth/presentation/screens/signup_screen.dart';
+import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/client/presentation/screens/client_dashboard_screen.dart';
 import 'features/client/presentation/screens/client_profile_screen.dart';
-import 'features/auth/presentation/verify_email_page.dart';
-import 'features/auth/presentation/forget_password_page.dart';
+import 'features/auth/presentation/screens/verify_email_page.dart';
+import 'features/auth/presentation/screens/forget_password_page.dart';
 import 'features/admin/presentation/admin_dashboard_screen.dart';
 import 'features/coach/presentation/screens/coach_dashboard_screen.dart';
 import 'features/shared/api_constants.dart';

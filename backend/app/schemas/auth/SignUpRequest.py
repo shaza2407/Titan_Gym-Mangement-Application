@@ -8,6 +8,7 @@ class SignUpRequest(BaseModel):
     password: str = Field()
     role: UserRole
 
+
     @field_validator('password')
     @classmethod
     def validate_password(cls, v):
