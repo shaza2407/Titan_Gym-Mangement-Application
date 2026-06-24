@@ -51,6 +51,7 @@ async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, 
             cast(Subscription.billingDate, Date) <= end_date,
         )
     )
+    # print("rev: ", result.scalar_one() or 0)
     return result.scalar_one() or 0
 
 
@@ -70,6 +71,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     prev_month_start = (month_start - relativedelta(months=1))
     prev_month_days = (month_start - timedelta(days=1)).day
 
+    print("/////////////////  HERE 1  /////////////////")
     ## 1- Total Revenue This Month => new memberships * subscription price
     this_month_revenue = await calc_revenue_for_period(db, gym, month_start, today)
     last_month_revenue = await calc_revenue_for_period(db, gym, prev_month_start, month_start - relativedelta(days=1))
@@ -96,6 +98,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     )
     new_members_this_month = new_this_month.scalar_one_or_none() or 0
 
+    print("Before the Avr Attendance: ")
     ## 3- Average Daily Attendance This Month
     checkins_result = await db.execute(
         select(func.count(Attendance.id))
