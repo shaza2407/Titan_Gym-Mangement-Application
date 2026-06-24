@@ -102,9 +102,8 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     ## 3- Average Daily Attendance This Month
     checkins_result = await db.execute(
         select(func.count(Attendance.id))
-        .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
         .where(
-            GymClientMembership.gymID == gym_id,
+            Attendance.gymID == gym_id,
             cast(Attendance.checked_in, Date) >= month_start,
             cast(Attendance.checked_in, Date) <= today,
         )
@@ -114,9 +113,8 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
 
     prev_checkins_result = await db.execute(
         select(func.count(Attendance.id))
-        .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
         .where(
-            GymClientMembership.gymID == gym_id,
+            Attendance.gymID == gym_id,
             cast(Attendance.checked_in, Date) >= prev_month_start,
             cast(Attendance.checked_in, Date) < month_start,
         )
@@ -224,17 +222,21 @@ async def get_weekly_pattern(gym_id: int, db: AsyncSession = Depends(get_session
     today = date.today()
     week_start = today - timedelta(days=6)
     result = await db.execute(
-        select(
-            cast(Attendance.checked_in, Date).label("day"),
-            extract("hour", Attendance.checked_in).label("hour"),
-            func.count(Attendance.id).label("cnt"),
-        ).join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
-        .where(
-            GymClientMembership.gymID == gym_id,
-            cast(Attendance.checked_in, Date) >= week_start,
-            cast(Attendance.checked_in, Date) <= today,
-        ).group_by(cast(Attendance.checked_in, Date), extract("hour", Attendance.checked_in))
+    select(
+        cast(Attendance.checked_in, Date).label("day"),
+        extract("hour", Attendance.checked_in).label("hour"),
+        func.count(Attendance.id).label("cnt"),
     )
+    .where(
+        Attendance.gymID == gym_id,
+        cast(Attendance.checked_in, Date) >= week_start,
+        cast(Attendance.checked_in, Date) <= today,
+    )
+    .group_by(
+        cast(Attendance.checked_in, Date),
+        extract("hour", Attendance.checked_in),
+    )
+    )  
 
     rows = result.all()
     day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
