@@ -9,7 +9,7 @@ from app.dependencies.auth import require_client
 from datetime import date
 from app.models.Gym import Gym
 from app.schemas.client.attendance_schema import DashboardStatsResponse
-from app.services.admin.attendance import get_dashboard_stats, get_membership
+from backend.app.services.client.attendance import get_dashboard_stats, get_membership
 
 router = APIRouter(prefix="/client", tags=["Client"])
 
