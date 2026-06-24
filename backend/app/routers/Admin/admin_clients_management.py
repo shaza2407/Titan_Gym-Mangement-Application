@@ -433,12 +433,12 @@ async def accept_invitation(
     subscription = Subscription(
         clientID = client.clientID,
         gymID = gym_id,
-        gymClientMebershipID=membership.id,
+        # gymClientMebershipID=membership.id,
         supscriptionPrice=inv.subscription_price,
         duration_count=inv.duration_count,
     )
     db.add(subscription)
-    db.delete(inv)
+    await db.delete(inv)
     # inv.status = InvitationStatus.accepted
 
     await db.commit()
@@ -550,7 +550,7 @@ async def renew_membership(
     sub = Subscription(
         clientID = membership.clientID,
         gymID = membership.gymID ,
-        gymClientMebershipID=membership.id,
+        # gymClientMebershipID=membership.id,
         supscriptionPrice=int(body.price),
         duration_count=body.duration_count,
     )

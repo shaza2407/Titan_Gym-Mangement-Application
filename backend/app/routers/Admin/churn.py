@@ -62,9 +62,9 @@ def get_days_until_expiry(membership: GymClientMembership) -> int:
     return max(delta.days, 0)
 
 async def predict_churn_risk(membership: GymClientMembership, db: AsyncSession):
-    weeks = await get_weekly_attendance(membership.id, db)
+    weeks = await get_weekly_attendance(membership.clientID, membership.gymID, db)
 
-    days_since_last_visit = await get_days_since_last_visit(membership.id, db)
+    days_since_last_visit = await get_days_since_last_visit(membership.clientID, membership.gymID, db)
     days_until_expiry = get_days_until_expiry(membership)
 
     payload = {
