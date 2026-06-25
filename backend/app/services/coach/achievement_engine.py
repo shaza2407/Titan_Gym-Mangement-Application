@@ -19,7 +19,7 @@ from app.models.achievement import Achievement, AchievementCategory
 from app.models.attendance import Attendance
 from app.models.client_achievement import ClientAchievement
 from app.models.training_plan import TrainingPlan, PlanStatus, TrainingPlanTracking, WorkoutStatus
-from app.models.gym_clients_membership import GymClientMembership
+
 
 # from app.models.client_class_enrollment import ClientClassEnrollment // not do yet
 
@@ -85,11 +85,7 @@ class AchievementEngine:
         """
         return (
             select(Attendance)
-            .join(
-                GymClientMembership,
-                Attendance.membershipID == GymClientMembership.id,
-            )
-            .where(GymClientMembership.clientID == client_id)
+            .where(Attendance.clientID == client_id)
         )
 
     # ── Check-in achievements ─────────────────────────────────────────────────
@@ -99,11 +95,7 @@ class AchievementEngine:
 
         result = await db.execute(
             select(func.count(Attendance.id))
-            .join(
-                GymClientMembership,
-                Attendance.membershipID == GymClientMembership.id,
-            )
-            .where(GymClientMembership.clientID == client_id)
+            .where(Attendance.clientID == client_id)
         )
 
         count = result.scalar() or 0
@@ -128,12 +120,8 @@ class AchievementEngine:
 
         result = await db.execute(
             select(func.count(Attendance.id))
-            .join(
-                GymClientMembership,
-                Attendance.membershipID == GymClientMembership.id,
-            )
             .where(
-                GymClientMembership.clientID == client_id,
+                Attendance.clientID == client_id,
                 Attendance.checked_in >= month_start,
             )
         )
@@ -156,12 +144,8 @@ class AchievementEngine:
 
         result = await db.execute(
             select(func.count(Attendance.id))
-            .join(
-                GymClientMembership,
-                Attendance.membershipID == GymClientMembership.id,
-            )
             .where(
-                GymClientMembership.clientID == client_id,
+                Attendance.clientID == client_id,
                 func.extract('hour', Attendance.checked_in) < 7,
             )
         )
@@ -179,12 +163,8 @@ class AchievementEngine:
 
         result = await db.execute(
             select(func.count(Attendance.id))
-            .join(
-                GymClientMembership,
-                Attendance.membershipID == GymClientMembership.id,
-            )
             .where(
-                GymClientMembership.clientID == client_id,
+                Attendance.clientID == client_id,
                 func.extract('hour', Attendance.checked_in) >= 20,
             )
         )
@@ -204,12 +184,8 @@ class AchievementEngine:
 
         result = await db.execute(
             select(func.count(Attendance.id))
-            .join(
-                GymClientMembership,
-                Attendance.membershipID == GymClientMembership.id,
-            )
             .where(
-                GymClientMembership.clientID == client_id,
+                Attendance.clientID == client_id,
                 Attendance.day_of_week.in_(["friday", "saturday"]),
             )
         )
@@ -260,12 +236,8 @@ class AchievementEngine:
                 ).label("days"),
                 week_trunc.label("week_start"),
             )
-            .join(
-                GymClientMembership,
-                Attendance.membershipID == GymClientMembership.id,
-            )
             .where(
-                GymClientMembership.clientID == client_id,
+                Attendance.clientID == client_id,
             )
             .group_by(week_trunc)
             .having(
@@ -507,12 +479,8 @@ class AchievementEngine:
 
         result = await db.execute(
             select(func.date(Attendance.checked_in))
-            .join(
-                GymClientMembership,
-                Attendance.membershipID == GymClientMembership.id,
-            )
             .where(
-                GymClientMembership.clientID == client_id,
+                Attendance.clientID == client_id,
                 Attendance.checked_in.isnot(None),
             )
             .order_by(func.date(Attendance.checked_in).desc())
