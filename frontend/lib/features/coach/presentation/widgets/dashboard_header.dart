@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../shared/logout_button.dart';
-import '../../../Services/token_helper.dart';
-import '../../../Services/notifications_screen.dart';
+import '../../../notification/token_helper.dart';
+import '../../../notification/presentation/notifications_screen.dart';
 import '../../../shared/notifications/notification_badge_controller.dart';
 
 

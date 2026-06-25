@@ -18,27 +18,18 @@ router = APIRouter(prefix="/client", tags=["Client - Gym"])
 
 
 @router.get("/gym", response_model=ClientGymResponse)
-async def get_my_gym(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session),
-):
+async def get_my_gym(current_user=Depends(require_client), db: AsyncSession = Depends(get_session),):
     client = await get_client_or_404(current_user.userID, db)
     return await fetch_client_gym(client.clientID, db)
 
 
 @router.get("/gym/announcements", response_model=List[AnnouncementResponse])
-async def get_my_gym_announcements(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session),
-):
+async def get_my_gym_announcements( current_user=Depends(require_client), db: AsyncSession = Depends(get_session),):
     client = await get_client_or_404(current_user.userID, db)
     return await fetch_gym_announcements(client.clientID, db)
 
 
 @router.get("/gym/weekly-schedule")
-async def get_gym_weekly_schedule(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session),
-):
+async def get_gym_weekly_schedule( current_user=Depends(require_client), db: AsyncSession = Depends(get_session),):
     client = await get_client_or_404(current_user.userID, db)
     return await fetch_weekly_schedule(client.clientID, db)

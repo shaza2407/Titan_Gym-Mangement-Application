@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../data/admin_repository.dart';
+import '../../domain/client_model.dart';
 
 class ClientDetailScreen extends StatelessWidget {
   final ClientListItem member;

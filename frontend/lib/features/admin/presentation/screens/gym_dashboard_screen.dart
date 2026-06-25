@@ -9,8 +9,8 @@ import 'coach_management_screen.dart';
 import 'invite_member_screen.dart';
 import 'attendance_tracking_screen.dart';
 import 'gym_settings_screen.dart';
-import 'package:frontend/features/Services/notifications_screen.dart';
-import 'package:frontend/features/Services/token_helper.dart';
+import 'package:frontend/features/notification/presentation/notifications_screen.dart';
+import 'package:frontend/features/notification/token_helper.dart';
 import 'announcements_screen.dart';
 import '../../domain/gym_model.dart';
 

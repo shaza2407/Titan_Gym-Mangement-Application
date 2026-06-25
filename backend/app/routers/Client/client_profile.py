@@ -12,10 +12,7 @@ router = APIRouter(prefix="/client", tags=["Client Profile"])
 
 
 @router.get("/profile", response_model=ClientProfileResponse)
-async def get_profile(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def get_profile(current_user=Depends(require_client),db: AsyncSession = Depends(get_session)):
     profile = await get_client_profile(current_user.userID, db)
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
@@ -23,11 +20,7 @@ async def get_profile(
 
 
 @router.put("/profile", response_model=ClientProfileResponse)
-async def update_profile(
-    payload: ClientProfileUpdate,
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def update_profile(payload: ClientProfileUpdate, current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     updated = await update_client_profile(current_user.userID, payload, db)
     if not updated:
         raise HTTPException(status_code=404, detail="Profile not found")
@@ -35,13 +28,9 @@ async def update_profile(
 
 
 @router.get("/me")
-async def get_me(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def get_me(current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     membership = await get_membership(client.clientID, db)
-
     return {
         "userID":       current_user.userID,
         "name":         current_user.name,

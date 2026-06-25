@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../data/admin_repository.dart';
+import '../../domain/admin_profile_model.dart';
 
 class AdminProfileController extends ChangeNotifier {
+  final AdminRepository _repo = AdminRepository();
+
   AdminProfile? profile;
   bool isLoading = false;
-  bool isSaving = false;
+  bool isSaving  = false;
   String? errorMessage;
 
   final nameController            = TextEditingController();
@@ -18,7 +21,7 @@ class AdminProfileController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     try {
-      profile = await AdminApiService.fetchAdminProfile(token);
+      profile = await _repo.fetchAdminProfile(token);
       nameController.text  = profile?.name  ?? '';
       phoneController.text = profile?.phone ?? '';
     } catch (e) {
@@ -47,14 +50,13 @@ class AdminProfileController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     try {
-      await AdminApiService.updateAdminProfile(
+      await _repo.updateAdminProfile(
         token:           token,
         name:            nameController.text.trim(),
         phone:           phoneController.text.trim(),
         currentPassword: currentPasswordController.text.trim(),
         newPassword:     newPasswordController.text.trim(),
       );
-      // refresh profile after save
       await loadProfile(token);
       return true;
     } catch (e) {
