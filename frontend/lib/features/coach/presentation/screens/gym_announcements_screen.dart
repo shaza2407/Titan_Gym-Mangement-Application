@@ -103,9 +103,8 @@ class _GymAnnouncementsScreenState extends State<GymAnnouncementsScreen> {
                 if (i == 2) {
                   Navigator.pop(
                     context,
-                  ); // Already on Gyms tab, just go back to the list
+                  );
                 } else {
-                  // Jump to Dashboard and switch to the selected tab
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(

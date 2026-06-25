@@ -213,12 +213,12 @@ class _CoachGymsScreenState extends State<CoachGymsScreen> {
 // ── Announcement card ──────────────────────────────────────────────
 class AnnouncementCard extends StatelessWidget {
   final CoachAnnouncementModel announcement;
-  final bool showGymName; // 🌟 1. Add this flag
+  final bool showGymName;
 
   const AnnouncementCard({
     super.key, 
     required this.announcement, 
-    this.showGymName = true, // 🌟 2. Default to true for the 'All Gyms' tab
+    this.showGymName = true, //Default to true for the 'All Gyms' tab
   });
 
   @override
@@ -420,7 +420,6 @@ class _GymCardWidgetState extends State<GymCardWidget> {
                     ],
                   ),
                 ),
-                // 🌟 REMOVED: The extra SizedBox(height: 14) that was causing the huge gap
               ],
             ),
           ),
