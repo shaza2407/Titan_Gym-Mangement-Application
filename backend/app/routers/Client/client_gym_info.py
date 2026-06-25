@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.database import get_session
 from app.dependencies.auth import require_client
-from app.schemas.admin.gym import GymResponse
+from app.schemas.admin.gym import ClientGymResponse
 from app.schemas.admin.announcement_schema import AnnouncementResponse
 from app.services.client.client_utils import get_client_or_404
 from app.services.client.client_gym_info import (
@@ -17,7 +17,7 @@ from app.services.client.client_gym_info import (
 router = APIRouter(prefix="/client", tags=["Client - Gym"])
 
 
-@router.get("/gym", response_model=GymResponse)
+@router.get("/gym", response_model=ClientGymResponse)
 async def get_my_gym(
     current_user=Depends(require_client),
     db: AsyncSession = Depends(get_session),
