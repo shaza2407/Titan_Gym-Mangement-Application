@@ -1,9 +1,9 @@
 {
   "info": {
-    "_postman_id": "3a0f3f95-ff07-4ad7-9b08-5376d5180290",
+    "_postman_id": "a3a564e7-478e-45e2-a7a0-cba6a042ff97",
     "name": "Titan Test Space",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "40430715"
+    "_exporter_id": "40551115"
   },
   "item": [
     {
@@ -669,6 +669,17 @@
                   "listen": "test",
                   "script": {
                     "exec": [
+                      "// ------ add token to auth --------",
+                      "const json = pm.response.json();",
+                      "",
+                      "if (json.access_token) {",
+                      "    pm.environment.set(\"access_token\", json.access_token);",
+                      "    console.log(\"Token saved:\", json.access_token);",
+                      "} else {",
+                      "    console.log(\"No token found in response:\", JSON.stringify(json));",
+                      "}",
+                      "",
+                      "",
                       "// ─── Status Code ───────────────────────────────────────────────",
                       "pm.test(\"Status code is 200 OK\", function () {",
                       "    pm.response.to.have.status(200);",
@@ -717,7 +728,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"shaza@admin.com\",\n  \"password\": \"12345678\"\n}",
+                  "raw": "{\n  \"email\": \"client2@gmail.com\",\n  \"password\": \"12345678\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4703,925 +4714,2320 @@
       ]
     },
     {
-      "name": "Achievements Tests",
+      "name": "Client Tests",
       "item": [
         {
-          "name": "Get Achievements",
-          "event": [
+          "name": "Training Plan Tests",
+          "item": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response is an array\", function () {",
-                  "    pm.expect(response).to.be.an(\"array\");",
-                  "});",
-                  "",
-                  "if (response.length > 0) {",
-                  "    pm.test(\"First item has required fields\", function () {",
-                  "        pm.expect(response[0]).to.have.property(\"achievementID\");",
-                  "        pm.expect(response[0]).to.have.property(\"key\");",
-                  "        pm.expect(response[0]).to.have.property(\"name\");",
-                  "        pm.expect(response[0]).to.have.property(\"description\");",
-                  "        pm.expect(response[0]).to.have.property(\"target\");",
-                  "        pm.expect(response[0]).to.have.property(\"unit\");",
-                  "        pm.expect(response[0]).to.have.property(\"current_value\");",
-                  "        pm.expect(response[0]).to.have.property(\"percent\");",
-                  "        pm.expect(response[0]).to.have.property(\"is_unlocked\");",
-                  "    });",
-                  "}"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/achievements/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "achievements",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Recalculate Achievements",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/achievements/recalculate",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "achievements",
-                "recalculate"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Achievements - Unauthorized",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 401 Unauthorized\", function () {",
-                  "    pm.response.to.have.status(401);",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/achievements/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "achievements",
-                ""
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Training Plan Tests",
-      "item": [
-        {
-          "name": "List Training Plans",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response is an array\", function () {",
-                  "    pm.expect(response).to.be.an(\"array\");",
-                  "});",
-                  "",
-                  "if (response.length > 0) {",
-                  "    pm.test(\"First item has required fields\", function () {",
-                  "        pm.expect(response[0]).to.have.property(\"planID\");",
-                  "        pm.expect(response[0]).to.have.property(\"title\");",
-                  "        pm.expect(response[0]).to.have.property(\"goal\");",
-                  "        pm.expect(response[0]).to.have.property(\"level\");",
-                  "        pm.expect(response[0]).to.have.property(\"weeks\");",
-                  "        pm.expect(response[0]).to.have.property(\"status\");",
-                  "        pm.expect(response[0]).to.have.property(\"version\");",
-                  "        pm.expect(response[0]).to.have.property(\"is_active\");",
-                  "        pm.expect(response[0]).to.have.property(\"created_at\");",
-                  "    });",
-                  "}"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/training-plans/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Generate Training Plan",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 201\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response has required fields\", function () {",
-                  "    pm.expect(response).to.be.an(\"object\");",
-                  "    pm.expect(response).to.have.property(\"planID\");",
-                  "    pm.expect(response).to.have.property(\"clientID\");",
-                  "    pm.expect(response).to.have.property(\"title\");",
-                  "    pm.expect(response).to.have.property(\"goal\");",
-                  "    pm.expect(response).to.have.property(\"level\");",
-                  "    pm.expect(response).to.have.property(\"weeks\");",
-                  "    pm.expect(response).to.have.property(\"status\");",
-                  "    pm.expect(response).to.have.property(\"version\");",
-                  "    pm.expect(response).to.have.property(\"plan\");",
-                  "    pm.expect(response).to.have.property(\"raw_json\");",
-                  "    pm.expect(response).to.have.property(\"created_at\");",
-                  "});",
-                  "",
-                  "pm.test(\"Save plan_id to environment\", function () {",
-                  "    pm.environment.set(\"plan_id\", response.planID);",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fitness_goal\": \"weight loss\",\n  \"age\": 28,\n  \"gender\": \"male\",\n  \"level\": \"beginner\",\n  \"weeks\": 8,\n  \"injuries\": null,\n  \"days_per_week\": 4,\n  \"equipment\": \"full gym\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "name": "List Training Plans",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response is an array\", function () {",
+                      "    pm.expect(response).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "if (response.length > 0) {",
+                      "    pm.test(\"First item has required fields\", function () {",
+                      "        pm.expect(response[0]).to.have.property(\"planID\");",
+                      "        pm.expect(response[0]).to.have.property(\"title\");",
+                      "        pm.expect(response[0]).to.have.property(\"goal\");",
+                      "        pm.expect(response[0]).to.have.property(\"level\");",
+                      "        pm.expect(response[0]).to.have.property(\"weeks\");",
+                      "        pm.expect(response[0]).to.have.property(\"status\");",
+                      "        pm.expect(response[0]).to.have.property(\"version\");",
+                      "        pm.expect(response[0]).to.have.property(\"is_active\");",
+                      "        pm.expect(response[0]).to.have.property(\"created_at\");",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
                 }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/training-plans/generate",
-              "host": [
-                "{{base_url}}"
               ],
-              "path": [
-                "training-plans",
-                "generate"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Specific Training Plan",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response has required fields\", function () {",
-                  "    pm.expect(response).to.be.an(\"object\");",
-                  "    pm.expect(response).to.have.property(\"planID\");",
-                  "    pm.expect(response).to.have.property(\"clientID\");",
-                  "    pm.expect(response).to.have.property(\"title\");",
-                  "    pm.expect(response).to.have.property(\"goal\");",
-                  "    pm.expect(response).to.have.property(\"level\");",
-                  "    pm.expect(response).to.have.property(\"weeks\");",
-                  "    pm.expect(response).to.have.property(\"status\");",
-                  "    pm.expect(response).to.have.property(\"version\");",
-                  "    pm.expect(response).to.have.property(\"plan\");",
-                  "    pm.expect(response).to.have.property(\"raw_json\");",
-                  "    pm.expect(response).to.have.property(\"created_at\");",
-                  "});"
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Plan Versions",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response is an array\", function () {",
-                  "    pm.expect(response).to.be.an(\"array\");",
-                  "});",
-                  "",
-                  "if (response.length > 0) {",
-                  "    pm.test(\"First item has required fields\", function () {",
-                  "        pm.expect(response[0]).to.have.property(\"planID\");",
-                  "        pm.expect(response[0]).to.have.property(\"title\");",
-                  "        pm.expect(response[0]).to.have.property(\"goal\");",
-                  "        pm.expect(response[0]).to.have.property(\"level\");",
-                  "        pm.expect(response[0]).to.have.property(\"weeks\");",
-                  "        pm.expect(response[0]).to.have.property(\"status\");",
-                  "        pm.expect(response[0]).to.have.property(\"version\");",
-                  "        pm.expect(response[0]).to.have.property(\"is_active\");",
-                  "        pm.expect(response[0]).to.have.property(\"created_at\");",
-                  "    });",
-                  "}"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}/versions",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}",
-                "versions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Edit Training Plan",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response has required fields\", function () {",
-                  "    pm.expect(response).to.be.an(\"object\");",
-                  "    pm.expect(response).to.have.property(\"planID\");",
-                  "    pm.expect(response).to.have.property(\"clientID\");",
-                  "    pm.expect(response).to.have.property(\"title\");",
-                  "    pm.expect(response).to.have.property(\"goal\");",
-                  "    pm.expect(response).to.have.property(\"level\");",
-                  "    pm.expect(response).to.have.property(\"weeks\");",
-                  "    pm.expect(response).to.have.property(\"status\");",
-                  "    pm.expect(response).to.have.property(\"version\");",
-                  "    pm.expect(response).to.have.property(\"plan\");",
-                  "    pm.expect(response).to.have.property(\"raw_json\");",
-                  "    pm.expect(response).to.have.property(\"created_at\");",
-                  "    pm.expect(response).to.have.property(\"version\");",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fitness_goal\": \"muscle gain\",\n  \"age\": 28,\n  \"gender\": \"male\",\n  \"level\": \"intermediate\",\n  \"weeks\": 10,\n  \"injuries\": null,\n  \"days_per_week\": 5,\n  \"equipment\": \"full gym\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+                "url": {
+                  "raw": "{{base_url}}/training-plans/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    ""
+                  ]
                 }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Duplicate Plan",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 201\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response has required fields\", function () {",
-                  "    pm.expect(response).to.be.an(\"object\");",
-                  "    pm.expect(response).to.have.property(\"planID\");",
-                  "    pm.expect(response).to.have.property(\"title\");",
-                  "    pm.expect(response).to.have.property(\"goal\");",
-                  "    pm.expect(response).to.have.property(\"level\");",
-                  "    pm.expect(response).to.have.property(\"weeks\");",
-                  "    pm.expect(response).to.have.property(\"status\");",
-                  "    pm.expect(response).to.have.property(\"version\");",
-                  "    pm.expect(response).to.have.property(\"is_active\");",
-                  "    pm.expect(response).to.have.property(\"created_at\");",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}/duplicate",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}",
-                "duplicate"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Complete Day",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
               },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"week_number\": 1,\n  \"day_number\": 1,\n  \"completed_exercises\": 5,\n  \"total_exercises\": 5,\n  \"duration_minutes\": 45,\n  \"completed_exercise_indices\": [\n    0,\n    1,\n    2,\n    3,\n    4\n  ]\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "response": []
             },
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}/complete-day",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}",
-                "complete-day"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Complete Week",
-          "event": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});"
+              "name": "Generate Training Plan",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"planID\");",
+                      "    pm.expect(response).to.have.property(\"clientID\");",
+                      "    pm.expect(response).to.have.property(\"title\");",
+                      "    pm.expect(response).to.have.property(\"goal\");",
+                      "    pm.expect(response).to.have.property(\"level\");",
+                      "    pm.expect(response).to.have.property(\"weeks\");",
+                      "    pm.expect(response).to.have.property(\"status\");",
+                      "    pm.expect(response).to.have.property(\"version\");",
+                      "    pm.expect(response).to.have.property(\"plan\");",
+                      "    pm.expect(response).to.have.property(\"raw_json\");",
+                      "    pm.expect(response).to.have.property(\"created_at\");",
+                      "});",
+                      "",
+                      "pm.test(\"Save plan_id to environment\", function () {",
+                      "    pm.environment.set(\"plan_id\", response.planID);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fitness_goal\": \"weight loss\",\n  \"age\": 28,\n  \"gender\": \"male\",\n  \"level\": \"beginner\",\n  \"weeks\": 8,\n  \"injuries\": null,\n  \"days_per_week\": 4,\n  \"equipment\": \"full gym\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/training-plans/generate",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "generate"
+                  ]
+                }
               },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"week_number\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "response": []
             },
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}/complete-week",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}",
-                "complete-week"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Complete Training Plan",
-          "event": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response has required fields\", function () {",
-                  "    pm.expect(response).to.be.an(\"object\");",
-                  "    pm.expect(response).to.have.property(\"planID\");",
-                  "    pm.expect(response).to.have.property(\"status\");",
-                  "    pm.expect(response).to.have.property(\"completed_at\");",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}/complete",
-              "host": [
-                "{{base_url}}"
+              "name": "Get Specific Training Plan",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"planID\");",
+                      "    pm.expect(response).to.have.property(\"clientID\");",
+                      "    pm.expect(response).to.have.property(\"title\");",
+                      "    pm.expect(response).to.have.property(\"goal\");",
+                      "    pm.expect(response).to.have.property(\"level\");",
+                      "    pm.expect(response).to.have.property(\"weeks\");",
+                      "    pm.expect(response).to.have.property(\"status\");",
+                      "    pm.expect(response).to.have.property(\"version\");",
+                      "    pm.expect(response).to.have.property(\"plan\");",
+                      "    pm.expect(response).to.have.property(\"raw_json\");",
+                      "    pm.expect(response).to.have.property(\"created_at\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
               ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}",
-                "complete"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Export Plan PDF",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Response is PDF\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/pdf\");",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Disposition header present\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\");",
-                  "});"
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
                 ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}/pdf",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}",
-                "pdf"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Training Plan",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 204 No Content\", function () {",
-                  "    pm.response.to.have.status(204);",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/training-plans/{{plan_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "{{plan_id}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Specific Training Plan - Not Found",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 404\", function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});",
-                  "",
-                  "const response = pm.response.json();",
-                  "pm.test(\"Response has required fields\", function () {",
-                  "    pm.expect(response).to.be.an(\"object\");",
-                  "    pm.expect(response).to.have.property(\"detail\");",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/training-plans/999999",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "training-plans",
-                "999999"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Generate Training Plan - Missing Required Field",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 422\", function () {",
-                  "    pm.response.to.have.status(422);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is application/json\", function () {",
-                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{client_token}}",
-                "type": "text"
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}"
+                  ]
+                }
               },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"age\": 25\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "response": []
             },
-            "url": {
-              "raw": "{{base_url}}/training-plans/generate",
-              "host": [
-                "{{base_url}}"
+            {
+              "name": "Get Plan Versions",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response is an array\", function () {",
+                      "    pm.expect(response).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "if (response.length > 0) {",
+                      "    pm.test(\"First item has required fields\", function () {",
+                      "        pm.expect(response[0]).to.have.property(\"planID\");",
+                      "        pm.expect(response[0]).to.have.property(\"title\");",
+                      "        pm.expect(response[0]).to.have.property(\"goal\");",
+                      "        pm.expect(response[0]).to.have.property(\"level\");",
+                      "        pm.expect(response[0]).to.have.property(\"weeks\");",
+                      "        pm.expect(response[0]).to.have.property(\"status\");",
+                      "        pm.expect(response[0]).to.have.property(\"version\");",
+                      "        pm.expect(response[0]).to.have.property(\"is_active\");",
+                      "        pm.expect(response[0]).to.have.property(\"created_at\");",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
               ],
-              "path": [
-                "training-plans",
-                "generate"
-              ]
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}/versions",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}",
+                    "versions"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Edit Training Plan",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"planID\");",
+                      "    pm.expect(response).to.have.property(\"clientID\");",
+                      "    pm.expect(response).to.have.property(\"title\");",
+                      "    pm.expect(response).to.have.property(\"goal\");",
+                      "    pm.expect(response).to.have.property(\"level\");",
+                      "    pm.expect(response).to.have.property(\"weeks\");",
+                      "    pm.expect(response).to.have.property(\"status\");",
+                      "    pm.expect(response).to.have.property(\"version\");",
+                      "    pm.expect(response).to.have.property(\"plan\");",
+                      "    pm.expect(response).to.have.property(\"raw_json\");",
+                      "    pm.expect(response).to.have.property(\"created_at\");",
+                      "    pm.expect(response).to.have.property(\"version\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fitness_goal\": \"muscle gain\",\n  \"age\": 28,\n  \"gender\": \"male\",\n  \"level\": \"intermediate\",\n  \"weeks\": 10,\n  \"injuries\": null,\n  \"days_per_week\": 5,\n  \"equipment\": \"full gym\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Duplicate Plan",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"planID\");",
+                      "    pm.expect(response).to.have.property(\"title\");",
+                      "    pm.expect(response).to.have.property(\"goal\");",
+                      "    pm.expect(response).to.have.property(\"level\");",
+                      "    pm.expect(response).to.have.property(\"weeks\");",
+                      "    pm.expect(response).to.have.property(\"status\");",
+                      "    pm.expect(response).to.have.property(\"version\");",
+                      "    pm.expect(response).to.have.property(\"is_active\");",
+                      "    pm.expect(response).to.have.property(\"created_at\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}/duplicate",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}",
+                    "duplicate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Complete Day",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"week_number\": 1,\n  \"day_number\": 1,\n  \"completed_exercises\": 5,\n  \"total_exercises\": 5,\n  \"duration_minutes\": 45,\n  \"completed_exercise_indices\": [\n    0,\n    1,\n    2,\n    3,\n    4\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}/complete-day",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}",
+                    "complete-day"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Complete Week",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"week_number\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}/complete-week",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}",
+                    "complete-week"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Complete Training Plan",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"planID\");",
+                      "    pm.expect(response).to.have.property(\"status\");",
+                      "    pm.expect(response).to.have.property(\"completed_at\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}/complete",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}",
+                    "complete"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Export Plan PDF",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response is PDF\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/pdf\");",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Disposition header present\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}/pdf",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}",
+                    "pdf"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Training Plan",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 204 No Content\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/training-plans/{{plan_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "{{plan_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Specific Training Plan - Not Found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/training-plans/999999",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "999999"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Generate Training Plan - Missing Required Field",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 422\", function () {",
+                      "    pm.response.to.have.status(422);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"age\": 25\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/training-plans/generate",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    "generate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Training Plans - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/training-plans/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "training-plans",
+                    ""
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
+          ]
         },
         {
-          "name": "List Training Plans - Unauthorized",
-          "event": [
+          "name": "Achievements Tests",
+          "item": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 401 Unauthorized\", function () {",
-                  "    pm.response.to.have.status(401);",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/training-plans/",
-              "host": [
-                "{{base_url}}"
+              "name": "Get Achievements",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response is an array\", function () {",
+                      "    pm.expect(response).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      "if (response.length > 0) {",
+                      "    pm.test(\"First item has required fields\", function () {",
+                      "        pm.expect(response[0]).to.have.property(\"achievementID\");",
+                      "        pm.expect(response[0]).to.have.property(\"key\");",
+                      "        pm.expect(response[0]).to.have.property(\"name\");",
+                      "        pm.expect(response[0]).to.have.property(\"description\");",
+                      "        pm.expect(response[0]).to.have.property(\"target\");",
+                      "        pm.expect(response[0]).to.have.property(\"unit\");",
+                      "        pm.expect(response[0]).to.have.property(\"current_value\");",
+                      "        pm.expect(response[0]).to.have.property(\"percent\");",
+                      "        pm.expect(response[0]).to.have.property(\"is_unlocked\");",
+                      "    });",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
               ],
-              "path": [
-                "training-plans",
-                ""
-              ]
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/achievements/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "achievements",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Recalculate Achievements",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{client_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/achievements/recalculate",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "achievements",
+                    "recalculate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Achievements - Unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/achievements/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "achievements",
+                    ""
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
+          ]
+        },
+        {
+          "name": "client_attendance",
+          "item": [
+            {
+              "name": "checkin-status",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "\r",
+                      "pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+                      "pm.test(\"Has can_checkin field\", () => pm.expect(json).to.have.property(\"can_checkin\"));\r",
+                      "pm.test(\"Has reason field\", () => pm.expect(json).to.have.property(\"reason\"));\r",
+                      "\r",
+                      "if (json.can_checkin) {\r",
+                      "    pm.test(\"Reason is ok\", () => pm.expect(json.reason).to.eql(\"ok\"));\r",
+                      "    pm.test(\"Has subscription info\", () => {\r",
+                      "        pm.expect(json).to.have.property(\"subscription\");\r",
+                      "        pm.expect(json).to.have.property(\"subscription_end\");\r",
+                      "        pm.expect(json).to.have.property(\"status\");\r",
+                      "    });\r",
+                      "    console.log(\"Client CAN check in\");\r",
+                      "} else {\r",
+                      "    const validReasons = [\"not_connected\", \"suspended\", \"expired\", \"already_checked_in\"];\r",
+                      "    pm.test(\"Reason is valid\", () => pm.expect(validReasons).to.include(json.reason));\r",
+                      "    console.log(\"Client CANNOT check in. Reason:\", json.reason);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/checkin-status",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "checkin-status"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "checkin - correct qr",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Checkin successful\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Has message\", () => pm.expect(json).to.have.property(\"message\"));\r",
+                      "    pm.test(\"Has checked_in timestamp\", () => pm.expect(json).to.have.property(\"checked_in\"));\r",
+                      "    pm.test(\"Has day_of_week\", () => pm.expect(json).to.have.property(\"day_of_week\"));\r",
+                      "\r",
+                      "    const validDays = [\"monday\",\"tuesday\",\"wednesday\",\"thursday\",\"friday\",\"saturday\",\"sunday\"];\r",
+                      "    pm.test(\"day_of_week is valid\", () => pm.expect(validDays).to.include(json.day_of_week));\r",
+                      "\r",
+                      "    console.log(\"Checked in:\", json.message);\r",
+                      "\r",
+                      "} else if (status === 400 && json.detail === \"Already checked in today\") {\r",
+                      "    pm.test(\"ℹ️ Already checked in today (expected if re-running)\", () => {\r",
+                      "        pm.expect(status).to.eql(400);\r",
+                      "    });\r",
+                      "    console.log(\"ℹ️ Already checked in today — this is correct behavior\");\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"❌ Unexpected response for correct QR\", () => {\r",
+                      "        pm.expect(status).to.be.oneOf([200, 400]);\r",
+                      "    });\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"qr_code\": \"{{correct_qr}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/client/checkin",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "checkin"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "checkin - wrong qr",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 400 && json.detail === \"This QR code doesn't belong to your gym\") {\r",
+                      "    pm.test(\"Wrong QR correctly rejected\", () => pm.response.to.have.status(400));\r",
+                      "    pm.test(\"Error detail is correct\", () => {\r",
+                      "        pm.expect(json.detail).to.eql(\"This QR code doesn't belong to your gym\");\r",
+                      "    });\r",
+                      "    console.log(\"Correctly rejected wrong QR:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 400 && json.detail === \"Already checked in today\") {\r",
+                      "    pm.test(\"ℹ️ Already checked in today\", () => pm.expect(status).to.eql(400));\r",
+                      "    console.log(\"ℹ️ Already checked in today — run tomorrow to test fresh checkin\");\r",
+                      "\r",
+                      "} else if (status === 400 && json.detail === \"Not connected to any gym\") {\r",
+                      "    pm.test(\"ℹ️ Client not connected to gym\", () => pm.expect(status).to.eql(400));\r",
+                      "    console.log(\"ℹ️ Client has no membership\");\r",
+                      "\r",
+                      "} else if (status === 403 && json.detail === \"Your membership is suspended\") {\r",
+                      "    pm.test(\"ℹ️ Membership suspended\", () => pm.expect(status).to.eql(403));\r",
+                      "    console.log(\"ℹ️ Membership is suspended\");\r",
+                      "\r",
+                      "} else if (status === 403 && json.detail === \"Your subscription has expired\") {\r",
+                      "    pm.test(\"ℹ️ Subscription expired\", () => pm.expect(status).to.eql(403));\r",
+                      "    console.log(\"ℹ️ Subscription has expired\");\r",
+                      "\r",
+                      "} else if (status === 200) {\r",
+                      "    // Wrong QR somehow passed — that's a bug\r",
+                      "    pm.test(\"❌ Wrong QR should NOT return 200\", () => pm.expect(status).to.not.eql(200));\r",
+                      "    console.log(\"❌ Bug: wrong QR was accepted!\");\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"❌ Unexpected response\", () => {\r",
+                      "        pm.expect(status).to.be.oneOf([400, 403]);\r",
+                      "    });\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"qr_code\": \"{{wrong_qr}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/client/checkin",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "checkin"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "checkins - recent(history)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "\r",
+                      "pm.test(\"Status 200\", () => pm.response.to.have.status(200));\r",
+                      "pm.test(\"Has checkins array\", () => {\r",
+                      "    pm.expect(json).to.have.property(\"checkins\");\r",
+                      "    pm.expect(json.checkins).to.be.an(\"array\");\r",
+                      "});\r",
+                      "\r",
+                      "if (json.checkins.length > 0) {\r",
+                      "    const first = json.checkins[0];\r",
+                      "    pm.test(\"Each record has id\", () => pm.expect(first).to.have.property(\"id\"));\r",
+                      "    pm.test(\"Each record has checked_in\", () => pm.expect(first).to.have.property(\"checked_in\"));\r",
+                      "    pm.test(\"Each record has day_of_week\", () => pm.expect(first).to.have.property(\"day_of_week\"));\r",
+                      "\r",
+                      "    const validDays = [\"monday\",\"tuesday\",\"wednesday\",\"thursday\",\"friday\",\"saturday\",\"sunday\"];\r",
+                      "    pm.test(\"day_of_week values are valid\", () => {\r",
+                      "        json.checkins.forEach(r => pm.expect(validDays).to.include(r.day_of_week));\r",
+                      "    });\r",
+                      "\r",
+                      "    // Verify descending order (most recent first)\r",
+                      "    if (json.checkins.length > 1) {\r",
+                      "        pm.test(\"Records are in descending order\", () => {\r",
+                      "            const dates = json.checkins.map(r => new Date(r.checked_in).getTime());\r",
+                      "            for (let i = 0; i < dates.length - 1; i++) {\r",
+                      "                pm.expect(dates[i]).to.be.gte(dates[i + 1]);\r",
+                      "            }\r",
+                      "        });\r",
+                      "    }\r",
+                      "\r",
+                      "    console.log(`${json.checkins.length} checkin(s) returned. Latest:`, json.checkins[0].checked_in);\r",
+                      "} else {\r",
+                      "    console.log(\"ℹ️ No checkins yet for this client\");\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/checkins?limit=50",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "checkins"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "50"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "client_dashboard",
+          "item": [
+            {
+              "name": "dashboard-stats",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Dashboard stats returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Has total_visits\", () => pm.expect(json).to.have.property(\"total_visits\"));\r",
+                      "    pm.test(\"Has days_this_week\", () => pm.expect(json).to.have.property(\"days_this_week\"));\r",
+                      "    pm.test(\"Has current_streak\", () => pm.expect(json).to.have.property(\"current_streak\"));\r",
+                      "\r",
+                      "    pm.test(\"total_visits is non-negative\", () => pm.expect(json.total_visits).to.be.gte(0));\r",
+                      "    pm.test(\"days_this_week is 0-7\", () => {\r",
+                      "        pm.expect(json.days_this_week).to.be.gte(0);\r",
+                      "        pm.expect(json.days_this_week).to.be.lte(7);\r",
+                      "    });\r",
+                      "    pm.test(\"current_streak is non-negative\", () => pm.expect(json.current_streak).to.be.gte(0));\r",
+                      "\r",
+                      "    if (json.gym_name) {\r",
+                      "        // Connected client — full stats expected\r",
+                      "        pm.test(\"Has gym_name\", () => pm.expect(json.gym_name).to.be.a(\"string\"));\r",
+                      "        pm.test(\"Has subscription\", () => pm.expect(json).to.have.property(\"subscription\"));\r",
+                      "        pm.test(\"Has subscription_end\", () => pm.expect(json).to.have.property(\"subscription_end\"));\r",
+                      "        pm.test(\"Has days_remaining\", () => pm.expect(json).to.have.property(\"days_remaining\"));\r",
+                      "        pm.test(\"Has membership_status\", () => pm.expect(json).to.have.property(\"membership_status\"));\r",
+                      "\r",
+                      "        pm.test(\"subscription_end is valid date\", () => {\r",
+                      "            const d = new Date(json.subscription_end);\r",
+                      "            pm.expect(d.toString()).to.not.eql(\"Invalid Date\");\r",
+                      "        });\r",
+                      "\r",
+                      "        pm.test(\"membership_status is valid\", () => {\r",
+                      "            pm.expect([\"active\", \"suspended\", \"expired\"]).to.include(json.membership_status);\r",
+                      "        });\r",
+                      "\r",
+                      "        pm.test(\"days_remaining is a number\", () => {\r",
+                      "            pm.expect(json.days_remaining).to.be.a(\"number\");\r",
+                      "        });\r",
+                      "\r",
+                      "        // Streak can't exceed total visits\r",
+                      "        pm.test(\"streak does not exceed total_visits\", () => {\r",
+                      "            pm.expect(json.current_streak).to.be.lte(json.total_visits);\r",
+                      "        });\r",
+                      "\r",
+                      "        // days_this_week can't exceed total_visits\r",
+                      "        pm.test(\"days_this_week does not exceed total_visits\", () => {\r",
+                      "            pm.expect(json.days_this_week).to.be.lte(json.total_visits);\r",
+                      "        });\r",
+                      "\r",
+                      "        console.log(`Connected to: ${json.gym_name}`);\r",
+                      "        console.log(`Visits: ${json.total_visits} | This week: ${json.days_this_week} | Streak: ${json.current_streak}`);\r",
+                      "        console.log(`Subscription: ${json.subscription} | Ends: ${json.subscription_end} | Days left: ${json.days_remaining}`);\r",
+                      "\r",
+                      "    } else {\r",
+                      "        // Not connected — only zeros expected\r",
+                      "        pm.test(\"total_visits is 0 when not connected\", () => pm.expect(json.total_visits).to.eql(0));\r",
+                      "        pm.test(\"days_this_week is 0 when not connected\", () => pm.expect(json.days_this_week).to.eql(0));\r",
+                      "        pm.test(\"current_streak is 0 when not connected\", () => pm.expect(json.current_streak).to.eql(0));\r",
+                      "\r",
+                      "        console.log(\"ℹ️ Client not connected to any gym — zeros returned as expected\");\r",
+                      "    }\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized — token missing or expired\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"Client not found\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"Client not found:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => {\r",
+                      "        pm.expect(status).to.be.oneOf([200, 401, 404]);\r",
+                      "    });\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/dashboard-stats",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "dashboard-stats"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "client_profile",
+          "item": [
+            {
+              "name": "client_me (current_client)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Me returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Has userID\", () => pm.expect(json).to.have.property(\"userID\"));\r",
+                      "    pm.test(\"Has name\", () => pm.expect(json).to.have.property(\"name\"));\r",
+                      "    pm.test(\"Has email\", () => pm.expect(json).to.have.property(\"email\"));\r",
+                      "    pm.test(\"Has is_connected\", () => pm.expect(json).to.have.property(\"is_connected\"));\r",
+                      "    pm.test(\"is_connected is boolean\", () => pm.expect(json.is_connected).to.be.a(\"boolean\"));\r",
+                      "\r",
+                      "    if (json.is_connected) {\r",
+                      "        console.log(`${json.name} is connected to a gym`);\r",
+                      "    } else {\r",
+                      "        console.log(`ℹ️ ${json.name} is NOT connected to any gym`);\r",
+                      "    }\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"Client not found\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"Not found:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 401, 404]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/me",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "me"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Profile returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Has userID\", () => pm.expect(json).to.have.property(\"userID\"));\r",
+                      "    pm.test(\"Has clientID\", () => pm.expect(json).to.have.property(\"clientID\"));\r",
+                      "    pm.test(\"Has name\", () => pm.expect(json).to.have.property(\"name\"));\r",
+                      "    pm.test(\"Has email\", () => pm.expect(json).to.have.property(\"email\"));\r",
+                      "\r",
+                      "    if (json.date_of_birth) {\r",
+                      "        pm.test(\"Age is calculated correctly\", () => {\r",
+                      "            pm.expect(json).to.have.property(\"age\");\r",
+                      "            pm.expect(json.age).to.be.a(\"number\").and.gte(0);\r",
+                      "        });\r",
+                      "        console.log(`📅 DOB: ${json.date_of_birth} → Age: ${json.age}`);\r",
+                      "    }\r",
+                      "\r",
+                      "    if (json.gender) {\r",
+                      "        pm.test(\"Gender is valid\", () => {\r",
+                      "            pm.expect([\"male\", \"female\", \"other\"]).to.include(json.gender.toLowerCase());\r",
+                      "        });\r",
+                      "    }\r",
+                      "\r",
+                      "    console.log(`Profile: ${json.name} | ${json.email}`);\r",
+                      "    if (json.fitness_goal) console.log(`Goal: ${json.fitness_goal}`);\r",
+                      "    if (json.bio) console.log(`Bio: ${json.bio}`);\r",
+                      "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"Profile not found\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"Not found:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 401, 404]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update-profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Profile updated\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Has userID\", () => pm.expect(json).to.have.property(\"userID\"));\r",
+                      "    pm.test(\"Has clientID\", () => pm.expect(json).to.have.property(\"clientID\"));\r",
+                      "\r",
+                      "    pm.test(\"Name was updated\", () => pm.expect(json.name).to.eql(\"Test Update Name\"));\r",
+                      "    pm.test(\"Phone was updated\", () => pm.expect(json.phone).to.eql(\"01012345678\"));\r",
+                      "    pm.test(\"Gender was updated\", () => pm.expect(json.gender).to.eql(\"female\"));\r",
+                      "    pm.test(\"Fitness goal was updated\", () => pm.expect(json.fitness_goal).to.eql(\"Build muscle\"));\r",
+                      "    pm.test(\"Bio was updated\", () => pm.expect(json.bio).to.eql(\"Testing bio update\"));\r",
+                      "    pm.test(\"Emergency contact was updated\", () => pm.expect(json.emergency_contact).to.eql(\"01098765432\"));\r",
+                      "\r",
+                      "    console.log(`Profile updated: ${json.name}`);\r",
+                      "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"Profile not found\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"❌ Not found:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 422) {\r",
+                      "    pm.test(\"Validation error\", () => pm.expect(status).to.eql(422));\r",
+                      "    console.log(\"Validation:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 401, 404, 422]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"name\": \"Test Update Name\",\r\n    \"phone\": \"01012345678\",\r\n    \"gender\": \"female\",\r\n    \"fitness_goal\": \"Build muscle\",\r\n    \"bio\": \"Testing bio update\",\r\n    \"emergency_contact\": \"01098765432\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/client/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "client_schedule",
+          "item": [
+            {
+              "name": "schedule-stats",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Schedule stats returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Has enrolled\", () => pm.expect(json).to.have.property(\"enrolled\"));\r",
+                      "    pm.test(\"Has upcoming\", () => pm.expect(json).to.have.property(\"upcoming\"));\r",
+                      "    pm.test(\"Has minutes_week\", () => pm.expect(json).to.have.property(\"minutes_week\"));\r",
+                      "\r",
+                      "    pm.test(\"enrolled is non-negative\", () => pm.expect(json.enrolled).to.be.gte(0));\r",
+                      "    pm.test(\"upcoming is non-negative\", () => pm.expect(json.upcoming).to.be.gte(0));\r",
+                      "\r",
+                      "    console.log(`Enrolled: ${json.enrolled} | Upcoming: ${json.upcoming}`);\r",
+                      "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"Client not found\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"Not found:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 401, 404,405]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"name\": \"Test Update Name\",\r\n    \"phone\": \"01012345678\",\r\n    \"gender\": \"female\",\r\n    \"fitness_goal\": \"Build muscle\",\r\n    \"bio\": \"Testing bio update\",\r\n    \"emergency_contact\": \"01098765432\"\r\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/client/schedule/stats",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "schedule",
+                    "stats"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "my-classes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "const validDays = [\"monday\",\"tuesday\",\"wednesday\",\"thursday\",\"friday\",\"saturday\",\"sunday\"];\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"My classes returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Response is array\", () => pm.expect(json).to.be.an(\"array\"));\r",
+                      "\r",
+                      "    if (json.length > 0) {\r",
+                      "        const first = json[0];\r",
+                      "        pm.test(\"Has id\", () => pm.expect(first).to.have.property(\"id\"));\r",
+                      "        pm.test(\"Has title\", () => pm.expect(first).to.have.property(\"title\"));\r",
+                      "        pm.test(\"Has start_time\", () => pm.expect(first).to.have.property(\"start_time\"));\r",
+                      "        pm.test(\"Has is_enrolled\", () => pm.expect(first).to.have.property(\"is_enrolled\"));\r",
+                      "        pm.test(\"Has next_date\", () => pm.expect(first).to.have.property(\"next_date\"));\r",
+                      "        pm.test(\"is_enrolled is true for my classes\", () => {\r",
+                      "            json.forEach(c => pm.expect(c.is_enrolled).to.be.true);\r",
+                      "        });\r",
+                      "\r",
+                      "        console.log(`${json.length} enrolled class(es). First: \"${first.title}\" on ${first.next_date}`);\r",
+                      "    } else {\r",
+                      "        console.log(\"ℹ️ No enrolled classes yet\");\r",
+                      "    }\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 401]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/schedule/my-classes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "schedule",
+                    "my-classes"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "schedule-browse",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "const dayFilter = pm.request.url.query.get(\"day\");\r",
+                      "const validDays = [\"monday\",\"tuesday\",\"wednesday\",\"thursday\",\"friday\",\"saturday\",\"sunday\"];\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Browse classes returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Response is array\", () => pm.expect(json).to.be.an(\"array\"));\r",
+                      "\r",
+                      "    if (json.length > 0) {\r",
+                      "        const first = json[0];\r",
+                      "        pm.test(\"Has id\", () => pm.expect(first).to.have.property(\"id\"));\r",
+                      "        pm.test(\"Has title\", () => pm.expect(first).to.have.property(\"title\"));\r",
+                      "        pm.test(\"Has is_enrolled\", () => pm.expect(first).to.have.property(\"is_enrolled\"));\r",
+                      "        pm.test(\"Has is_full\", () => pm.expect(first).to.have.property(\"is_full\"));\r",
+                      "        pm.test(\"Has current_clients\", () => pm.expect(first).to.have.property(\"current_clients\"));\r",
+                      "        pm.test(\"Has max_clients\", () => pm.expect(first).to.have.property(\"max_clients\"));\r",
+                      "\r",
+                      "        pm.test(\"current_clients does not exceed max_clients\", () => {\r",
+                      "            json.forEach(c => pm.expect(c.current_clients).to.be.lte(c.max_clients));\r",
+                      "        });\r",
+                      "\r",
+                      "        if (dayFilter) {\r",
+                      "            pm.test(`All classes match day filter: ${dayFilter}`, () => {\r",
+                      "                json.forEach(c => pm.expect(c.day_of_week).to.eql(dayFilter.toLowerCase()));\r",
+                      "            });\r",
+                      "        }\r",
+                      "\r",
+                      "        // Save a non-enrolled class for enroll test\r",
+                      "        const notEnrolled = json.find(c => !c.is_enrolled && !c.is_full);\r",
+                      "        if (notEnrolled) {\r",
+                      "            pm.collectionVariables.set(\"enroll_session_id\", notEnrolled.id);\r",
+                      "            pm.collectionVariables.set(\"enroll_class_date\", notEnrolled.next_date);\r",
+                      "            console.log(`Saved for enroll test: \"${notEnrolled.title}\" on ${notEnrolled.next_date}`);\r",
+                      "        }\r",
+                      "\r",
+                      "        console.log(`${json.length} class(es) found`);\r",
+                      "    } else {\r",
+                      "        console.log(\"No classes available\");\r",
+                      "    }\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 401]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/schedule/browse",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "schedule",
+                    "browse"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "schedule-weekly",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Weekly schedule returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Response is array\", () => pm.expect(json).to.be.an(\"array\"));\r",
+                      "    pm.test(\"Has 7 days\", () => pm.expect(json).to.have.lengthOf(7));\r",
+                      "\r",
+                      "    pm.test(\"Each day has required fields\", () => {\r",
+                      "        json.forEach(d => {\r",
+                      "            pm.expect(d).to.have.property(\"day\");\r",
+                      "            pm.expect(d).to.have.property(\"label\");\r",
+                      "            pm.expect(d).to.have.property(\"classes\");\r",
+                      "            pm.expect(d.classes).to.be.an(\"array\");\r",
+                      "        });\r",
+                      "    });\r",
+                      "\r",
+                      "    const allClasses = json.flatMap(d => d.classes);\r",
+                      "    if (allClasses.length > 0) {\r",
+                      "        const first = allClasses[0];\r",
+                      "        pm.test(\"Class has title\", () => pm.expect(first).to.have.property(\"title\"));\r",
+                      "        pm.test(\"Class has start_time\", () => pm.expect(first).to.have.property(\"start_time\"));\r",
+                      "        pm.test(\"Class has coach_name\", () => pm.expect(first).to.have.property(\"coach_name\"));\r",
+                      "\r",
+                      "        console.log(`${allClasses.length} enrolled class(es) this week`);\r",
+                      "        json.forEach(d => {\r",
+                      "            if (d.classes.length > 0) console.log(`  ${d.label}: ${d.classes.length} class(es)`);\r",
+                      "        });\r",
+                      "    } else {\r",
+                      "        console.log(\"No enrolled classes this week\");\r",
+                      "    }\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 401]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/schedule/weekly",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "schedule",
+                    "weekly"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "enroll",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200 && json.message === \"Enrolled successfully\") {\r",
+                      "    pm.test(\"Enrolled successfully\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Has session_id\", () => pm.expect(json).to.have.property(\"session_id\"));\r",
+                      "    pm.test(\"Has class_date\", () => pm.expect(json).to.have.property(\"class_date\"));\r",
+                      "    pm.test(\"Has start_time\", () => pm.expect(json).to.have.property(\"start_time\"));\r",
+                      "    pm.test(\"Has title\", () => pm.expect(json).to.have.property(\"title\"));\r",
+                      "\r",
+                      "    // Save for unenroll test\r",
+                      "    pm.collectionVariables.set(\"unenroll_session_id\", json.session_id);\r",
+                      "    pm.collectionVariables.set(\"unenroll_class_date\", json.class_date);\r",
+                      "\r",
+                      "    console.log(`Enrolled in \"${json.title}\" on ${json.class_date}`);\r",
+                      "\r",
+                      "} else if (status === 400 && json.detail === \"Already enrolled for this date\") {\r",
+                      "    pm.test(\"Already enrolled (expected if re-running)\", () => pm.expect(status).to.eql(400));\r",
+                      "    console.log(\"Already enrolled for this date\");\r",
+                      "\r",
+                      "} else if (status === 400 && json.detail === \"Class is full for this date\") {\r",
+                      "    pm.test(\"Class is full\", () => pm.expect(status).to.eql(400));\r",
+                      "    console.log(\"Class is full — pick another session\");\r",
+                      "\r",
+                      "} else if (status === 400 && json.detail === \"You are not connected to a gym\") {\r",
+                      "    pm.test(\"Not connected to gym\", () => pm.expect(status).to.eql(400));\r",
+                      "    console.log(\"Client has no membership\");\r",
+                      "\r",
+                      "} else if (status === 403) {\r",
+                      "    pm.test(\"Membership issue\", () => pm.expect(status).to.eql(403));\r",
+                      "    console.log(\"Membership suspended or expired:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 400, 403]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/schedule/enroll/{{enroll_session_id}}?class_date={{enroll_class_date}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "schedule",
+                    "enroll",
+                    "{{enroll_session_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "class_date",
+                      "value": "{{enroll_class_date}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "unenroll",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200 && json.message === \"Unenrolled successfully\") {\r",
+                      "    pm.test(\"Unenrolled successfully\", () => pm.response.to.have.status(200));\r",
+                      "    console.log(\"Unenrolled successfully\");\r",
+                      "\r",
+                      "} else if (status === 400 && json.detail === \"Not enrolled for this date\") {\r",
+                      "    pm.test(\"Not enrolled for this date (expected if re-running)\", () => pm.expect(status).to.eql(400));\r",
+                      "    console.log(\"Was not enrolled — already unenrolled or wrong date\");\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 400, 401]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/schedule/unenroll/{{unenroll_session_id}}?class_date={{unenroll_class_date}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "schedule",
+                    "unenroll",
+                    "{{unenroll_session_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "class_date",
+                      "value": "{{unenroll_class_date}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "client_gym_info",
+          "item": [
+            {
+              "name": "gym_info",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Gym info returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Has gymID\", () => pm.expect(json).to.have.property(\"gymID\"));\r",
+                      "    pm.test(\"Has gymName\", () => pm.expect(json).to.have.property(\"gymName\"));\r",
+                      "\r",
+                      "    console.log(`Gym: ${json.gymName} (ID: ${json.gymID})`);\r",
+                      "    if (json.phone) console.log(`Phone: ${json.phone}`);\r",
+                      "    if (json.email) console.log(`Email: ${json.email}`);\r",
+                      "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"Client not connected to any gym\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"Not connected:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 404, 401]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/gym",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "gym"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "gym_announcements",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Announcements returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Response is an array\", () => pm.expect(json).to.be.an(\"array\"));\r",
+                      "\r",
+                      "    if (json.length > 0) {\r",
+                      "        const first = json[0];\r",
+                      "        pm.test(\"Each item has id\", () => pm.expect(first).to.have.property(\"announce_id\"));\r",
+                      "        pm.test(\"Each item has title\", () => pm.expect(first).to.have.property(\"title\"));\r",
+                      "        pm.test(\"Each item has content\", () => pm.expect(first).to.have.property(\"content\"));\r",
+                      "        pm.test(\"Each item has created_at\", () => pm.expect(first).to.have.property(\"created_at\"));\r",
+                      "\r",
+                      "        pm.test(\"Receiver is client-facing\", () => {\r",
+                      "            const validReceivers = [\"Clients only\", \"Clients and Coaches\"];\r",
+                      "            json.forEach(a => pm.expect(validReceivers).to.include(a.reciever));\r",
+                      "        });\r",
+                      "\r",
+                      "        // Verify descending order\r",
+                      "        if (json.length > 1) {\r",
+                      "            pm.test(\"Announcements are newest first\", () => {\r",
+                      "                const dates = json.map(a => new Date(a.created_at).getTime());\r",
+                      "                for (let i = 0; i < dates.length - 1; i++) {\r",
+                      "                    pm.expect(dates[i]).to.be.gte(dates[i + 1]);\r",
+                      "                }\r",
+                      "            });\r",
+                      "        }\r",
+                      "\r",
+                      "        console.log(`${json.length} announcement(s) returned. Latest: \"${json[0].title}\"`);\r",
+                      "    } else {\r",
+                      "        console.log(\"ℹ️ No announcements for this gym yet\");\r",
+                      "    }\r",
+                      "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"Client not connected to any gym\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"Not connected:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 404, 401]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/gym/announcements",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "gym",
+                    "announcements"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "gym_weekly-schedule",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const json = pm.response.json();\r",
+                      "const status = pm.response.code;\r",
+                      "\r",
+                      "const validDays = [\"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\", \"saturday\", \"sunday\"];\r",
+                      "\r",
+                      "if (status === 200) {\r",
+                      "    pm.test(\"Weekly schedule returned\", () => pm.response.to.have.status(200));\r",
+                      "    pm.test(\"Response is an object\", () => pm.expect(json).to.be.an(\"object\"));\r",
+                      "\r",
+                      "    pm.test(\"Has all 7 days\", () => {\r",
+                      "        validDays.forEach(day => pm.expect(json).to.have.property(day));\r",
+                      "    });\r",
+                      "\r",
+                      "    pm.test(\"Each day is an array\", () => {\r",
+                      "        validDays.forEach(day => pm.expect(json[day]).to.be.an(\"array\"));\r",
+                      "    });\r",
+                      "\r",
+                      "    // Check class structure if any classes exist\r",
+                      "    const allClasses = validDays.flatMap(day => json[day]);\r",
+                      "    if (allClasses.length > 0) {\r",
+                      "        const first = allClasses[0];\r",
+                      "        pm.test(\"Class has start_time\", () => pm.expect(first).to.have.property(\"start_time\"));\r",
+                      "        pm.test(\"Class has title\", () => pm.expect(first).to.have.property(\"title\"));\r",
+                      "        pm.test(\"Class has day_of_week\", () => pm.expect(first).to.have.property(\"day_of_week\"));\r",
+                      "\r",
+                      "        pm.test(\"day_of_week values are valid\", () => {\r",
+                      "            allClasses.forEach(c => pm.expect(validDays).to.include(c.day_of_week));\r",
+                      "        });\r",
+                      "\r",
+                      "        // Verify sorted by start_time within each day\r",
+                      "        pm.test(\"Classes sorted by start_time per day\", () => {\r",
+                      "            validDays.forEach(day => {\r",
+                      "                const classes = json[day];\r",
+                      "                for (let i = 0; i < classes.length - 1; i++) {\r",
+                      "                    pm.expect(classes[i].start_time <= classes[i + 1].start_time).to.be.true;\r",
+                      "                }\r",
+                      "            });\r",
+                      "        });\r",
+                      "\r",
+                      "        console.log(`${allClasses.length} class(es) this week`);\r",
+                      "        validDays.forEach(day => {\r",
+                      "            if (json[day].length > 0) console.log(`  ${day}: ${json[day].length} class(es)`);\r",
+                      "        });\r",
+                      "    } else {\r",
+                      "        console.log(\"ℹ️ No classes scheduled this week\");\r",
+                      "    }\r",
+                      "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"Client not connected to any gym\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"Not connected:\", json.detail);\r",
+                      "\r",
+                      "} else if (status === 401) {\r",
+                      "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
+                      "    console.log(\"Token issue:\", json.detail);\r",
+                      "\r",
+                      "} else {\r",
+                      "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 404, 401]));\r",
+                      "    console.log(\"Unexpected:\", status, json);\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/client/gym/weekly-schedule",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "client",
+                    "gym",
+                    "weekly-schedule"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ]
     }
@@ -5632,6 +7038,50 @@
     },
     {
       "key": "supabase_service_role_api_key_0chg"
+    },
+    {
+      "key": "can_checkin",
+      "value": ""
+    },
+    {
+      "key": "is_connected",
+      "value": ""
+    },
+    {
+      "key": "gym_id",
+      "value": ""
+    },
+    {
+      "key": "gym_name",
+      "value": ""
+    },
+    {
+      "key": "session_id",
+      "value": ""
+    },
+    {
+      "key": "class_date",
+      "value": ""
+    },
+    {
+      "key": "enroll_session_id",
+      "value": ""
+    },
+    {
+      "key": "enroll_class_date",
+      "value": ""
+    },
+    {
+      "key": "unenroll_session_id",
+      "value": ""
+    },
+    {
+      "key": "unenroll_class_date",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
     }
   ]
 }
