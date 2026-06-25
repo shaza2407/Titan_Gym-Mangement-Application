@@ -25,6 +25,5 @@ from app.models.subscription import Subscription
 __all__ = ["User", "Client", "Coach", "Admin", "ClassSession", "ClassRequest", "Gym", "GymMachineInventory",
            "GymClientMembership", "GymCoachMembership", "MemberInvitation", "Attendance",
            "Achievement", "AchievementCategory", "AchievementDifficulty", "ClientAchievement", "TrainingPlan",
-           "DayStatus", "PlanStatus", "WorkoutStatus", "ClassEnrollment", "Notification", "FcmToken", "RetentionOffer",
-           "Announcement",
+           "DayStatus", "PlanStatus", "WorkoutStatus", "ClassEnrollment", "Notification", "FcmToken", "RetentionOffer", "Announcement",
            "Subscription"]
