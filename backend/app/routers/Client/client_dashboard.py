@@ -6,7 +6,7 @@ from datetime import date
 from app.database import get_session
 from app.dependencies.auth import require_client
 from app.schemas.client.attendance_schema import DashboardStatsResponse
-from app.services.client.client_shared import get_client_or_404, get_membership
+from app.services.client.client_utils import get_client_or_404, get_membership
 from app.services.client.client_dashboard import get_dashboard_stats
 
 router = APIRouter(prefix="/client", tags=["Client Dashboard"])

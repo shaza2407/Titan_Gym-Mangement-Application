@@ -7,7 +7,7 @@ from app.models.class_session import ClassSession
 from app.models.class_enrollment import ClassEnrollment
 from app.models.coach import Coach
 from app.models import User
-from app.services.client.client_shared import get_membership, get_client_gymID  
+from app.services.client.client_utils import get_membership, get_client_gymID  
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

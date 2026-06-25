@@ -7,7 +7,7 @@ from app.database import get_session
 from app.dependencies.auth import require_client
 from app.schemas.admin.gym import GymResponse
 from app.schemas.admin.announcement_schema import AnnouncementResponse
-from app.services.client.client_shared import get_client_or_404
+from app.services.client.client_utils import get_client_or_404
 from app.services.client.client_gym_info import (
     fetch_client_gym,
     fetch_gym_announcements,

@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.models.Gym import Gym
 from app.models.announcement import Announcement
 from app.services.admin.admin_schedule import get_all_classes, DAY_NAMES
-from app.services.client.client_shared import get_client_gym_or_404
+from app.services.client.client_utils import get_client_gym_or_404
 
 
 async def fetch_client_gym(clientID: int, db: AsyncSession) -> Gym:
