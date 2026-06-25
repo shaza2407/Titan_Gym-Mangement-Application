@@ -67,3 +67,17 @@ class GymDashboardStats(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# for client info page
+class ClientGymResponse(BaseModel):
+    gymID: int
+    gymName: str
+    location: str
+    gymType: str
+    openingHours: str
+    closingHours: str
+    QRCode: Optional[str] = None
+
+    class Config:
+        from_attributes = True

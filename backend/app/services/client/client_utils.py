@@ -7,6 +7,7 @@ from app.models.client import Client
 from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.client import Client
+from sqlalchemy.orm import selectinload
 
 async def get_client_by_user_id(user_id: int, db: AsyncSession, detail: str = "Only clients can perform this action.") -> Client:
     result = await db.execute(
@@ -40,7 +41,6 @@ async def get_client_gymID(clientID: int, db: AsyncSession) -> int | None:
         select(GymClientMembership.gymID).where(GymClientMembership.clientID == clientID)
     )
     return result.scalar_one_or_none()
-
 
 async def get_client_gym_or_404(clientID: int, db: AsyncSession) -> Gym:
     membership_result = await db.execute(
