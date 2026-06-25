@@ -1,5 +1,6 @@
 # app/services/admin_schedule.py
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete, and_, or_
 from datetime import date, timedelta
@@ -11,10 +12,26 @@ from app.models import User
 from app.schemas.shared.schedule_schema import CreateClassRequest, EditClassRequest
 from app.models import GymCoachMembership
 from datetime import date, timedelta, datetime
+from backend.app.models.Gym import Gym
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 DAY_NAMES = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+async def get_admin_gym_or_403(adminID: int, gymID: int, db: AsyncSession) -> int:
+    result = await db.execute(
+        select(Gym).where(Gym.gymID == gymID, Gym.adminID == adminID)
+    )
+    gym = result.scalar_one_or_none()
+    if not gym:
+        raise HTTPException(status_code=403, detail="Gym not found or not yours")
+    return gymID
+ 
+ 
+async def get_gym_name(gymID: int, db: AsyncSession) -> str | None:
+    result = await db.execute(select(Gym.gymName).where(Gym.gymID == gymID))
+    return result.scalar_one_or_none()
+
 
 def _is_passed_today(s, today: date, today_weekday: str) -> bool:
     is_today = s.day_of_week == today_weekday if s.is_recurring else s.date == today
@@ -22,6 +39,7 @@ def _is_passed_today(s, today: date, today_weekday: str) -> bool:
         return False
     return _is_past_datetime(today, s.start_time)
     
+
 def _is_past_datetime(class_date: date, start_time) -> bool:
     from datetime import time as dt_time
     if isinstance(start_time, dt_time):
@@ -333,6 +351,14 @@ async def delete_class(session_id: int, gymID: int, db: AsyncSession) -> bool:
     await db.commit()
     return True
 
+async def get_class_or_none(session_id: int, gymID: int, db: AsyncSession):
+    result = await db.execute(
+        select(ClassSession).where(
+            ClassSession.id == session_id,
+            ClassSession.gymID == gymID,
+        )
+    )
+    return result.scalar_one_or_none()
 
 # ── Edit Class ────────────────────────────────────────────────────────────────
 

@@ -3,13 +3,9 @@
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from app.database import get_session
 from app.dependencies.auth import require_admin
-from app.services.notifications.notification_service import notify_gym_clients
 from app.models.Admin import Admin
-from app.models.class_session import ClassSession
-from app.models.Gym import Gym
 from app.schemas.shared.schedule_schema import (
     CreateClassRequest,
     EditClassRequest,
@@ -18,6 +14,7 @@ from app.schemas.shared.schedule_schema import (
 from app.services.admin.admin_schedule import (
     get_admin_schedule_stats,
     get_all_classes,
+    get_class_or_none,
     create_class,
     edit_class,
     delete_class,
@@ -26,31 +23,26 @@ from app.services.admin.admin_schedule import (
     get_pending_requests,
     get_class_members,
     get_gym_coaches,
+    get_admin_gym_or_403,
+    get_gym_name
 )
-from app.services.notifications.notification_service import notify_Coach_on_class_approval
+from app.services.notifications.notification_service import (
+    notify_gym_clients,
+    notify_Coach_on_class_approval,
+)
 
 router = APIRouter(prefix="/admin/schedule", tags=["Admin Schedule"])
-
-
-async def verify_admin_gym(adminID: int, gymID: int, db: AsyncSession) -> int:
-    result = await db.execute(
-        select(Gym).where(Gym.gymID == gymID, Gym.adminID == adminID)
-    )
-    gym = result.scalar_one_or_none()
-    if not gym:
-        raise HTTPException(403, "Gym not found or not yours")
-    return gymID
 
 
 # GET /admin/schedule/stats?gym_id=1
 @router.get("/stats", response_model=AdminScheduleStatsResponse)
 async def schedule_stats(
     gym_id: int = Query(...),
-    week_only: bool = Query(False),        
+    week_only: bool = Query(False),
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     stats = await get_admin_schedule_stats(gymID, db, week_only=week_only)
     return AdminScheduleStatsResponse(**stats)
 
@@ -62,7 +54,7 @@ async def gym_coaches(
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     return await get_gym_coaches(gymID, db)
 
 
@@ -71,12 +63,12 @@ async def gym_coaches(
 async def all_classes(
     gym_id: int = Query(...),
     from_date: date | None = Query(None),
-    week_start: date | None = Query(None),   # <-- add
-    week_end: date | None = Query(None),     # <-- add
+    week_start: date | None = Query(None),
+    week_end: date | None = Query(None),
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     return await get_all_classes(gymID, db, from_date=from_date, week_start=week_start, week_end=week_end)
 
 
@@ -88,7 +80,7 @@ async def create_new_class(
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     session, error = await create_class(gymID, payload, db)
     if error:
         raise HTTPException(409, error)
@@ -104,7 +96,7 @@ async def update_class(
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     session, error = await edit_class(session_id, gymID, payload, db)
     if error:
         status_code = 404 if "not found" in error.lower() else 409
@@ -120,13 +112,9 @@ async def remove_class(
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
 
-    # Fetch before deleting
-    class_session = (await db.execute(
-        select(ClassSession).where(ClassSession.id == session_id)
-    )).scalar_one_or_none()
-
+    class_session = await get_class_or_none(session_id, gymID, db)
     if not class_session:
         raise HTTPException(404, "Class not found")
 
@@ -144,7 +132,7 @@ async def remove_class(
             "class_id": str(session_id),
             "gym_id": str(gymID),
             "class_title": class_session.title,
-        }
+        },
     )
     return {"message": "Class deleted successfully"}
 
@@ -158,7 +146,7 @@ async def class_members(
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     members = await get_class_members(session_id, gymID, db, class_date)
     return {"members": members}
 
@@ -170,7 +158,7 @@ async def pending_requests(
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     return await get_pending_requests(gymID, db)
 
 
@@ -182,13 +170,13 @@ async def approve_class_request(
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     success, error = await approve_request(request_id, gymID, db)
     if not success:
         status_code = 404 if "not found" in (error or "").lower() else 409
         raise HTTPException(status_code, error)
 
-    gym_name = (await db.execute(select(Gym.gymName).where(Gym.gymID == gym_id))).scalar_one_or_none()
+    gym_name = await get_gym_name(gymID, db)
     await notify_Coach_on_class_approval(
         db=db,
         request_id=request_id,
@@ -212,24 +200,22 @@ async def reject_class_request(
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):
-    gymID = await verify_admin_gym(admin.adminID, gym_id, db)
+    gymID = await get_admin_gym_or_403(admin.adminID, gym_id, db)
     success = await reject_request(request_id, gymID, db)
     if not success:
         raise HTTPException(404, "Request not found or already processed")
 
-    gym_name = (await db.execute(select(Gym.gymName).where(Gym.gymID == gym_id))).scalar_one_or_none()
-
+    gym_name = await get_gym_name(gymID, db)
     await notify_Coach_on_class_approval(
         db=db,
         request_id=request_id,
         gym_id=gymID,
         title="Admin Rejection",
-        body=f"Admin Rejected on class request of {gym_name} gym",
+        body=f"Admin rejected your class request at {gym_name}",
         type="admin class permission",
         data={
             "gym_id": str(gym_id),
             "request_id": str(request_id),
         },
     )
-
     return {"message": "Request rejected"}
