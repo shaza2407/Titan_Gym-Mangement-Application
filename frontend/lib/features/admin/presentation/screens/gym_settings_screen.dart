@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/gym_model.dart';
-import '../../data/admin_repository.dart';
 import '../controller/gym_settings_controller.dart';
 
 class GymSettingsScreen extends StatelessWidget {
@@ -35,7 +34,6 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
   static const _accent = Color(0xFF4F46E5);
   final _formKey = GlobalKey<FormState>();
 
-  // ✅ one TextEditingController per machine name
   final List<TextEditingController> _nameControllers = [];
 
   @override
@@ -107,34 +105,30 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
     );
 
     if (confirmed != true) return;
-    if (!mounted) return;
+  if (!mounted) return;
 
-    try {
-      await AdminApiService.deleteGym(
-        gymId: controller.gym.gymID,
-        token: controller.token,
+  try {
+    await controller.deleteGym(); // ← use controller instead
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gym deleted successfully'),
+          backgroundColor: Colors.red,
+        ),
       );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gym deleted successfully'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      Navigator.of(context, rootNavigator: true).pop();
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {

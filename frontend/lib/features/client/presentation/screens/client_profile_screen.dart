@@ -6,10 +6,10 @@ import '../controllers/client_profile_controller.dart';
 import '../../../shared/logout_button.dart';
 import '../../../auth/presentation/screens/forget_password_page.dart';
 import '../../../shared/api_constants.dart';
-import '../../../Services/notifications_screen.dart';
+import '../../../notification/presentation/notifications_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../../Services/token_helper.dart';
+import '../../../notification/token_helper.dart';
 
 
 class ClientProfileScreen extends StatefulWidget {

@@ -3,6 +3,8 @@ import '../../data/admin_repository.dart';
 import '../../domain/gym_model.dart';
 
 class GymSettingsController extends ChangeNotifier {
+  final AdminRepository _repo = AdminRepository();
+
   final GymModel gym;
   final String token;
 
@@ -20,8 +22,8 @@ class GymSettingsController extends ChangeNotifier {
   ];
 
   // ── State ─────────────────────────────────────────────────────────────────
-  bool isLoading = false;
-  bool isSaved = false;
+  bool isLoading    = false;
+  bool isSaved      = false;
   String? errorMessage;
   String selectedGymType;
 
@@ -33,7 +35,6 @@ class GymSettingsController extends ChangeNotifier {
     openingCtrl  = TextEditingController(text: gym.openingHours);
     closingCtrl  = TextEditingController(text: gym.closingHours);
 
-    //load existing machines from gym model
     machines = gym.machines.map((m) => MachineInput(
       machineName: m.machineName,
       machineType: m.machineType,
@@ -43,7 +44,7 @@ class GymSettingsController extends ChangeNotifier {
 
   // ── Gym type ──────────────────────────────────────────────────────────────
   void setGymType(String value) {
-    selectedGymType = value;
+    selectedGymType  = value;
     gymTypeCtrl.text = value;
     notifyListeners();
   }
@@ -98,6 +99,9 @@ class GymSettingsController extends ChangeNotifier {
     return null;
   }
 
+Future<void> deleteGym() async {
+  await _repo.deleteGym(gymId: gym.gymID, token: token);
+}
   // ── Save ──────────────────────────────────────────────────────────────────
   Future<bool> save() async {
     final error = validate();
@@ -107,13 +111,13 @@ class GymSettingsController extends ChangeNotifier {
       return false;
     }
 
-    isLoading = true;
+    isLoading    = true;
     errorMessage = null;
-    isSaved = false;
+    isSaved      = false;
     notifyListeners();
 
     try {
-      await AdminApiService.updateGym(
+      await _repo.updateGym(
         gymId:        gym.gymID,
         token:        token,
         gymName:      gymNameCtrl.text.trim(),
@@ -121,7 +125,7 @@ class GymSettingsController extends ChangeNotifier {
         location:     locationCtrl.text.trim(),
         openingHours: openingCtrl.text.trim(),
         closingHours: closingCtrl.text.trim(),
-        machines:     _getMachinesPayload(), 
+        machines:     _getMachinesPayload(),
       );
       isSaved = true;
       return true;

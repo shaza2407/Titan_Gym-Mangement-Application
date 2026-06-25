@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/notifications/notification_badge_controller.dart';
-import '../../../Services/token_helper.dart';
+import '../../../notification/token_helper.dart';
 import '../controllers/coach_dashboard_controller.dart';
 import '../widgets/coach_ui_utils.dart';
 import 'coach_schedule_screen.dart';

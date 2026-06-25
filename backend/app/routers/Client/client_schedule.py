@@ -25,50 +25,32 @@ scheduler.start()
 
 
 @router.get("/stats", response_model=ClientScheduleStatsResponse)
-async def schedule_stats(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def schedule_stats(current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     stats = await get_client_schedule_stats(client.clientID, db)
     return ClientScheduleStatsResponse(**stats)
 
 
 @router.get("/my-classes")
-async def my_classes(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def my_classes(current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     return await get_my_classes(client.clientID, db)
 
 
 @router.get("/browse")
-async def browse(
-    day: str | None = None,
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def browse( day: str | None = None,current_user=Depends(require_client), db: AsyncSession = Depends(get_session) ):
     client = await get_client_or_404(current_user.userID, db)
     return await browse_classes(client.clientID, db, day_filter=day)
 
 
 @router.get("/weekly")
-async def weekly_schedule(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def weekly_schedule(current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     return await get_weekly_schedule(client.clientID, db)
 
 
 @router.post("/enroll/{session_id}")
-async def enroll_class(
-    session_id: int,
-    class_date: date = Query(...),
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def enroll_class( session_id: int, class_date: date = Query(...), current_user=Depends(require_client), db: AsyncSession = Depends(get_session) ):
     client = await get_client_or_404(current_user.userID, db)
     result = await enroll(session_id, client.clientID, class_date, db)
     if "error" in result:
@@ -95,12 +77,7 @@ async def enroll_class(
 
 
 @router.delete("/unenroll/{session_id}")
-async def unenroll_class(
-    session_id: int,
-    class_date: date = Query(...),
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def unenroll_class( session_id: int, class_date: date = Query(...), current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     result = await unenroll(session_id, client.clientID, class_date, db)
     if "error" in result:

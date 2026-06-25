@@ -1,8 +1,11 @@
+//done
 import 'package:flutter/material.dart';
-import '../../data/admin_repository.dart';
+import 'package:provider/provider.dart';
+import '../controller/coach_management_controller.dart';
+import '../../domain/gym_model.dart';
+import '../../domain/coach_model.dart';
 import 'invite_member_screen.dart';
 import 'coach_detail_screen.dart';
-import '../../domain/gym_model.dart';
 
 class CoachManagementScreen extends StatefulWidget {
   final GymModel gym;
@@ -19,217 +22,257 @@ class CoachManagementScreen extends StatefulWidget {
 }
 
 class _CoachManagementScreenState extends State<CoachManagementScreen> {
-  late Future<CoachListResponse> _future;
-  String _selectedFilter = 'all';
-  String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
+  late final CoachManagementController _controller;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _controller = CoachManagementController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.loadCoaches(
+        gymId: widget.gym.gymID,
+        token: widget.token,
+      );
+    });
   }
 
-  void _load() {
-    _future = AdminApiService.fetchCoaches(widget.gym.gymID, widget.token);
-  }
-
-  void _refresh() => setState(() => _load());
-
-  List<CoachListItem> _filtered(List<CoachListItem> coaches) {
-    return coaches.where((c) {
-      final matchFilter =
-          _selectedFilter == 'all' || c.status == _selectedFilter;
-      final matchSearch = _searchQuery.isEmpty ||
-          c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          c.email.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchFilter && matchSearch;
-    }).toList();
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _suspend(int coachId) async {
-    try {
-      await AdminApiService.suspendCoach(widget.gym.gymID, coachId, widget.token);
-      _refresh();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Coach suspended successfully')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
+    final success = await _controller.suspendCoach(
+      gymId:   widget.gym.gymID,
+      coachId: coachId,
+      token:   widget.token,
+    );
+    if (!mounted) return;
+    if (success) {
+      await _controller.loadCoaches(
+          gymId: widget.gym.gymID, token: widget.token);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Coach suspended successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(_controller.errorMessage ?? 'Failed to suspend')),
+      );
     }
   }
-  Future<void> _unsuspend(int memberId) async {
-  try {
-    await AdminApiService.unsuspendCoach(
-        widget.gym.gymID, memberId, widget.token);
-    _refresh();
-    if (mounted) {
+
+  Future<void> _unsuspend(int coachId) async {
+    final errorMsg = await _controller.unsuspendCoach(
+      gymId:   widget.gym.gymID,
+      coachId: coachId,
+      token:   widget.token,
+    );
+    if (!mounted) return;
+    if (errorMsg == null) {
+      await _controller.loadCoaches(
+          gymId: widget.gym.gymID, token: widget.token);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Coach unsuspended successfully'),
           backgroundColor: Colors.green,
         ),
       );
-    }
-  } catch (e) {
-    final msg = e.toString().replaceFirst('Exception: ', '');
-    if (mounted) {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(msg.contains('expired')
-              ? 'Membership is expired — please renew first'
-              : 'Error: $msg'),
-          backgroundColor: Colors.grey,
-        ),
+        SnackBar(content: Text(errorMsg), backgroundColor: Colors.grey),
       );
     }
   }
-}
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Coach Management', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
-            Text('View and manage gym coaches', style: TextStyle(color: Colors.grey, fontSize: 12)),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF9C27B0),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.person_add, color: Colors.white, size: 20),
-            ),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => InviteMemberScreen(
-                    gym: widget.gym,
-                    token: widget.token,
-                  ),
-                ),
-              );
-              _refresh();
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: FutureBuilder<CoachListResponse>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final data = snapshot.data!;
-          final filtered = _filtered(data.coaches);
-
-          return RefreshIndicator(
-            onRefresh: () async => _refresh(),
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                // ─ Stats Row
-                Row(
-                  children: [
-                    _StatCard(
-                        label: 'Total Coaches',
-                        value: '${data.total}',
-                        icon: Icons.sports_gymnastics),
-                    const SizedBox(width: 8),
-                    _StatCard(
-                        label: 'Active',
-                        value: '${data.active}',
-                        icon: Icons.check_circle_outline,
-                        color: const Color(0xFF9C27B0)),
-                    const SizedBox(width: 8),
-                    _StatCard(
-                        label: 'Pending',
-                        value: '${data.pending}',
-                        icon: Icons.person_add_outlined,
-                        color: Colors.orange),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // ─ Search
-                TextField(
-                  controller: _searchController,
-                  onChanged: (v) => setState(() => _searchQuery = v),
-                  decoration: InputDecoration(
-                    hintText: 'Search coaches...',
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // ─ Filter Tabs
-                _FilterRow(
-                  selected: _selectedFilter,
-                  onSelect: (v) => setState(() => _selectedFilter = v),
-                ),
-                const SizedBox(height: 16),
-
-                // ─ Coach Cards
-                if (filtered.isEmpty)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Text('No coaches found',
-                          style: TextStyle(color: Colors.grey)),
-                    ),
-                  )
-                else
-                  ...filtered.map((c) => _CoachCard(
-                        coach: c,
-                        onSuspend: () => _suspend(c.id),
-                        onUnsuspend: () => _unsuspend(c.id),
-                        onViewDetails: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CoachDetailScreen(coach: c),
+    return ChangeNotifierProvider.value(
+      value: _controller,
+      child: Consumer<CoachManagementController>(
+        builder: (context, controller, _) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF8F9FA),
+            appBar: _buildAppBar(controller),
+            body: controller.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : controller.errorMessage != null && controller.data == null
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.error_outline,
+                                color: Colors.red, size: 48),
+                            const SizedBox(height: 12),
+                            Text(
+                              controller.errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.red),
                             ),
-                          );
-                        },
-                      )),
-              ],
-            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () => controller.loadCoaches(
+                                gymId: widget.gym.gymID,
+                                token: widget.token,
+                              ),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Retry'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF9C27B0),
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () => controller.loadCoaches(
+                          gymId: widget.gym.gymID,
+                          token: widget.token,
+                        ),
+                        child: ListView(
+                          padding: const EdgeInsets.all(16),
+                          children: [
+                            _buildStatsRow(controller),
+                            const SizedBox(height: 16),
+                            _buildSearchField(controller),
+                            const SizedBox(height: 12),
+                            _FilterRow(
+                              selected: controller.selectedFilter,
+                              onSelect: controller.setFilter,
+                            ),
+                            const SizedBox(height: 16),
+                            if (controller.filtered.isEmpty)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(32),
+                                  child: Text('No coaches found',
+                                      style: TextStyle(color: Colors.grey)),
+                                ),
+                              )
+                            else
+                              ...controller.filtered.map(
+                                (c) => _CoachCard(
+                                  coach:       c,
+                                  onSuspend:   () => _suspend(c.id),
+                                  onUnsuspend: () => _unsuspend(c.id),
+                                  onViewDetails: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          CoachDetailScreen(coach: c),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
           );
         },
       ),
     );
   }
+
+  PreferredSizeWidget _buildAppBar(CoachManagementController controller) {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Coach Management',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16)),
+          Text('View and manage gym coaches',
+              style: TextStyle(color: Colors.grey, fontSize: 12)),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF9C27B0),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.person_add,
+                color: Colors.white, size: 20),
+          ),
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => InviteMemberScreen(
+                  gym:   widget.gym,
+                  token: widget.token,
+                ),
+              ),
+            );
+            controller.loadCoaches(
+              gymId: widget.gym.gymID,
+              token: widget.token,
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  Widget _buildStatsRow(CoachManagementController controller) {
+    final data = controller.data;
+    return Row(
+      children: [
+        _StatCard(
+          label: 'Total Coaches',
+          value: '${data?.total ?? 0}',
+          icon: Icons.sports_gymnastics,
+        ),
+        const SizedBox(width: 8),
+        _StatCard(
+          label: 'Active',
+          value: '${data?.active ?? 0}',
+          icon: Icons.check_circle_outline,
+          color: const Color(0xFF9C27B0),
+        ),
+        const SizedBox(width: 8),
+        _StatCard(
+          label: 'Pending',
+          value: '${data?.pending ?? 0}',
+          icon: Icons.person_add_outlined,
+          color: Colors.orange,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchField(CoachManagementController controller) {
+    return TextField(
+      controller: controller.searchController,
+      onChanged: controller.setSearch,
+      decoration: InputDecoration(
+        hintText: 'Search coaches...',
+        prefixIcon: const Icon(Icons.search, color: Colors.grey),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
 }
+
+// ── Filter Row ────────────────────────────────────────────────────────────────
 
 class _FilterRow extends StatelessWidget {
   final String selected;
@@ -239,7 +282,7 @@ class _FilterRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filters = [
+    const filters = [
       ('all', 'All'),
       ('active', 'Active'),
       ('pending', 'Pending'),
@@ -268,9 +311,10 @@ class _FilterRow extends StatelessWidget {
                   f.$2,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    color:      isSelected ? Colors.white : Colors.grey,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     fontSize: 13,
                   ),
                 ),
@@ -283,7 +327,7 @@ class _FilterRow extends StatelessWidget {
   }
 }
 
-// ─── Stat Card
+// ── Stat Card ─────────────────────────────────────────────────────────────────
 
 class _StatCard extends StatelessWidget {
   final String label, value;
@@ -323,7 +367,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ─── Coach Card ───
+// ── Coach Card ────────────────────────────────────────────────────────────────
 
 class _CoachCard extends StatelessWidget {
   final CoachListItem coach;
@@ -340,14 +384,23 @@ class _CoachCard extends StatelessWidget {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'active':
-        return Colors.green;
-      case 'pending':
-        return Colors.blue;
-      case 'suspended':
-        return Colors.orange;
-      default:
-        return Colors.grey;
+      case 'active':    return Colors.green;
+      case 'pending':   return Colors.blue;
+      case 'suspended': return Colors.orange;
+      default:          return Colors.grey;
+    }
+  }
+
+  String _formatDate(String raw) {
+    try {
+      final dt = DateTime.parse(raw);
+      const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ];
+      return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    } catch (_) {
+      return raw;
     }
   }
 
@@ -365,7 +418,7 @@ class _CoachCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header ──
+          // Header
           Row(
             children: [
               const CircleAvatar(
@@ -407,8 +460,8 @@ class _CoachCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: _statusColor(coach.status),
                   borderRadius: BorderRadius.circular(20),
@@ -425,7 +478,7 @@ class _CoachCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // ── Pending info
+          // Pending info
           if (isPending) ...[
             Text('Invitation Sent',
                 style: TextStyle(color: Colors.grey[600], fontSize: 12)),
@@ -433,8 +486,8 @@ class _CoachCard extends StatelessWidget {
               coach.invitationSent != null
                   ? _formatDate(coach.invitationSent!)
                   : '—',
-              style:
-                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: 13),
             ),
             const SizedBox(height: 4),
             Text('Waiting for coach to accept invitation',
@@ -442,7 +495,7 @@ class _CoachCard extends StatelessWidget {
             const SizedBox(height: 12),
           ],
 
-          // ─ Active stats
+          // Active stats
           if (!isPending) ...[
             Row(
               children: [
@@ -456,7 +509,7 @@ class _CoachCard extends StatelessWidget {
             const SizedBox(height: 12),
           ],
 
-          // ── Action Buttons
+          // Action Buttons
           Row(
             children: [
               Expanded(
@@ -470,50 +523,42 @@ class _CoachCard extends StatelessWidget {
                 ),
               ),
               if (!isPending) ...[
-              const SizedBox(width: 8),
-              Expanded(
-                child: coach.status == 'suspended'? OutlinedButton.icon(
-                onPressed: onUnsuspend,
-                icon: const Icon(Icons.play_circle_outline,
-                size: 16, color: Colors.green),
-                label: const Text('Unsuspend',
-                style: TextStyle(color: Colors.green)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.green),
-                  shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-                  ),
-                )
-                : OutlinedButton.icon(
-                onPressed: onSuspend,
-                icon: const Icon(Icons.pause_circle_outline, size: 16),
-                label: const Text('Suspend'),
-                style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: coach.status == 'suspended'
+                      ? OutlinedButton.icon(
+                          onPressed: onUnsuspend,
+                          icon: const Icon(Icons.play_circle_outline,
+                              size: 16, color: Colors.green),
+                          label: const Text('Unsuspend',
+                              style: TextStyle(color: Colors.green)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.green),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                        )
+                      : OutlinedButton.icon(
+                          onPressed: onSuspend,
+                          icon: const Icon(Icons.pause_circle_outline,
+                              size: 16),
+                          label: const Text('Suspend'),
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
                 ),
-              ),
-            ),
-            ],
+              ],
             ],
           ),
         ],
       ),
     );
   }
-
-  String _formatDate(String raw) {
-    try {
-      final dt = DateTime.parse(raw);
-      const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-      ];
-      return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
-    } catch (_) {
-      return raw;
-    }
-  }
 }
+
+// ── Info Cell ─────────────────────────────────────────────────────────────────
 
 class _InfoCell extends StatelessWidget {
   final String label, value;
@@ -525,7 +570,8 @@ class _InfoCell extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+          Text(label,
+              style: const TextStyle(color: Colors.grey, fontSize: 11)),
           Text(value,
               style: const TextStyle(
                   fontWeight: FontWeight.w600, fontSize: 13)),

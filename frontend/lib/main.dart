@@ -12,7 +12,7 @@ import 'features/coach/presentation/screens/coach_dashboard_screen.dart';
 import 'features/shared/api_constants.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'features/Services/notification_service.dart';
+import 'features/notification/presentation/notification_service.dart';
 import './features/intial_screen.dart';
 
 

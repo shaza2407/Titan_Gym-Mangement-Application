@@ -13,13 +13,9 @@ router = APIRouter(prefix="/client", tags=["Client Dashboard"])
 
 
 @router.get("/dashboard-stats", response_model=DashboardStatsResponse)
-async def dashboard_stats(
-    current_user=Depends(require_client),
-    db: AsyncSession = Depends(get_session)
-):
+async def dashboard_stats( current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     membership = await get_membership(client.clientID, db)
-
     if not membership:
         return DashboardStatsResponse(
             total_visits=0,

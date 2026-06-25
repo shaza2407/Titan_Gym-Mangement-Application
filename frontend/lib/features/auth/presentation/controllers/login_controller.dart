@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/auth_model.dart';
 import '../../domain/i_auth_repository.dart';
 import '../../data/auth_repository.dart';
-import '../../../Services/notification_service.dart';
+import '../../../notification/presentation/notification_service.dart';
 
 class LoginController extends ChangeNotifier {
   final IAuthRepository _repo;

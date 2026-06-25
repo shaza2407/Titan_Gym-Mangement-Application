@@ -1,5 +1,6 @@
+//done
 import 'package:flutter/material.dart';
-import '../../data/admin_repository.dart';
+import '../../domain/coach_model.dart';
 
 class CoachDetailScreen extends StatelessWidget {
   final CoachListItem coach;
