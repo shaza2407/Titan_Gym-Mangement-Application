@@ -7,11 +7,13 @@ import 'package:frontend/features/shared/invitation_accept_screen.dart';
 class NotificationsScreen extends StatefulWidget {
   final int userId;
   final String token;
+  final VoidCallback? onDataChanged;
 
   const NotificationsScreen({
     super.key,
     required this.userId,
     required this.token,
+    this.onDataChanged,            
   });
 
   @override
@@ -28,6 +30,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     super.initState();
     _fetchNotifications();
   }
+
   Future<void> _fetchNotifications() async {
     try {
       final res = await http.get(
@@ -103,7 +106,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await _fetchNotifications();
+            if (mounted) Navigator.pop(context);
+          },
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,27 +164,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: _notifications.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   final n = _notifications[index];
                   final isRead = n['is_read'] as bool;
                   final type = n['type'] as String? ?? '';
 
                   return GestureDetector(
-                    onTap: () {
+                    onTap: () async {
                       if (!isRead) _markAsRead(n['id'], index);
                       if (type == 'gym_invite_client' ||
                           type == 'gym_invite_coach') {
-                        final data = n['data'] as Map<String, dynamic>? ?? {};
+                        final data =
+                            n['data'] as Map<String, dynamic>? ?? {};
                         final gymId = int.tryParse(
                           data['gym_id']?.toString() ?? '',
                         );
                         final inviteToken =
                             data['invite_token']?.toString() ?? '';
-                        final gymName = data['gym_name']?.toString() ?? 'Gym';
+                        final gymName =
+                            data['gym_name']?.toString() ?? 'Gym';
 
                         if (gymId != null && inviteToken.isNotEmpty) {
-                          Navigator.push(
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => InvitationScreen(
@@ -186,12 +194,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 inviteToken: inviteToken,
                                 gymName: gymName,
                                 authToken: widget.token,
-                                role: type == 'gym_invite_coach'
-                                    ? 'coach'
-                                    : 'client',
+                                role: type == 'gym_invite_coach'? 'coach': 'client',
                               ),
                             ),
                           );
+
+                          // reload notifications regardless
+                          _fetchNotifications();
+
+                          // if accepted, notify parent to reload dashboard
+                          if (result == true) {
+                            widget.onDataChanged?.call(); // ← triggers reload
+                          }
                         }
                       }
                     },

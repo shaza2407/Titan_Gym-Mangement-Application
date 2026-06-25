@@ -682,6 +682,9 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                 style: TextStyle(
                   color: isSelected ? Colors.white : Colors.black,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  decoration: (plan.plan[index].days.isNotEmpty && plan.plan[index].days.every((d) => d.isCompleted))
+                      ? TextDecoration.lineThrough
+                      : null,
                 ),
               ),
             ),
@@ -781,7 +784,9 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              day.day,
+                              day.day.toLowerCase().startsWith('day') 
+                                  ? day.day 
+                                  : 'Day ${day.day}',
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
@@ -1014,7 +1019,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             );
           },
         ),
-        if (week.days.isNotEmpty && week.days.every((d) => d.isCompleted)) ...[
+        if (week.days.isNotEmpty && !week.days.every((d) => d.isCompleted)) ...[
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -1034,6 +1039,12 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                         backgroundColor: Color(0xFF10B981),
                       ),
                     );
+                    
+                    // Open the next week automatically
+                    final nextWeekIndex = ctrl.activePlan!.plan.indexWhere((w) => w.week > ctrl.selectedWeekNumber);
+                    if (nextWeekIndex != -1) {
+                      ctrl.setSelectedWeek(ctrl.activePlan!.plan[nextWeekIndex].week);
+                    }
                   } else if (!success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

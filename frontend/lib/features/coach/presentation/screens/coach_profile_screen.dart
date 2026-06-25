@@ -47,18 +47,19 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                 },
               ),
               title: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'My Profile',
+                    'Coach Profile',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   Text(
-                    'Update your personal information',
+                    'Manage your account details',
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],

@@ -1,112 +1,87 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../domain/auth_model.dart';
 import '../domain/user_model.dart';
+import '../domain/i_auth_repository.dart';
 import '../../shared/api_constants.dart';
 
-class AuthRepository {
+class AuthRepository implements IAuthRepository {
+  final String _base = ApiConstants.baseUrl;
 
+  Map<String, dynamic> _decode(http.Response res) => jsonDecode(res.body);
 
-  Future<UserModel> signUp({
-    required String fullName,
-    required String email,
-    required String phoneNumber,
-    required String role,
-    required String password,
-  }) async {
-    final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}/auth/signup'),
-      headers: {'Content-Type': 'application/json'},
-      //like schema
-      body: jsonEncode({
-        'name': fullName,
-        'email': email,
-        'phone': phoneNumber,
-        'password': password,
-        'role': role,
-      }),
-    );
+  void _throwIfError(http.Response res) {
+    if (res.statusCode >= 200 && res.statusCode < 300) return;
 
-    if (response.statusCode == 200) {
-      return UserModel.fromJson(jsonDecode(response.body));
-  } else {
-    final body = jsonDecode(response.body);
+    final body   = _decode(res);
     final detail = body['detail'];
+
     if (detail is List && detail.isNotEmpty) {
       final msg = (detail.first['msg'] as String).replaceAll('Value error, ', '');
       throw Exception(msg);
     }
-    throw Exception(detail ?? body['message'] ?? 'Signup failed');
+
+    throw Exception(detail ?? body['message'] ?? 'Request failed (${res.statusCode})');
   }
+
+  Future<http.Response> _post(String path, Map<String, dynamic> body) =>
+      http.post(
+        Uri.parse('$_base$path'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+  Future<http.Response> _get(String path, String token) =>
+      http.get(
+        Uri.parse('$_base$path'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+  @override
+  Future<UserModel> signUp(SignUpRequest request) async {
+    final res = await _post('/auth/signup', request.toJson());
+    _throwIfError(res);
+    return UserModel.fromJson(_decode(res));
   }
 
-Future<void> verifyEmail({
-  required String email,
-  required String code,
-}) async {
-  final response = await http.post(
-    Uri.parse('${ApiConstants.baseUrl}/auth/verify-email'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'email': email,
-      'code': code,
-    }),
-  );
-
-  if (response.statusCode >= 200 && response.statusCode < 300) {
-    return;
-  } else {
-    final body = jsonDecode(response.body);
-    throw Exception(body['detail'] ?? body['message']);
+  @override
+  Future<void> verifyEmail(VerifyEmailRequest request) async {
+    final res = await _post('/auth/verify-email', request.toJson());
+    _throwIfError(res);
   }
-}
 
-Future<void> resendVerification({required String email}) async {
-  final response = await http.post(
-    Uri.parse('${ApiConstants.baseUrl}/auth/resend-verification'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'email': email}),
-  );
-
-  if (response.statusCode < 200 || response.statusCode >= 300) {
-    final body = jsonDecode(response.body);
-    throw Exception(body['detail'] ?? body['message']);
+  @override
+  Future<void> resendVerification(String email) async {
+    final res = await _post('/auth/resend-verification', {'email': email});
+    _throwIfError(res);
   }
-}
 
-Future<void> forgotPassword({required String email}) async {
-  final response = await http.post(
-    Uri.parse('${ApiConstants.baseUrl}/auth/forgot-password'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'email': email}),
-  );
-
-  if (response.statusCode < 200 || response.statusCode >= 300) {
-    final body = jsonDecode(response.body);
-    throw Exception(body['detail'] ?? body['message']);
+  @override
+  Future<void> forgotPassword(ForgotPasswordRequest request) async {
+    final res = await _post('/auth/forgot-password', request.toJson());
+    _throwIfError(res);
   }
-}
 
-Future<void> resetPassword({
-  required String email,
-  required String code,
-  required String newPassword,
-}) async {
-  final response = await http.post(
-    Uri.parse('${ApiConstants.baseUrl}/auth/reset-password'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'email': email,
-      'code': code,
-      'new_password': newPassword,
-    }),
-  );
-
-  if (response.statusCode >= 200 && response.statusCode < 300) {
-    return;
-  } else {
-    final body = jsonDecode(response.body);
-    throw Exception(body['detail'] ?? body['message']);
+  @override
+  Future<void> resetPassword(ResetPasswordRequest request) async {
+    final res = await _post('/auth/reset-password', request.toJson());
+    _throwIfError(res);
   }
-}
 
+  @override
+  Future<LoginResponse> signIn(LoginRequest request) async {
+    final res = await _post('/auth/signin', request.toJson());
+    _throwIfError(res);
+    return LoginResponse.fromJson(_decode(res));
+  }
+
+  @override
+  Future<ClientProfileResponse> getClientProfile(String token) async {
+    final res = await _get('/client/me', token);
+    _throwIfError(res);
+    return ClientProfileResponse.fromJson(_decode(res));
+  }
 }

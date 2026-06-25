@@ -8,7 +8,7 @@ class Client(Base):
     __tablename__ = "clients"
 
     clientID     = Column("clientID", Integer, primary_key=True , index=True)
-    userID       = Column("userID", Integer, ForeignKey("users.userID"), nullable=False)  # ← matches
+    userID       = Column("userID", Integer, ForeignKey("users.userID" ,ondelete="CASCADE"), nullable=False)  # ← matches
     fitness_goal = Column(String, nullable=True)
     date_of_birth     = Column(Date, nullable=True)   
     gender       = Column(String, nullable=True)

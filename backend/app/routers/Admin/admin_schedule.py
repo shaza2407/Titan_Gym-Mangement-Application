@@ -46,7 +46,7 @@ async def verify_admin_gym(adminID: int, gymID: int, db: AsyncSession) -> int:
 @router.get("/stats", response_model=AdminScheduleStatsResponse)
 async def schedule_stats(
     gym_id: int = Query(...),
-    week_only: bool = Query(False),          # <-- add this
+    week_only: bool = Query(False),        
     admin: Admin = Depends(require_admin),
     db: AsyncSession = Depends(get_session),
 ):

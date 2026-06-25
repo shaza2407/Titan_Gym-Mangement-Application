@@ -16,31 +16,36 @@ def encode_days(days: int) -> int:
     else:
         return 2   # high : 5-7 days
 
-async def get_weekly_attendance(membership_id: int, db: AsyncSession) -> list:
+async def get_weekly_attendance(client_id: int, gym_id: int, db: AsyncSession) -> list:
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     since_90 = now - timedelta(days=90)
+
     result = await db.execute(
         select(Attendance.checked_in).where(
-            Attendance.membershipID == membership_id,
-            Attendance.checked_in >= since_90
+            Attendance.clientID == client_id,
+            Attendance.gymID == gym_id,
+            Attendance.checked_in >= since_90,
         )
     )
     checkins = [row[0] for row in result.all()]
+
     weeks = []
-    for i in range(11, -1, -1): ##
+    for i in range(11, -1, -1):
         week_start = now - timedelta(days=i * 7 + 7)
         week_end = now - timedelta(days=i * 7)
-
         count = sum(1 for c in checkins if week_start <= c < week_end)
         weeks.append(encode_days(count))
 
     return weeks
 
 
-async def get_days_since_last_visit(membership_id: int, db: AsyncSession) -> int:
+async def get_days_since_last_visit(client_id: int, gym_id: int, db: AsyncSession) -> int:
     result = await db.execute(
         select(Attendance.checked_in)
-        .where(Attendance.membershipID == membership_id)
+        .where(
+            Attendance.clientID == client_id,
+            Attendance.gymID == gym_id,
+        )
         .order_by(Attendance.checked_in.desc())
     )
     last = result.first()
@@ -52,16 +57,14 @@ async def get_days_since_last_visit(membership_id: int, db: AsyncSession) -> int
 
 
 def get_days_until_expiry(membership: GymClientMembership) -> int:
-    """Days remaining in the subscription"""
     today = datetime.now(timezone.utc).date()
     delta = membership.subscription_end - today
     return max(delta.days, 0)
 
-
 async def predict_churn_risk(membership: GymClientMembership, db: AsyncSession):
-    weeks = await get_weekly_attendance(membership.id, db)
+    weeks = await get_weekly_attendance(membership.clientID, membership.gymID, db)
 
-    days_since_last_visit = await get_days_since_last_visit(membership.id, db)
+    days_since_last_visit = await get_days_since_last_visit(membership.clientID, membership.gymID, db)
     days_until_expiry = get_days_until_expiry(membership)
 
     payload = {

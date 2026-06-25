@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../shared/api_constants.dart';
-import 'retention_offer_model.dart';
+import '../domain/retention_offer_model.dart';
 
 class RetentionOfferRepository {
   final String token;

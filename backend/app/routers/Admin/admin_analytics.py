@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pip._internal.operations.install import wheel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, cast, Date, extract, case, or_, and_
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, timezone
 from dateutil.relativedelta import relativedelta
 import pytz
 from app.database import get_session
@@ -16,6 +16,7 @@ from app.models.class_session import ClassSession
 from app.models.class_enrollment import ClassEnrollment
 from app.models.retention_offer import RetentionOfferRecipient
 from app.models.client import Client
+
 from app.schemas.admin.analytics_schemas import (
     AnalyticsSummaryResponse,
     RevenueTrendResponse,
@@ -44,13 +45,13 @@ async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
 async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
     result = await db.execute(
         select(func.sum(Subscription.supscriptionPrice * Subscription.duration_count))
-        .join(GymClientMembership, Subscription.gymClientMebershipID == GymClientMembership.id)
         .where(
-            GymClientMembership.gymID == gym.gymID,
+            Subscription.gymID == gym.gymID,
             cast(Subscription.billingDate, Date) >= start_date,
             cast(Subscription.billingDate, Date) <= end_date,
         )
     )
+    # print("rev: ", result.scalar_one() or 0)
     return result.scalar_one() or 0
 
 
@@ -62,11 +63,15 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
     print("finished _verify_gym_owner:", gym_id)
     today = date.today()
+    print("Time1: ", datetime.now(timezone.utc))
+    print("Time1: ", today)
+
     month_start = today.replace(day=1)
     days_elapsed = today.day  # days from the 1st up to and including today
     prev_month_start = (month_start - relativedelta(months=1))
     prev_month_days = (month_start - timedelta(days=1)).day
 
+    print("/////////////////  HERE 1  /////////////////")
     ## 1- Total Revenue This Month => new memberships * subscription price
     this_month_revenue = await calc_revenue_for_period(db, gym, month_start, today)
     last_month_revenue = await calc_revenue_for_period(db, gym, prev_month_start, month_start - relativedelta(days=1))
@@ -93,12 +98,12 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     )
     new_members_this_month = new_this_month.scalar_one_or_none() or 0
 
+    print("Before the Avr Attendance: ")
     ## 3- Average Daily Attendance This Month
     checkins_result = await db.execute(
         select(func.count(Attendance.id))
-        .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
         .where(
-            GymClientMembership.gymID == gym_id,
+            Attendance.gymID == gym_id,
             cast(Attendance.checked_in, Date) >= month_start,
             cast(Attendance.checked_in, Date) <= today,
         )
@@ -108,9 +113,8 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
 
     prev_checkins_result = await db.execute(
         select(func.count(Attendance.id))
-        .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
         .where(
-            GymClientMembership.gymID == gym_id,
+            Attendance.gymID == gym_id,
             cast(Attendance.checked_in, Date) >= prev_month_start,
             cast(Attendance.checked_in, Date) < month_start,
         )
@@ -218,17 +222,21 @@ async def get_weekly_pattern(gym_id: int, db: AsyncSession = Depends(get_session
     today = date.today()
     week_start = today - timedelta(days=6)
     result = await db.execute(
-        select(
-            cast(Attendance.checked_in, Date).label("day"),
-            extract("hour", Attendance.checked_in).label("hour"),
-            func.count(Attendance.id).label("cnt"),
-        ).join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
-        .where(
-            GymClientMembership.gymID == gym_id,
-            cast(Attendance.checked_in, Date) >= week_start,
-            cast(Attendance.checked_in, Date) <= today,
-        ).group_by(cast(Attendance.checked_in, Date), extract("hour", Attendance.checked_in))
+    select(
+        cast(Attendance.checked_in, Date).label("day"),
+        extract("hour", Attendance.checked_in).label("hour"),
+        func.count(Attendance.id).label("cnt"),
     )
+    .where(
+        Attendance.gymID == gym_id,
+        cast(Attendance.checked_in, Date) >= week_start,
+        cast(Attendance.checked_in, Date) <= today,
+    )
+    .group_by(
+        cast(Attendance.checked_in, Date),
+        extract("hour", Attendance.checked_in),
+    )
+    )  
 
     rows = result.all()
     day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]

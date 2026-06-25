@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_profile_controller.dart';
 import '../../../shared/logout_button.dart';
-import '../../../auth/presentation/forget_password_page.dart';
+import '../../../auth/presentation/screens/forget_password_page.dart';
+import '../../../shared/api_constants.dart';
 import '../../../Services/notifications_screen.dart';
-import '../../../Services/token_helper.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../../shared/api_constants.dart';
+import '../../../Services/token_helper.dart';
+
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
@@ -58,10 +59,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     )
                   : null,
               title: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'Profile Settings',
+                    'Client Settings',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
@@ -70,11 +71,12 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     ),
                   ),
                   Text(
-                    'Manage your account details and goals',
-                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 11),
+                    'Manage your account details',
+                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
                   ),
                 ],
               ),
+              centerTitle: true,
               actions: [
                 IconButton(
                   icon: const Icon(

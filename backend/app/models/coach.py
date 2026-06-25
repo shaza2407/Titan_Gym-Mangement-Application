@@ -5,7 +5,7 @@ class Coach(Base):
     __tablename__ = "coaches"
 
     coachID          = Column("coachID", Integer, primary_key=True, index=True)
-    userID           = Column("userID", Integer, ForeignKey("users.userID"), nullable=False)
+    userID           = Column("userID", Integer, ForeignKey("users.userID" ,ondelete="CASCADE"), nullable=False)
     bio              = Column(Text, nullable=True)
     specializations  = Column(String, nullable=True)  
     certifications   = Column(String, nullable=True)

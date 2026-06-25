@@ -56,7 +56,7 @@ class TrainingPlan(Base):
     __tablename__ = "training_plans"
 
     planID         = Column("planID",   Integer, primary_key=True, index=True)
-    clientID       = Column("clientID", Integer, ForeignKey("clients.clientID"), nullable=False)
+    clientID       = Column("clientID", Integer, ForeignKey("clients.clientID" ,  ondelete="CASCADE"), nullable=False)
 
     # Versioning
     parent_plan_id = Column(Integer, ForeignKey("training_plans.planID"), nullable=True)
@@ -68,7 +68,7 @@ class TrainingPlan(Base):
     goal           = Column(String(100), nullable=False)
     level          = Column(String(50),  nullable=True)
     weeks          = Column(Integer,     nullable=True)
-    gym_id         = Column(Integer, ForeignKey("gyms.gymID"), nullable=True)
+    gym_id         = Column(Integer, ForeignKey("gyms.gymID" ,  ondelete="CASCADE"), nullable=True)
 
     # Full AI-generated plan stored as JSON text
     plan_json      = Column(Text, nullable=False)
@@ -105,8 +105,8 @@ class TrainingPlanTracking(Base):
     __tablename__ = "training_plan_tracking"
 
     trackingID            = Column("trackingID", Integer, primary_key=True, index=True)
-    clientID              = Column("clientID", Integer, ForeignKey("clients.clientID"), nullable=False)
-    planID                = Column("planID",   Integer, ForeignKey("training_plans.planID"), nullable=False)
+    clientID              = Column("clientID", Integer, ForeignKey("clients.clientID" , ondelete="CASCADE"), nullable=False)
+    planID                = Column("planID",   Integer, ForeignKey("training_plans.planID",  ondelete="CASCADE"), nullable=False)
 
     tracking_date         = Column(Date, nullable=False)
     week_number           = Column(Integer, nullable=True)
@@ -133,8 +133,8 @@ class TrainingPlanWeekProgress(Base):
     __tablename__ = "training_plan_week_progress"
 
     id               = Column(Integer, primary_key=True, index=True)
-    clientID         = Column("clientID", Integer, ForeignKey("clients.clientID"), nullable=False)
-    planID           = Column("planID",   Integer, ForeignKey("training_plans.planID"), nullable=False)
+    clientID         = Column("clientID", Integer, ForeignKey("clients.clientID" ,  ondelete="CASCADE"), nullable=False)
+    planID           = Column("planID",   Integer, ForeignKey("training_plans.planID" ,  ondelete="CASCADE"), nullable=False)
 
     week_number      = Column(Integer, nullable=False)
     week_start_date  = Column(Date, nullable=True)
