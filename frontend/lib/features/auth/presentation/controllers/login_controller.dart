@@ -25,7 +25,6 @@ class LoginController extends ChangeNotifier {
         .hasMatch(emailController.text.trim())) {
       fieldErrors['email'] = 'Enter a valid email';
     }
-
     if (passwordController.text.isEmpty) {
       fieldErrors['password'] = 'Password is required';
     }
@@ -35,32 +34,54 @@ class LoginController extends ChangeNotifier {
   }
 
   Future<void> signIn(BuildContext context) async {
-    if (!_validateFields()) return;
+  if (!_validateFields()) return;
 
-    isLoading = true;
-    errorMessage = null;
-    notifyListeners();
+  isLoading = true;
+  errorMessage = null;
+  notifyListeners();
 
-    try {
-      final response = await _repo.signIn(
-        LoginRequest(
-          email:    emailController.text.trim(),
-          password: passwordController.text,
-        ),
+  try {
+    final response = await _repo.signIn(
+      LoginRequest(
+        email:    emailController.text.trim(),
+        password: passwordController.text,
+      ),
+    );
+
+    if (!context.mounted) return;
+    // Handle case where API returns 200 but user is not verified
+    if (!response.isVerified) {
+      Navigator.pushNamed(
+        context,
+        '/verify-email',
+        arguments: emailController.text.trim(),
       );
-
-      await NotificationService.saveToken(response.userId, response.accessToken);
-
-      if (!context.mounted) return;
-      await _navigate(context, response);
-
-    } catch (e) {
-      errorMessage = e.toString().replaceAll('Exception: ', '');
-    } finally {
-      isLoading = false;
-      notifyListeners();
+      return;
     }
+    await NotificationService.saveToken(response.userId, response.accessToken);
+    if (!context.mounted) return;
+    await _navigate(context, response);
+
+  } catch (e) {
+  final msg = e.toString().replaceAll('Exception: ', '');
+
+  if (msg == 'Please verify your email before signing in') {
+    if (context.mounted) {
+      Navigator.pushNamed(
+        context,
+        '/verify-email',
+        arguments: emailController.text.trim(),
+      );
+    }
+    return;
   }
+
+  errorMessage = msg;
+} finally {
+    isLoading = false;
+    notifyListeners();
+  }
+}
 
   Future<void> _navigate(BuildContext context, LoginResponse response) async {
     switch (response.role) {

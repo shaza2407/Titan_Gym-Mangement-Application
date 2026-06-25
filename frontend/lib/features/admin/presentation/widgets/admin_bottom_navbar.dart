@@ -1,11 +1,11 @@
-// lib/features/admin/presentation/admin_shell.dart
-
 import 'package:flutter/material.dart';
-import '../admin_schedule_screen.dart';
-import '../gym_dashboard_screen.dart';
-import '../admin_profile.dart';
-import '../analytics_screen.dart';
-import '../../data/gym_repository.dart';
+import 'package:provider/provider.dart';
+import '../screens/admin_schedule_screen.dart';
+import '../screens/gym_dashboard_screen.dart';
+import '../screens/admin_profile.dart';
+import '../screens/analytics_screen.dart';
+import '../../domain/gym_model.dart';
+import '../controller/gym_dashboard_controller.dart';
 
 class AdminShell extends StatefulWidget {
   final String token;
@@ -19,6 +19,7 @@ class AdminShell extends StatefulWidget {
 
 class _AdminShellState extends State<AdminShell> {
   int _currentIndex = 0;
+  late final GymDashboardController _dashboardController;
 
   final _navigatorKeys = [
     GlobalKey<NavigatorState>(),
@@ -28,19 +29,34 @@ class _AdminShellState extends State<AdminShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _dashboardController = GymDashboardController();
+  }
+
+  @override
+  void dispose() {
+    _dashboardController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (_navigatorKeys[_currentIndex].currentState?.canPop() == true) {
-            _navigatorKeys[_currentIndex].currentState?.pop();
-          }
-        },
-        child: _buildBody(),
+    return ChangeNotifierProvider.value(
+      value: _dashboardController,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        body: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (_navigatorKeys[_currentIndex].currentState?.canPop() == true) {
+              _navigatorKeys[_currentIndex].currentState?.pop();
+            }
+          },
+          child: _buildBody(),
+        ),
+        bottomNavigationBar: _buildBottomBar(),
       ),
-      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -51,10 +67,9 @@ class _AdminShellState extends State<AdminShell> {
         Navigator(
           key: _navigatorKeys[0],
           onGenerateRoute: (_) => MaterialPageRoute(
-            builder: (_) => GymDashboardScreen(
-              token: widget.token,
-              gym: widget.gym,
-              onTabChange: _onTap,
+            builder: (context) => ChangeNotifierProvider.value(
+            value: _dashboardController,          
+            child: GymDashboardScreen(token: widget.token,gym: widget.gym,onTabChange: _onTap,),
             ),
           ),
         ),

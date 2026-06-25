@@ -328,26 +328,6 @@ async def unsuspend_client(
     await db.commit()
     return {"message": "Client unsuspended successfully."}
 
-
-
-@router.get("/total-members")
-async def get_total_members(db: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user),):
-    # Get adminID from Admin table
-    admin_result = await db.execute(select(Admin).where(Admin.userID == current_user.userID))
-    admin = admin_result.scalars().first()
-
-    if not admin:
-        raise HTTPException(status_code=403, detail="User is not an admin")
-    # Count members using adminID
-    result = await db.execute(
-        select(func.count(GymClientMembership.id))
-        .join(Gym, GymClientMembership.gymID == Gym.gymID)
-        .where(Gym.adminID == admin.adminID)
-    )
-    return {"total": result.scalar()}
-
-
-
 #POST /admin/gyms/{gym_id}/invitations/accept
 @router.post("/{gym_id}/invitations/accept")
 async def accept_invitation(
@@ -496,17 +476,7 @@ async def get_pending_invitation(
     }
 
 #active member count
-@router.get("/{gym_id}/member-count")
-async def get_gym_member_count(
-    gym_id: int,
-    db: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),):
 
-    count = (await db.execute(
-        select(func.count(GymClientMembership.id))
-        .where(GymClientMembership.gymID == gym_id and GymClientMembership.status == ClientMembershipStatus.active)
-    )).scalar()
-    return {"count": count or 0}
 
 
 @router.post("/{gym_id}/clients/{member_id}/renew")

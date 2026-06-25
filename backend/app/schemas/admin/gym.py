@@ -41,6 +41,8 @@ class GymUpdate(BaseModel):
     gymType: Optional[str] = None
     openingHours: Optional[str] = None
     closingHours: Optional[str] = None
+    machines: Optional[List[MachineInventoryInput]] = None  
+
 
 
 # Response
@@ -48,6 +50,8 @@ class GymResponse(GymBase):
     gymID: int
     adminID: int
     QRCode: Optional[str] = None
+    machines: List[MachineInventoryResponse] = Field(default=[], alias="machine_inventory")
+
 
     class Config:
         from_attributes = True
