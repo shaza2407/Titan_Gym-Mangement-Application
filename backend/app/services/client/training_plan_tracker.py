@@ -87,8 +87,7 @@ class TrainingPlanTracker:
         await self._check_plan_completion(client_id, plan_id, db)
 
         # Update achievements
-        await achievement_engine.update_goal_crusher(client_id, db)
-        await achievement_engine.update_master_trainer(client_id, db)
+        await achievement_engine.on_workout_logged(client_id, db)
 
         # Update weekly progress
         await self._update_weekly_progress(client_id, plan_id, db)
@@ -129,7 +128,7 @@ class TrainingPlanTracker:
             logger.info(f"🎉 Client {client_id} completed training plan {plan_id}!")
 
             # Trigger achievement updates
-            await achievement_engine.update_goal_crusher(client_id, db)
+            await achievement_engine.on_plan_completed(client_id, db)
 
     async def _update_weekly_progress(self, client_id: int, plan_id: int, db: AsyncSession):
         """Aggregate weekly progress"""

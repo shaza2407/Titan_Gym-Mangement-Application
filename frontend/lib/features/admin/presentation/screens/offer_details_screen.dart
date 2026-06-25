@@ -118,7 +118,7 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFF0EEFF),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF4F46E5).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF4F46E5).withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,8 +239,9 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
   Widget _memberRow(Map<String, dynamic> r) {
     final risk = r['risk_level'] as String? ?? '';
     Color riskColor;
-    if (risk.toLowerCase().contains('high')) riskColor = Colors.red;
-    else if (risk.toLowerCase().contains('mid')) riskColor = Colors.orange;
+    if (risk.toLowerCase().contains('high')) {
+      riskColor = Colors.red;
+    } else if (risk.toLowerCase().contains('mid')) riskColor = Colors.orange;
     else riskColor = Colors.green;
 
     return Padding(

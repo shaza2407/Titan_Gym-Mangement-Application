@@ -226,7 +226,7 @@ class _CreateAnnouncementScreenState
         borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButtonFormField<String>(
-        value: _selectedReceiver,
+        initialValue: _selectedReceiver,
         decoration: const InputDecoration(
           labelText: 'Send to',
           border: InputBorder.none,

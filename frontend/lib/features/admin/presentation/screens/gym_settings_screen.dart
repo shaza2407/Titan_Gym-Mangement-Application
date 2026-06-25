@@ -294,7 +294,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: DropdownButtonFormField<String>(
-                            value: machine.machineType,
+                            initialValue: machine.machineType,
                             decoration: const InputDecoration(
                               labelText: 'Machine Type',
                               border: InputBorder.none,
@@ -465,7 +465,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _accent.withOpacity(0.1),
+                  color: _accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: _accent, size: 18),

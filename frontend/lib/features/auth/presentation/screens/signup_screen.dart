@@ -54,7 +54,7 @@ class SignupScreen extends StatelessWidget {
                   Text('I am a', style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: ctrl.selectedRole,
+                    initialValue: ctrl.selectedRole,
                     hint: Text('Select your role'),
                     items: ctrl.roles
                         .map((r) => DropdownMenuItem(value: r, child: Text(r)))

@@ -260,7 +260,7 @@ class ClientTrainingPlanController extends ChangeNotifier {
     try {
       final baseUrl = ApiConstants.baseUrl; 
       final res = await http.get(
-        Uri.parse('${baseUrl}/training-plans/${activePlan!.planID}/pdf'),
+        Uri.parse('$baseUrl/training-plans/${activePlan!.planID}/pdf'),
         headers: {
           'Authorization': 'Bearer $token',
         },
