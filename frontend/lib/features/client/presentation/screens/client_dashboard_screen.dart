@@ -200,13 +200,6 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         return ClientScheduleScreen(token: widget.token, onBack: _goHome);
 
       case 2:
-        if (_isAccessBlocked(stats)) {
-          return SubscriptionBlockedScreen(
-            reason: _blockReason(stats!),
-            gymName: stats.gymName,
-            onBack: _goHome,
-          );
-        }
         return ClientScanScreen(token: widget.token, onBack: _goHome);
 
       case 3:

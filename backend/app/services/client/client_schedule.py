@@ -1,13 +1,13 @@
-# app/services/client_schedule.py
+# app/services/client/client_schedule.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import date, timedelta
 from app.models.class_session import ClassSession
 from app.models.class_enrollment import ClassEnrollment
-from app.models.gym_clients_membership import GymClientMembership
 from app.models.coach import Coach
 from app.models import User
+from app.services.client.client_shared import get_membership, get_client_gymID  
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -19,13 +19,6 @@ async def _get_coach_name(coach_id: int, db: AsyncSession) -> str | None:
     )
     return result.scalar_one_or_none()
 
-async def _get_membership(clientID: int, db: AsyncSession) -> GymClientMembership | None:
-    result = await db.execute(
-        select(GymClientMembership).where(
-            GymClientMembership.clientID == clientID
-        )
-    )
-    return result.scalar_one_or_none()
 
 def _next_occurrence(day_name: str) -> date:
     days = ["monday", "tuesday", "wednesday", "thursday",
@@ -72,7 +65,7 @@ async def _build_class_response(
     if session.is_recurring and session.day_of_week:
         class_date = target_date or _next_occurrence(session.day_of_week)
     else:
-        class_date = session.date  # ← use actual date for one-time
+        class_date = session.date
 
     enrolled = await _get_enrollment(session.id, clientID, class_date, db) is not None
     current  = await _count_enrolled(session.id, class_date, db)
@@ -95,16 +88,6 @@ async def _build_class_response(
     }
 
 
-
-async def get_client_gymID(clientID: int, db: AsyncSession) -> int | None:
-    result = await db.execute(
-        select(GymClientMembership.gymID).where(
-            GymClientMembership.clientID == clientID
-        )
-    )
-    return result.scalar_one_or_none()
-
-
 # ── Stats ─────────────────────────────────────────────────────────────────────
 
 async def get_client_schedule_stats(clientID: int, db: AsyncSession) -> dict:
@@ -114,7 +97,6 @@ async def get_client_schedule_stats(clientID: int, db: AsyncSession) -> dict:
     start_of_month = today.replace(day=1)
     current_time = now.time()
 
-    # Pull all future enrollments (date > today, or date == today)
     future_enrollments_result = await db.execute(
         select(ClassEnrollment, ClassSession)
         .join(ClassSession, ClassSession.id == ClassEnrollment.session_id)
@@ -125,17 +107,14 @@ async def get_client_schedule_stats(clientID: int, db: AsyncSession) -> dict:
     )
     rows = future_enrollments_result.all()
 
-    # Filter out today's classes that have already passed by time
     active_count = 0
     for enrollment, session in rows:
         if enrollment.class_date > today:
             active_count += 1
         elif enrollment.class_date == today:
-            # Only count if class hasn't started yet
             if session.start_time > current_time:
                 active_count += 1
 
-    # Classes completed this month — past class_dates this month
     past_month_result = await db.scalar(
         select(func.count(ClassEnrollment.id)).where(
             ClassEnrollment.clientID == clientID,
@@ -155,9 +134,6 @@ async def get_client_schedule_stats(clientID: int, db: AsyncSession) -> dict:
 
 async def get_my_classes(clientID: int, db: AsyncSession) -> list:
     today = date.today()
-    day_names = ["monday", "tuesday", "wednesday",
-                 "thursday", "friday", "saturday", "sunday"]
-
     gymID = await get_client_gymID(clientID, db)
     if not gymID:
         return []
@@ -173,13 +149,11 @@ async def get_my_classes(clientID: int, db: AsyncSession) -> list:
             next_d = _next_occurrence(s.day_of_week)
             enrolled = await _get_enrollment(s.id, clientID, next_d, db)
             if enrolled:
-                classes.append(
-                    await _build_class_response(s, clientID, db, next_d))
+                classes.append(await _build_class_response(s, clientID, db, next_d))
         elif s.date and s.date >= today:
             enrolled = await _get_enrollment(s.id, clientID, s.date, db)
             if enrolled:
-                classes.append(
-                    await _build_class_response(s, clientID, db, s.date))
+                classes.append(await _build_class_response(s, clientID, db, s.date))
 
     return classes
 
@@ -197,10 +171,8 @@ async def browse_classes(
 
     today = date.today()
     query = select(ClassSession).where(ClassSession.gymID == gymID)
-
     if day_filter:
-        query = query.where(
-            ClassSession.day_of_week == day_filter.lower())
+        query = query.where(ClassSession.day_of_week == day_filter.lower())
 
     result = await db.execute(
         query.order_by(ClassSession.day_of_week, ClassSession.start_time)
@@ -222,14 +194,14 @@ async def get_weekly_schedule(clientID: int, db: AsyncSession) -> list:
     day_names = ["monday", "tuesday", "wednesday",
                  "thursday", "friday", "saturday", "sunday"]
 
-    days_order = []
-    for i in range(7):
-        d = today + timedelta(days=i)
-        days_order.append({
-            "date":     d,
-            "day_name": day_names[d.weekday()],
-            "label":    d.strftime("%a %b %d"),
-        })
+    days_order = [
+        {
+            "date":     today + timedelta(days=i),
+            "day_name": day_names[(today + timedelta(days=i)).weekday()],
+            "label":    (today + timedelta(days=i)).strftime("%a %b %d"),
+        }
+        for i in range(7)
+    ]
 
     gymID = await get_client_gymID(clientID, db)
     if not gymID:
@@ -256,44 +228,30 @@ async def get_weekly_schedule(clientID: int, db: AsyncSession) -> list:
         if s.is_recurring and s.day_of_week:
             for d in days_order:
                 if d["day_name"] == s.day_of_week.lower():
-                    enrolled = await _get_enrollment(
-                        s.id, clientID, d["date"], db)
-                    if enrolled:
+                    if await _get_enrollment(s.id, clientID, d["date"], db):
                         schedule[d["date"]].append(entry)
-
-        elif not s.is_recurring and s.date:
-            if s.date in schedule:
-                enrolled = await _get_enrollment(
-                    s.id, clientID, s.date, db)
-                if enrolled:
-                    schedule[s.date].append(entry)
+        elif not s.is_recurring and s.date and s.date in schedule:
+            if await _get_enrollment(s.id, clientID, s.date, db):
+                schedule[s.date].append(entry)
 
     for d in schedule:
         schedule[d].sort(key=lambda x: x["start_time"])
 
     return [
-        {
-            "day":     d["day_name"],
-            "label":   d["label"],
-            "classes": schedule[d["date"]],
-        }
+        {"day": d["day_name"], "label": d["label"], "classes": schedule[d["date"]]}
         for d in days_order
     ]
 
 
 # ── Enroll ────────────────────────────────────────────────────────────────────
 
-# ── Enroll ────────────────────────────────────────────────────────────────────
-
 async def enroll(session_id: int, clientID: int,
                  class_date: date, db: AsyncSession) -> dict:
-    membership = await _get_membership(clientID, db)
+    membership = await get_membership(clientID, db)
     if not membership:
         return {"error": "You are not connected to a gym"}
-
     if membership.status == "suspended":
         return {"error": "Your membership is suspended. Contact your gym to restore access."}
-
     if membership.subscription_end < date.today():
         return {"error": "Your subscription has expired. Please renew to enroll in classes."}
 
@@ -311,12 +269,11 @@ async def enroll(session_id: int, clientID: int,
     if current >= session.max_clients:
         return {"error": "Class is full for this date"}
 
-    enrollment = ClassEnrollment(
+    db.add(ClassEnrollment(
         session_id=session_id,
         clientID=clientID,
         class_date=class_date,
-    )
-    db.add(enrollment)
+    ))
     await db.commit()
 
     return {
@@ -324,7 +281,7 @@ async def enroll(session_id: int, clientID: int,
         "session_id": session_id,
         "clientID":   clientID,
         "class_date": str(class_date),
-        "start_time": session.start_time,   
+        "start_time": session.start_time,
         "title":      session.title,
     }
 

@@ -5,7 +5,6 @@ from sqlalchemy import select
 from app.models.client import Client
 
 async def get_client_by_user_id(user_id: int, db: AsyncSession, detail: str = "Only clients can perform this action.") -> Client:
-    """Helper function to fetch a client by user ID."""
     result = await db.execute(
         select(Client).where(Client.userID == user_id)
     )

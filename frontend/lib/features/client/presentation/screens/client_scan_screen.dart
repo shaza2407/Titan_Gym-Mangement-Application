@@ -34,23 +34,30 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
           if (ctrl.isLoading) {
             return const Scaffold(
               backgroundColor: Color(0xFFF3F4F6),
-              body: Center(child: CircularProgressIndicator(color: Color(0xFF4F46E5))),
+              body: Center(
+                child: CircularProgressIndicator(color: Color(0xFF4F46E5)),
+              ),
             );
           }
 
           final statusInfo = ctrl.statusInfo;
-          // Adapt the status colors to our light theme
+          final reason = ctrl.status?.reason;
+          final isSuspended = reason == 'suspended';
+          final isExpired = reason == 'expired';
+
           Color accentColor = const Color(0xFF4F46E5); // Indigo default
-          if (ctrl.isBlocked) {
+          if (isSuspended) {
             accentColor = Colors.red;
+          } else if (isExpired) {
+            accentColor = const Color(0xFFF59E0B); // Amber
           } else if (ctrl.canCheckin) {
             accentColor = const Color(0xFF10B981); // Emerald green
-          } else if (ctrl.status?.reason == 'already_checked_in') {
+          } else if (reason == 'already_checked_in') {
             accentColor = const Color(0xFF6366F1); // Light Indigo
           }
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF3F4F6), // Light theme
+            backgroundColor: const Color(0xFFF3F4F6),
             appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0.5,
@@ -87,9 +94,29 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                   if (ctrl.recentCheckins.isNotEmpty && !ctrl.isBlocked)
                     _buildLastCheckinBanner(ctrl.recentCheckins.first),
 
-                  // ── Blocked banner ────────────────────────────────
-                  if (ctrl.isBlocked)
-                    _buildBlockedBanner(statusInfo['message'] ?? 'Check-in blocked'),
+                  // ── Suspended banner (red) ────────────────────────
+                  if (isSuspended)
+                    _buildStatusBanner(
+                      message:
+                          statusInfo['message'] ??
+                          'Your membership is suspended',
+                      bgColor: const Color(0xFFFEF2F2),
+                      borderColor: const Color(0xFFEF4444),
+                      iconColor: Colors.red,
+                      textColor: Colors.red,
+                    ),
+
+                  // ── Expired banner (yellow) ───────────────────────
+                  if (isExpired)
+                    _buildStatusBanner(
+                      message:
+                          statusInfo['message'] ??
+                          'Your subscription has expired',
+                      bgColor: const Color(0xFFFFFBEB),
+                      borderColor: const Color(0xFFF59E0B),
+                      iconColor: const Color(0xFFF59E0B),
+                      textColor: const Color(0xFF92400E),
+                    ),
 
                   // ── QR Scanner box ────────────────────────────────
                   _buildScannerBox(ctrl, statusInfo, accentColor),
@@ -114,9 +141,11 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFECFDF5), // Light Green
+        color: const Color(0xFFECFDF5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.2)),
+        border: Border.all(
+          color: const Color(0xFF10B981).withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -126,7 +155,11 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
             children: [
               const Text(
                 'Last Check-In Time',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 14),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -141,25 +174,31 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
     );
   }
 
-  Widget _buildBlockedBanner(String message) {
+  Widget _buildStatusBanner({
+    required String message,
+    required Color bgColor,
+    required Color borderColor,
+    required Color iconColor,
+    required Color textColor,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2), // Light Red
+        color: bgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.2)),
+        border: Border.all(color: borderColor.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 26),
+          Icon(Icons.warning_amber_rounded, color: iconColor, size: 26),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: Colors.red,
+              style: TextStyle(
+                color: textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
@@ -175,6 +214,30 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
     Map<String, dynamic> statusInfo,
     Color accentColor,
   ) {
+    final reason = ctrl.status?.reason;
+    final isSuspended = reason == 'suspended';
+    final isExpired = reason == 'expired';
+
+    final Color messageColor = isSuspended
+        ? Colors.red
+        : isExpired
+        ? const Color(0xFF92400E)
+        : Colors.black87;
+
+    final String buttonLabel = ctrl.checkedInNow
+        ? 'Check-In Complete!'
+        : ctrl.isCheckingIn
+        ? 'Verifying...'
+        : ctrl.canCheckin
+        ? 'Press to open Camera'
+        : reason == 'already_checked_in'
+        ? 'Checked In Today'
+        : isSuspended
+        ? 'Membership Suspended'
+        : isExpired
+        ? 'Subscription Expired'
+        : 'Access Blocked';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -183,14 +246,22 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: const [
-          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
         children: [
           const Text(
             'Check-In Terminal',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 4),
           const Text(
@@ -199,24 +270,21 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
           ),
           const SizedBox(height: 20),
 
-          // QR frame simulation
+          // QR frame
           Container(
             width: double.infinity,
             height: 220,
             decoration: BoxDecoration(
               color: const Color(0xFFF9FAFB),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: accentColor,
-                width: 2,
-              ),
+              border: Border.all(color: accentColor, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: accentColor.withValues(alpha: 0.05),
                   blurRadius: 15,
                   spreadRadius: 2,
-                )
-              ]
+                ),
+              ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -230,7 +298,7 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                 Text(
                   statusInfo['message'] ?? 'Ready to scan',
                   style: TextStyle(
-                    color: ctrl.isBlocked ? Colors.red : Colors.black87,
+                    color: messageColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -295,15 +363,7 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                     )
                   : const Icon(Icons.qr_code, color: Colors.white),
               label: Text(
-                ctrl.checkedInNow
-                    ? 'Check-In Complete!'
-                    : ctrl.isCheckingIn
-                    ? 'Verifying...'
-                    : ctrl.canCheckin
-                    ? 'Press to open Camera'
-                    : ctrl.status?.reason == 'already_checked_in'
-                    ? 'Checked In Today'
-                    : 'Access Suspended',
+                buttonLabel,
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -312,7 +372,11 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: ctrl.canCheckin
-                    ? const Color(0xFF4F46E5) // Indigo Primary
+                    ? const Color(0xFF4F46E5)
+                    : isSuspended
+                    ? Colors.red.shade300
+                    : isExpired
+                    ? const Color(0xFFF59E0B)
                     : const Color(0xFFD1D5DB),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -334,7 +398,11 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: const [
-          BoxShadow(color: Color(0x0A000000), blurRadius: 10, offset: Offset(0, 4))
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -342,7 +410,11 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
         children: [
           const Text(
             'Attendance Log',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
           const SizedBox(height: 2),
           const Text(
@@ -403,11 +475,17 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
                 children: [
                   Text(
                     time,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                   Text(
                     dateStr,
-                    style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11),
+                    style: const TextStyle(
+                      color: Color(0xFF6B7280),
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
@@ -421,7 +499,11 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
             ),
             child: const Text(
               'Verified',
-              style: TextStyle(fontSize: 10, color: Color(0xFF6B7280), fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 10,
+                color: Color(0xFF6B7280),
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

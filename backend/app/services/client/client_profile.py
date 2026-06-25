@@ -1,3 +1,5 @@
+# app/services/client/client_profile.py
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import date
@@ -7,9 +9,7 @@ from app.schemas.client.client_profile_schema import ClientProfileUpdate, Client
 
 def _calculate_age(dob: date) -> int:
     today = date.today()
-    return today.year - dob.year - (
-        (today.month, today.day) < (dob.month, dob.day)
-    )
+    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
 
 def _build_response(user: User, client: Client) -> ClientProfileResponse:
@@ -48,7 +48,6 @@ async def update_client_profile(
     payload: ClientProfileUpdate,
     db: AsyncSession
 ) -> ClientProfileResponse | None:
-
     user_result = await db.execute(select(User).where(User.userID == userID))
     user = user_result.scalar_one_or_none()
     if not user:
@@ -59,13 +58,10 @@ async def update_client_profile(
     if not client:
         return None
 
-    # Update User fields
     if payload.name is not None:
         user.name = payload.name
     if payload.phone is not None:
         user.phone = payload.phone
-
-    # Update Client fields
     if payload.gender is not None:
         client.gender = payload.gender
     if payload.fitness_goal is not None:
