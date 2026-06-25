@@ -12,7 +12,7 @@ from app.models import User
 from app.schemas.shared.schedule_schema import CreateClassRequest, EditClassRequest
 from app.models import GymCoachMembership
 from datetime import date, timedelta, datetime
-from backend.app.models.Gym import Gym
+from app.models.Gym import Gym
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
