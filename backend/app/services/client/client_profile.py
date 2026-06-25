@@ -1,3 +1,5 @@
+# app/services/client/client_profile.py
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import date

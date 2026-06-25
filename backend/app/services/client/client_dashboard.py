@@ -1,7 +1,10 @@
+# app/services/client/client_dashboard.py
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, cast, Date, distinct
 from datetime import date, timedelta
 from app.models.attendance import Attendance
+from app.models.Gym import Gym
 
 
 async def get_dashboard_stats(client_id: int, gym_id: int, db: AsyncSession) -> dict:
@@ -47,8 +50,12 @@ async def get_dashboard_stats(client_id: int, gym_id: int, db: AsyncSession) -> 
                 else:
                     break
 
+    gym_result = await db.execute(select(Gym).where(Gym.gymID == gym_id))
+    gym = gym_result.scalar_one_or_none()
+
     return {
         "total_visits":   total_visits,
         "days_this_week": days_this_week,
         "current_streak": streak,
+        "gym_name":       gym.gymName if gym else None,
     }

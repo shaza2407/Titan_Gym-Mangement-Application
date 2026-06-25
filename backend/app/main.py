@@ -20,7 +20,7 @@ from app.routers.Admin import admin_attendence_stat
 from app.routers.Notifications import notifications
 from app.routers.Admin import admin_analytics
 from app.routers.Admin import admin_announcements
-from app.routers.Client import gym_info
+from backend.app.routers.Client import client_gym_info
 
 from app.routers.Admin import retention_offer
 from app.routers.Client import client_profile
@@ -71,7 +71,7 @@ app.include_router(client_attendance.router)
 app.include_router(client_schedule.router)
 app.include_router(training_plan.router)
 app.include_router(achievements.router)
-app.include_router(gym_info.router)
+app.include_router(client_gym_info.router)
 app.include_router(client_profile.router)
 
 

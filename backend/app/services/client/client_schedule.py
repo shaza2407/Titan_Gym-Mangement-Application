@@ -1,3 +1,5 @@
+# app/services/client/client_schedule.py
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import date, timedelta

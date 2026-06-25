@@ -1,3 +1,5 @@
+# app/services/client/client_attendance.py
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, cast, Date
 from datetime import datetime, date
