@@ -19,7 +19,7 @@ from app.services.coach.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/client", tags=["Client Attendance"])
 
-
+# Get client/checkin-status
 @router.get("/checkin-status", response_model=CheckinStatusResponse)
 async def checkin_status(
     current_user=Depends(require_client),
@@ -46,7 +46,6 @@ async def checkin_status(
         status=membership.status,
     )
 
-
 @router.post("/checkin", response_model=CheckinResponse)
 async def checkin(
     payload: CheckinRequest,
@@ -70,11 +69,13 @@ async def checkin(
     if not gym:
         raise HTTPException(404, "Gym not found")
 
-    expected_qr = f"TITAN-GYM-{gym.gymID}-{gym.gymName.upper().replace(' ', '-')}"
-    if payload.qr_code.strip() != expected_qr:
+    if not gym.QRCode:
+        raise HTTPException(500, "Gym QR code is not configured")
+    if payload.qr_code.strip() != gym.QRCode.strip():
         raise HTTPException(400, "This QR code doesn't belong to your gym")
 
     attendance = await record_checkin(client.clientID, membership.gymID, db)
+    
     await achievement_engine.on_checkin(client.clientID, db)
 
     now = datetime.now(timezone.utc)
@@ -92,7 +93,6 @@ async def checkin(
         checked_in=str(attendance.checked_in),
         day_of_week=attendance.day_of_week,
     )
-
 
 @router.get("/checkins", response_model=CheckinHistoryResponse)
 async def get_checkins(
