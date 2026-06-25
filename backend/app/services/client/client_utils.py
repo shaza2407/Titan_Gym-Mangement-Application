@@ -1,12 +1,24 @@
-# app/services/client/client_shared.py
 
+
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from fastapi import HTTPException
 from app.models.client import Client
 from app.models.Gym import Gym
 from app.models.gym_clients_membership import GymClientMembership
+from app.models.client import Client
 
+async def get_client_by_user_id(user_id: int, db: AsyncSession, detail: str = "Only clients can perform this action.") -> Client:
+    result = await db.execute(
+        select(Client).where(Client.userID == user_id)
+    )
+    client = result.scalar_one_or_none()
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=detail,
+        )
+    return client
 
 async def get_client_or_404(userID: int, db: AsyncSession) -> Client:
     result = await db.execute(select(Client).where(Client.userID == userID))

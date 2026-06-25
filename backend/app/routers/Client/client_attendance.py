@@ -11,7 +11,7 @@ from app.schemas.client.attendance_schema import (
     CheckinStatusResponse, CheckinResponse,
     CheckinRecord, CheckinHistoryResponse, CheckinRequest,
 )
-from app.services.client.client_shared import get_client_or_404, get_membership
+from app.services.client.client_utils import get_client_or_404, get_membership
 from app.services.client.client_attendance import (
     already_checked_in_today, record_checkin, get_recent_checkins
 )

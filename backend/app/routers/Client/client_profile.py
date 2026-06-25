@@ -6,7 +6,7 @@ from app.database import get_session
 from app.dependencies.auth import require_client
 from app.schemas.client.client_profile_schema import ClientProfileUpdate, ClientProfileResponse
 from app.services.client.client_profile import get_client_profile, update_client_profile
-from app.services.client.client_shared import get_client_or_404, get_membership
+from app.services.client.client_utils import get_client_or_404, get_membership
 
 router = APIRouter(prefix="/client", tags=["Client Profile"])
 

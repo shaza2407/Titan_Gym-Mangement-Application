@@ -11,7 +11,7 @@ from app.models.notification import Notification
 from app.schemas.shared.schedule_schema import ClientScheduleStatsResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.services.notifications.class_notifications import notify_class_reminder
-from app.services.client.client_shared import get_client_or_404         
+from app.services.client.client_utils import get_client_or_404         
 from app.services.client.client_schedule import (
     get_client_schedule_stats, get_my_classes, browse_classes,
     get_weekly_schedule, enroll, unenroll,
