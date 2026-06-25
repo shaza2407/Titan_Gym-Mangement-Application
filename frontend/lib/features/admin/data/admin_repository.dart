@@ -119,7 +119,6 @@ class CoachListResponse {
 
 class AdminApiService {
   // Clients
-
   static Future<ClientListResponse> fetchClients(int gymId, String token) async {
     final res = await http.get(
       Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients'),
@@ -315,34 +314,53 @@ static Future<void> updateAdminProfile({
   }
 }
 
-static Future<void> updateGym({
-  required int gymId,
-  required String token,
-  required String gymName,
-  required String gymType,
-  required String location,
-  required String openingHours,
-  required String closingHours,
-}) async {
-  final res = await http.patch(
+  static Future<void> updateGym({
+    required int gymId,
+    required String token,
+    String? gymName,
+    String? gymType,
+    String? location,
+    String? openingHours,
+    String? closingHours,
+    List<Map<String, dynamic>>? machines,
+  }) async {
+    final body = <String, dynamic>{};
+    if (gymName != null)      body['gymName']      = gymName;
+    if (gymType != null)      body['gymType']       = gymType;
+    if (location != null)     body['location']      = location;
+    if (openingHours != null) body['openingHours']  = openingHours;
+    if (closingHours != null) body['closingHours']  = closingHours;
+    if (machines != null)     body['machines']      = machines;
+
+    final response = await http.patch(
     Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId'),
     headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json',  
+      'Authorization': 'Bearer $token',  
     },
-    body: jsonEncode({
-      'gymName': gymName,
-      'gymType': gymType,
-      'location': location,
-      'openingHours': openingHours,
-      'closingHours': closingHours,
-    }),
+    body: jsonEncode(body),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(jsonDecode(response.body)['detail']);
+    }
+  }
+
+  
+  static Future<void> deleteGym({
+  required int gymId,
+  required String token,
+}) async {
+  final res = await http.delete(
+    Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
   );
-  if (res.statusCode != 200) {
-    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to update gym');
+  if (res.statusCode < 200 || res.statusCode >= 300) {
+    throw Exception(jsonDecode(res.body)['detail'] ?? 'Failed to delete gym');
   }
 }
-
 }
 
 //admin profile models

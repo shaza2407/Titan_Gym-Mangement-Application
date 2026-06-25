@@ -45,12 +45,11 @@ async def list_clients(status_filter: str | None = None,
                              )).all()
 
     visit_counts_result = await db.execute(
-        select(Attendance.membershipID, func.count(Attendance.id).label("visits"))
-        .join(GymClientMembership, Attendance.membershipID == GymClientMembership.id)
-        .where(GymClientMembership.gymID == gym.gymID)
-        .group_by(Attendance.membershipID)
+        select(Attendance.clientID, func.count(Attendance.id).label("visits"))
+        .where(Attendance.gymID == gym.gymID)
+        .group_by(Attendance.clientID)
     )
-    visit_map = {r.membershipID: r.visits for r in visit_counts_result.all()}
+    visit_map = {r.clientID: r.visits for r in visit_counts_result.all()}
 
     member_emails = set()
 
@@ -68,7 +67,6 @@ async def list_clients(status_filter: str | None = None,
         else:
             display_status = membership.status.value
 
-        #only suppress pending card if membership is active or expired (not suspended)
         if display_status in ("active", "expired"):
             member_emails.add(user.email.lower())
 
@@ -80,7 +78,7 @@ async def list_clients(status_filter: str | None = None,
             status=display_status,
             subscription=membership.subscription,
             subscription_end=membership.subscription_end,
-            visits=visit_map.get(membership.id, 0),
+            visits=visit_map.get(client.clientID, 0),
             joined=membership.joined_at,
             invitation_sent=None,
         ))
@@ -95,7 +93,6 @@ async def list_clients(status_filter: str | None = None,
     for inv in invitations:
         if search and search.lower() not in inv.email.lower():
             continue
-        #skip pending card only if active or expired membership exists for this email
         if inv.email.lower() in member_emails:
             continue
         members.append(ClientListItem(
@@ -143,7 +140,7 @@ async def invite_member(body: InviteClientRequest,
     )).scalar_one_or_none()
 
     if not existing_user:
-        raise HTTPException(404, "No user found with this email.")
+        raise HTTPException(422, "No user found with this email.")
 
     #check if it's a client
     if existing_user.role != UserRole.client:
@@ -331,26 +328,6 @@ async def unsuspend_client(
     await db.commit()
     return {"message": "Client unsuspended successfully."}
 
-
-
-@router.get("/total-members")
-async def get_total_members(db: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user),):
-    # Get adminID from Admin table
-    admin_result = await db.execute(select(Admin).where(Admin.userID == current_user.userID))
-    admin = admin_result.scalars().first()
-
-    if not admin:
-        raise HTTPException(status_code=403, detail="User is not an admin")
-    # Count members using adminID
-    result = await db.execute(
-        select(func.count(GymClientMembership.id))
-        .join(Gym, GymClientMembership.gymID == Gym.gymID)
-        .where(Gym.adminID == admin.adminID)
-    )
-    return {"total": result.scalar()}
-
-
-
 #POST /admin/gyms/{gym_id}/invitations/accept
 @router.post("/{gym_id}/invitations/accept")
 async def accept_invitation(
@@ -436,12 +413,12 @@ async def accept_invitation(
     subscription = Subscription(
         clientID = client.clientID,
         gymID = gym_id,
-        gymClientMebershipID=membership.id,
+        # gymClientMebershipID=membership.id,
         supscriptionPrice=inv.subscription_price,
         duration_count=inv.duration_count,
     )
     db.add(subscription)
-    db.delete(inv)
+    await db.delete(inv)
     # inv.status = InvitationStatus.accepted
 
     await db.commit()
@@ -499,17 +476,7 @@ async def get_pending_invitation(
     }
 
 #active member count
-@router.get("/{gym_id}/member-count")
-async def get_gym_member_count(
-    gym_id: int,
-    db: AsyncSession = Depends(get_session),
-    current_user: User = Depends(get_current_user),):
 
-    count = (await db.execute(
-        select(func.count(GymClientMembership.id))
-        .where(GymClientMembership.gymID == gym_id and GymClientMembership.status == ClientMembershipStatus.active)
-    )).scalar()
-    return {"count": count or 0}
 
 
 @router.post("/{gym_id}/clients/{member_id}/renew")
@@ -553,7 +520,7 @@ async def renew_membership(
     sub = Subscription(
         clientID = membership.clientID,
         gymID = membership.gymID ,
-        gymClientMebershipID=membership.id,
+        # gymClientMebershipID=membership.id,
         supscriptionPrice=int(body.price),
         duration_count=body.duration_count,
     )

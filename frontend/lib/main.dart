@@ -7,7 +7,7 @@ import 'features/client/presentation/screens/client_dashboard_screen.dart';
 import 'features/client/presentation/screens/client_profile_screen.dart';
 import 'features/auth/presentation/screens/verify_email_page.dart';
 import 'features/auth/presentation/screens/forget_password_page.dart';
-import 'features/admin/presentation/admin_dashboard_screen.dart';
+import 'features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'features/coach/presentation/screens/coach_dashboard_screen.dart';
 import 'features/shared/api_constants.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -36,26 +36,26 @@ void main() async {
 
   runApp(const MyApp());
 }
-
+final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Titan Gym',
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [routeObserver],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
       ),
       routes: {
-        '/splash': (context) => const SplashScreen(),
-        '/login':  (context) => LoginScreen(),
-        '/signup': (context) => SignupScreen(),
+        '/splash':          (context) => const SplashScreen(),
+        '/login':           (context) => LoginScreen(),
+        '/signup':          (context) => SignupScreen(),
         '/forgot-password': (context) => ForgotPasswordPage(),
       },
-
-      // Routes that need arguments use onGenerateRoute
       onGenerateRoute: (settings) {
         if (settings.name == '/client-dashboard') {
           final token = settings.arguments as String;
@@ -77,16 +77,18 @@ class MyApp extends StatelessWidget {
         }
         if (settings.name == '/verify-email') {
           final email = settings.arguments as String;
-          return MaterialPageRoute(builder: (_) => VerifyEmailPage(email: email),);
+          return MaterialPageRoute(
+            builder: (_) => VerifyEmailPage(email: email),
+          );
         }
-        
         if (settings.name == '/admin-dashboard') {
           final token = settings.arguments as String;
-          return MaterialPageRoute(builder: (_) => AdminDashboardScreen(token: token),);
+          return MaterialPageRoute(
+            builder: (_) => AdminDashboardScreen(token: token),
+          );
         }
-  
-  return null;
-},
+        return null;
+      },
       home: const SplashScreen(),
     );
   }
