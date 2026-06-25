@@ -1,0 +1,4717 @@
+{
+  "info": {
+    "_postman_id": "ff278196-dbe5-4b09-b94f-6ecf40f15152",
+    "name": "Titan Test Space",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "40474443",
+    "_collection_link": "https://go.postman.co/collection/40474443-ff278196-dbe5-4b09-b94f-6ecf40f15152?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication Tests",
+      "item": [
+        {
+          "name": "Sign Up",
+          "item": [
+            {
+              "name": "Sign Up - normal path (coach)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 Created\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"userID\");",
+                      "    pm.expect(response).to.have.property(\"name\");",
+                      "    pm.expect(response).to.have.property(\"email\");",
+                      "    pm.expect(response).to.have.property(\"phone\");",
+                      "    pm.expect(response).to.have.property(\"role\");",
+                      "});",
+                      "",
+                      "// // ─── Field Values Match Request ────────────────────────────────",
+                      "pm.test(\"Returned user data matches the role\", function () {",
+                      "    pm.expect(response.role).to.eql(\"coach\");",
+                      "});",
+                      "",
+                      "// ─── Password Not Exposed ──────────────────────────────────────",
+                      "pm.test(\"Password is not returned in response\", function () {",
+                      "    pm.expect(response).to.not.have.property(\"password\");",
+                      "});",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"User ID is present and non-empty\", function () {",
+                      "    pm.expect(response.userID).to.exist;",
+                      "    pm.expect(response.userID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"coach name\",\n  \"email\": \"coach@gym.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"coach\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signup"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign Up - normal path (client)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 Created\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"userID\");",
+                      "    pm.expect(response).to.have.property(\"name\");",
+                      "    pm.expect(response).to.have.property(\"email\");",
+                      "    pm.expect(response).to.have.property(\"phone\");",
+                      "    pm.expect(response).to.have.property(\"role\");",
+                      "});",
+                      "",
+                      "// // ─── Field Values Match Request ────────────────────────────────",
+                      "pm.test(\"Returned user data matches the role\", function () {",
+                      "    pm.expect(response.role).to.eql(\"client\");",
+                      "});",
+                      "",
+                      "// ─── Password Not Exposed ──────────────────────────────────────",
+                      "pm.test(\"Password is not returned in response\", function () {",
+                      "    pm.expect(response).to.not.have.property(\"password\");",
+                      "});",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"User ID is present and non-empty\", function () {",
+                      "    pm.expect(response.userID).to.exist;",
+                      "    pm.expect(response.userID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"client name\",\n  \"email\": \"client@gym.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"client\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signup"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign Up - already registered emaill",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 400 Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "});",
+                      "",
+                      "// ─── Field Values Match Request ────────────────────────────────",
+                      "pm.test(\"Returned user data matches sent payload\", function () {",
+                      "    pm.expect(response.detail).to.eql(\"Email already registered\");",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"shaza\",\n  \"email\": \"shazawagdy@test.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"admin\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signup"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign Up - normal path (admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 Created\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"userID\");",
+                      "    pm.expect(response).to.have.property(\"name\");",
+                      "    pm.expect(response).to.have.property(\"email\");",
+                      "    pm.expect(response).to.have.property(\"phone\");",
+                      "    pm.expect(response).to.have.property(\"role\");",
+                      "});",
+                      "",
+                      "// ─── Field Values Match Request ────────────────────────────────",
+                      "pm.test(\"Returned user data matches the role\", function () {",
+                      "    pm.expect(response.role).to.eql(\"admin\");",
+                      "});",
+                      "",
+                      "// ─── Password Not Exposed ──────────────────────────────────────",
+                      "pm.test(\"Password is not returned in response\", function () {",
+                      "    pm.expect(response).to.not.have.property(\"password\");",
+                      "});",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"User ID is present and non-empty\", function () {",
+                      "    pm.expect(response.userID).to.exist;",
+                      "    pm.expect(response.userID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"admin name\",\n  \"email\": \"admin@gym.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"admin\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signup"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign Up - invalid mobile number",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 422 Unprocessable Entity\", function () {",
+                      "    pm.response.to.have.status(422);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Detail Array Exists ───────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response contains a detail array\", function () {",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "    pm.expect(response.detail).to.be.an(\"array\");",
+                      "    pm.expect(response.detail).to.have.length.above(0);",
+                      "});",
+                      "",
+                      "// ─── Error Points to Phone Field ──────────────────────────────",
+                      "pm.test(\"Error location points to phone field\", function () {",
+                      "    const error = response.detail[0];",
+                      "    pm.expect(error.loc).to.include(\"phone\");",
+                      "});",
+                      "",
+                      "// ─── Error Type ────────────────────────────────────────────────",
+                      "pm.test(\"Error type is value_error\", function () {",
+                      "    const error = response.detail[0];",
+                      "    pm.expect(error.type).to.eql(\"value_error\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── No User Created ───────────────────────────────────────────",
+                      "pm.test(\"No user data is returned on validation failure\", function () {",
+                      "    pm.expect(response).to.not.have.property(\"userID\");",
+                      "    pm.expect(response).to.not.have.property(\"token\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"coach name\",\n  \"email\": \"coach@gym.com\",\n  \"phone\": \"010000000\",\n  \"password\": \"12345678\",\n  \"role\": \"coach\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signup"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign Up - invalid password",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 422 Unprocessable Entity\", function () {",
+                      "    pm.response.to.have.status(422);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Detail Array Exists ───────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response contains a detail array\", function () {",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "    pm.expect(response.detail).to.be.an(\"array\");",
+                      "    pm.expect(response.detail).to.have.length.above(0);",
+                      "});",
+                      "",
+                      "// ─── Error Points to Phone Field ──────────────────────────────",
+                      "pm.test(\"Error location points to phone field\", function () {",
+                      "    const error = response.detail[0];",
+                      "    pm.expect(error.loc).to.include(\"password\");",
+                      "});",
+                      "",
+                      "// ─── Error Type ────────────────────────────────────────────────",
+                      "pm.test(\"Error type is value_error\", function () {",
+                      "    const error = response.detail[0];",
+                      "    pm.expect(error.type).to.eql(\"value_error\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── No User Created ───────────────────────────────────────────",
+                      "pm.test(\"No user data is returned on validation failure\", function () {",
+                      "    pm.expect(response).to.not.have.property(\"userID\");",
+                      "    pm.expect(response).to.not.have.property(\"token\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"coach name\",\n  \"email\": \"coach@gym.com\",\n  \"phone\": \"01234567899\",\n  \"password\": \"1234567\",\n  \"role\": \"coach\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signup"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "item": [
+            {
+              "name": "verify email - invalid token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 400 Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\" : \"client@gym.com\",\n    \"code\" : \"9336335\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/verify-email",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "verify-email"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "verify email - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 Created\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"message\");",
+                      "",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\" : \"shaza@test.com\",\n    \"code\" : \"488003\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/verify-email",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "verify-email"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "resend verification",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"message\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"coach@gym.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/resend-verification",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "resend-verification"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Sign In",
+          "item": [
+            {
+              "name": "Sign In - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"access_token\");",
+                      "    pm.expect(response).to.have.property(\"role\");",
+                      "    pm.expect(response).to.have.property(\"userID\");",
+                      "});",
+                      "",
+                      "// // ─── Field Values Match Request ────────────────────────────────",
+                      "pm.test(\"Returned user data matches the role\", function () {",
+                      "    pm.expect(response.role).to.eql(\"admin\");",
+                      "});",
+                      "",
+                      "// ─── Password Not Exposed ──────────────────────────────────────",
+                      "pm.test(\"Password is not returned in response\", function () {",
+                      "    pm.expect(response).to.not.have.property(\"password\");",
+                      "});",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"User ID is present and non-empty\", function () {",
+                      "    pm.expect(response.userID).to.exist;",
+                      "    pm.expect(response.userID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"shaza@admin.com\",\n  \"password\": \"12345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signin",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signin"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign In - invalid email or password",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"wrong@test.com\",\n  \"password\": \"12345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signin",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signin"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign In - unverified email",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 403 Forbidden\", function () {",
+                      "    pm.response.to.have.status(403);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"test@test.com\",\n  \"password\": \"12345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signin",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signin"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Forget Password",
+          "item": [
+            {
+              "name": "forget password - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"message\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"shaza@test.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "forgot-password"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "forget password - invalid email",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 404 Not Found\", function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"wrong@test.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/forgot-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "forgot-password"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Admin tests",
+      "item": [
+        {
+          "name": "Setup",
+          "item": [
+            {
+              "name": "Get Admin Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const res = pm.response.json();",
+                      "pm.collectionVariables.set('admin_token', res.access_token);",
+                      "pm.test('Token received', () => pm.expect(res.access_token).to.be.a('string').and.not.empty);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"shaza@admin.com\",\n  \"password\": \"12345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signin",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signin"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Gyms",
+          "item": [
+            {
+              "name": "List All Admin Gyms",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const data = pm.response.json();",
+                      "pm.test('Response is an array', () => pm.expect(data).to.be.an('array'));",
+                      "if (data.length > 0) {",
+                      "  const gym = data[0];",
+                      "  pm.test('All required fields present and non-null', () => {",
+                      "    ['gymID','adminID','gymName','location','gymType','openingHours','closingHours','QRCode'].forEach(f => {",
+                      "      pm.expect(gym, 'missing: ' + f).to.have.property(f);",
+                      "      pm.expect(gym[f], f + ' is null').to.not.be.null;",
+                      "      pm.expect(gym[f], f + ' is empty').to.not.equal('');",
+                      "    });",
+                      "  });",
+                      "  pm.test('gymID and adminID are integers', () => {",
+                      "    pm.expect(gym.gymID).to.be.a('number');",
+                      "    pm.expect(gym.adminID).to.be.a('number');",
+                      "  });",
+                      "  pm.test('gymType is valid', () => pm.expect(['males','females','mixed']).to.include(gym.gymType));",
+                      "  pm.test('QRCode is valid base64', () => pm.expect(gym.QRCode).to.match(/^[A-Za-z0-9+/]+=*$/));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gyms/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Specific Gym",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has required fields', () => {",
+                      "  pm.expect(res).to.have.property('gymName');",
+                      "  pm.expect(res).to.have.property('location');",
+                      "  pm.expect(res).to.have.property('QRCode');",
+                      "});",
+                      "pm.test('gymID is a number', () => pm.expect(res.gymID).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gyms/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Gym Dashboard",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has required fields', () => {",
+                      "  pm.expect(res).to.have.property('gymName');",
+                      "  pm.expect(res).to.have.property('totalMembers');",
+                      "  pm.expect(res).to.have.property('activeSubscriptions');",
+                      "  pm.expect(res).to.have.property('todayAttendance');",
+                      "  pm.expect(res).to.have.property('totalClasses');",
+                      "});",
+                      "pm.test('gymID is a number', () => pm.expect(res.gymID).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gyms/{{gym_id}}/dashboard",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "{{gym_id}}",
+                    "dashboard"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Total Member Count",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has total field', () => pm.expect(res).to.have.property('total'));",
+                      "pm.test('total is a number', () => pm.expect(res.total).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gyms/total-members",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "total-members"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Gym Member Count",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has count field', () => pm.expect(res).to.have.property('count'));",
+                      "pm.test('count is a number', () => pm.expect(res.count).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gyms/{{gym_id}}/member-count",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "{{gym_id}}",
+                    "member-count"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Gym Coach Count",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has count field', () => pm.expect(res).to.have.property('count'));",
+                      "pm.test('count is a number', () => pm.expect(res.count).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gyms/{{gym_id}}/coach-count",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "{{gym_id}}",
+                    "coach-count"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Gym",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has required fields', () => {",
+                      "  ['gymName','location','gymType','openingHours','closingHours','gymID','adminID','QRCode'].forEach(f => {",
+                      "    pm.expect(res).to.have.property(f);",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gymName\": \"Test Gym\",\n  \"location\": \"123 Main St, Cairo\",\n  \"gymType\": \"mixed\",\n  \"openingHours\": \"06:00\",\n  \"closingHours\": \"23:00\",\n  \"machines\": [\n    { \"machineName\": \"Treadmill\", \"machineType\": \"Cardio\", \"quantity\": 5 },\n    { \"machineName\": \"Bench Press\", \"machineType\": \"Strength\", \"quantity\": 3 }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Gym",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has required fields', () => {",
+                      "  ['gymName','location','gymType','openingHours','closingHours','gymID','adminID','QRCode'].forEach(f => {",
+                      "    pm.expect(res).to.have.property(f);",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gymName\": \"Updated Gym\",\n  \"location\": \"123 Main St, Cairo\",\n  \"gymType\": \"mixed\",\n  \"openingHours\": \"06:00\",\n  \"closingHours\": \"23:00\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Gym",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has detail field', () => pm.expect(res).to.have.property('detail'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/gyms/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Admin Profile",
+          "item": [
+            {
+              "name": "Get Admin Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has required fields', () => {",
+                      "  ['userID','name','email','phone','created_at','total_gyms'].forEach(f => {",
+                      "    pm.expect(res).to.have.property(f);",
+                      "  });",
+                      "});",
+                      "pm.test('userID is a number', () => pm.expect(res.userID).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Edit Admin Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has message field', () => pm.expect(res).to.have.property('message'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"shaza ahmed\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Client Management",
+          "item": [
+            {
+              "name": "List Clients - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has total field',   () => pm.expect(body).to.have.property('total'));",
+                      "pm.test('Has active field',  () => pm.expect(body).to.have.property('active'));",
+                      "pm.test('Has pending field', () => pm.expect(body).to.have.property('pending'));",
+                      "pm.test('Has expired field', () => pm.expect(body).to.have.property('expired'));",
+                      "pm.test('Has members array', () => pm.expect(body.members).to.be.an('array'));",
+                      "pm.test('total is a number', () => pm.expect(body.total).to.be.a('number'));",
+                      "if (body.members.length > 0) {",
+                      "  const m = body.members[0];",
+                      "  pm.test('Member has id',    () => pm.expect(m).to.have.property('id'));",
+                      "  pm.test('Member has name',  () => pm.expect(m).to.have.property('name'));",
+                      "  pm.test('Member has email', () => pm.expect(m).to.have.property('email'));",
+                      "  pm.test('Member has status',() => pm.expect(m.status).to.be.oneOf(['active','pending','expired']));",
+                      "  pm.collectionVariables.set('member_id', m.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Clients - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Invite Member - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has message', () => pm.expect(body).to.have.property('message'));",
+                      "pm.test('Has email',   () => pm.expect(body).to.have.property('email'));",
+                      "pm.test('Email matches', () => pm.expect(body.email).to.eql(pm.collectionVariables.get('invite_email')));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{invite_email}}\",\n  \"subscription_type\": \"monthly\",\n  \"subscription_months\": 1,\n  \"subscription_price\": 200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/invite",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "invite"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Invite Member - invalid price (zero)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Has detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{invite_email}}\",\n  \"subscription_type\": \"monthly\",\n  \"subscription_months\": 1,\n  \"subscription_price\": 0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/invite",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "invite"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Invite Member - invalid email format",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"not-an-email\",\n  \"subscription_type\": \"monthly\",\n  \"subscription_months\": 1,\n  \"subscription_price\": 200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/invite",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "invite"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Invite Member - missing required fields",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Has detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"valid@test.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/invite",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "invite"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Invite Member - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{invite_email}}\",\n  \"subscription_type\": \"monthly\",\n  \"subscription_months\": 1,\n  \"subscription_price\": 200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/invite",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "invite"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Suspend Client - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{user_id}}/suspend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "{{user_id}}",
+                    "suspend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Suspend Client - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{member_id}}/suspend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "{{member_id}}",
+                    "suspend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Unsuspend Client - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{user_id}}/unsuspend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "{{user_id}}",
+                    "unsuspend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Unsuspend Client - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{member_id}}/unsuspend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "{{member_id}}",
+                    "unsuspend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Renew Membership - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"subscription_type\": \"monthly\",\n  \"subscription_months\": 1,\n  \"price\": 200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{user_id}}/renew",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "{{user_id}}",
+                    "renew"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Renew Membership - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"subscription_type\": \"monthly\",\n  \"subscription_months\": 1,\n  \"subscription_price\": 200\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{member_id}}/renew",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "clients",
+                    "{{member_id}}",
+                    "renew"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cancel Invitation - not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/invitations/nonexistent@test.com",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "invitations",
+                    "nonexistent@test.com"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cancel Invitation - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/invitations/{{invite_email}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "invitations",
+                    "{{invite_email}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Coach Management",
+          "item": [
+            {
+              "name": "List Coaches - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has total',   () => pm.expect(body).to.have.property('total'));",
+                      "pm.test('Has active',  () => pm.expect(body).to.have.property('active'));",
+                      "pm.test('Has pending', () => pm.expect(body).to.have.property('pending'));",
+                      "pm.test('Has coaches array', () => pm.expect(body.coaches).to.be.an('array'));",
+                      "if (body.coaches.length > 0) {",
+                      "  const c = body.coaches[0];",
+                      "  pm.test('Coach has id',    () => pm.expect(c).to.have.property('id'));",
+                      "  pm.test('Coach has name',  () => pm.expect(c).to.have.property('name'));",
+                      "  pm.test('Coach has email', () => pm.expect(c).to.have.property('email'));",
+                      "  pm.test('Coach has status',() => pm.expect(c).to.have.property('status'));",
+                      "  pm.collectionVariables.set('coach_id', c.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "List Coaches - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Invite Coach - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has message', () => pm.expect(body).to.have.property('message'));",
+                      "pm.test('Has email',   () => pm.expect(body).to.have.property('email'));",
+                      "pm.test('Email matches', () => pm.expect(body.email).to.eql(pm.collectionVariables.get('coach_invite_email')));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{coach_invite_email}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/invite",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches",
+                    "invite"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Invite Coach - invalid email",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Has detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"not-an-email\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/invite",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches",
+                    "invite"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Invite Coach - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{coach_invite_email}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/invite",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches",
+                    "invite"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Suspend Coach - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/{{user_coach_id}}/suspend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches",
+                    "{{user_coach_id}}",
+                    "suspend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Suspend Coach - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/{{coach_id}}/suspend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches",
+                    "{{coach_id}}",
+                    "suspend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Unsuspend Coach - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/{{coach_id}}/unsuspend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches",
+                    "{{coach_id}}",
+                    "unsuspend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Unsuspend Coach - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/{{coach_id}}/unsuspend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "coaches",
+                    "{{coach_id}}",
+                    "unsuspend"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Announcements",
+          "item": [
+            {
+              "name": "List Gym Announcements",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "pm.test('Response is an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/announcements",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "announcements"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Announcement",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "const res = pm.response.json();",
+                      "pm.test('Has required fields', () => {",
+                      "  ['announce_id','gymID','title','content','reciever','created_at'].forEach(f => {",
+                      "    pm.expect(res).to.have.property(f);",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"important announcement\",\n  \"content\": \"this is so important\",\n  \"reciever\": \"Clients and Coaches\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/announcements",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "{{gym_id}}",
+                    "announcements"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Attendance",
+          "item": [
+            {
+              "name": "Get Attendance Stats - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has today_total', () => pm.expect(body).to.have.property('today_total'));",
+                      "pm.test('Has this_week',   () => pm.expect(body).to.have.property('this_week'));",
+                      "pm.test('today_total is a number', () => pm.expect(body.today_total).to.be.a('number'));",
+                      "pm.test('this_week is a number',   () => pm.expect(body.this_week).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/attendance/{{gym_id}}/stats",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "attendance",
+                    "{{gym_id}}",
+                    "stats"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Attendance Stats - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/attendance/{{gym_id}}/stats",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "attendance",
+                    "{{gym_id}}",
+                    "stats"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get QR Code - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has gym_id',        () => pm.expect(body).to.have.property('gym_id'));",
+                      "pm.test('Has qr_identifier', () => pm.expect(body).to.have.property('qr_identifier'));",
+                      "pm.test('Has gym_name',       () => pm.expect(body).to.have.property('gym_name'));",
+                      "pm.test('qr_identifier is a string', () => pm.expect(body.qr_identifier).to.be.a('string').and.not.empty);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/attendance/{{gym_id}}/qr-code",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "attendance",
+                    "{{gym_id}}",
+                    "qr-code"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get QR Code - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/attendance/{{gym_id}}/qr-code",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "attendance",
+                    "{{gym_id}}",
+                    "qr-code"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Weekly Attendance - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has week_start', () => pm.expect(body).to.have.property('week_start'));",
+                      "pm.test('Has days array', () => pm.expect(body.days).to.be.an('array'));",
+                      "pm.test('days not empty', () => pm.expect(body.days.length).to.be.above(0));",
+                      "pm.test('Each day has day and count', () => {",
+                      "  body.days.forEach(d => {",
+                      "    pm.expect(d).to.have.property('day');",
+                      "    pm.expect(d).to.have.property('count');",
+                      "    pm.expect(d.count).to.be.a('number');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/attendance/{{gym_id}}/weekly",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "attendance",
+                    "{{gym_id}}",
+                    "weekly"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Weekly Attendance - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/attendance/{{gym_id}}/weekly",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "attendance",
+                    "{{gym_id}}",
+                    "weekly"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Analytics",
+          "item": [
+            {
+              "name": "Get Analytics Summary - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
+                      "const body = pm.response.json();",
+                      "['total_revenue','revenue_change','revenue_month','active_members','new_members_this_month','avg_daily_attendance','avg_attendance_change','active_classes','new_classes_this_month'].forEach(f => {",
+                      "  pm.test('Has ' + f, () => pm.expect(body).to.have.property(f));",
+                      "});",
+                      "pm.test('total_revenue is a number',  () => pm.expect(body.total_revenue).to.be.a('number'));",
+                      "pm.test('active_members is a number', () => pm.expect(body.active_members).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/summary",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "summary"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Analytics Summary - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/summary",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "summary"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Revenue Trend - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has months array', () => pm.expect(body.months).to.be.an('array'));",
+                      "if (body.months.length > 0) {",
+                      "  const m = body.months[0];",
+                      "  pm.test('Has month field',   () => pm.expect(m).to.have.property('month'));",
+                      "  pm.test('Has revenue field', () => pm.expect(m).to.have.property('revenue'));",
+                      "  pm.test('revenue is a number', () => pm.expect(m.revenue).to.be.a('number'));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/revenue-trend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "revenue-trend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Revenue Trend - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/revenue-trend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "revenue-trend"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Membership Distribution - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has distribution array', () => pm.expect(body.distribution).to.be.an('array'));",
+                      "if (body.distribution.length > 0) {",
+                      "  const d = body.distribution[0];",
+                      "  pm.test('Has type field',  () => pm.expect(d).to.have.property('type'));",
+                      "  pm.test('Has count field', () => pm.expect(d).to.have.property('count'));",
+                      "  pm.test('count is a number', () => pm.expect(d.count).to.be.a('number'));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/membership-dist",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "membership-dist"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Membership Distribution - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/membership-dist",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "membership-dist"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Weekly Pattern - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has data array', () => pm.expect(body.data).to.be.an('array'));",
+                      "if (body.data.length > 0) {",
+                      "  const d = body.data[0];",
+                      "  pm.test('Has day',     () => pm.expect(d).to.have.property('day'));",
+                      "  pm.test('Has morning', () => pm.expect(d).to.have.property('morning'));",
+                      "  pm.test('Has evening', () => pm.expect(d).to.have.property('evening'));",
+                      "  pm.test('morning is a number', () => pm.expect(d.morning).to.be.a('number'));",
+                      "  pm.test('evening is a number', () => pm.expect(d.evening).to.be.a('number'));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/weekly-pattern",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "weekly-pattern"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Weekly Pattern - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/weekly-pattern",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "weekly-pattern"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Retention Offers",
+          "item": [
+            {
+              "name": "Get Retention Dashboard - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Response time < 5000ms', () => pm.expect(pm.response.responseTime).to.be.below(5000));",
+                      "const body = pm.response.json();",
+                      "['high_risk_count','mid_risk_count','offers_sent','ai_insight','total_active_members'].forEach(f => {",
+                      "  pm.test('Has ' + f, () => pm.expect(body).to.have.property(f));",
+                      "});",
+                      "pm.test('Has offer_history array', () => pm.expect(body.offer_history).to.be.an('array'));",
+                      "pm.test('high_risk_count is number', () => pm.expect(body.high_risk_count).to.be.a('number'));",
+                      "pm.test('ai_insight is string',      () => pm.expect(body.ai_insight).to.be.a('string'));",
+                      "if (body.offer_history.length > 0) {",
+                      "  const h = body.offer_history[0];",
+                      "  pm.collectionVariables.set('offer_id', h.id);",
+                      "  ['id','title','offer_type','target_type','number_of_members','created_at'].forEach(f => {",
+                      "    pm.test('OfferHistory has ' + f, () => pm.expect(h).to.have.property(f));",
+                      "  });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/retention/dashboard/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "dashboard",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Retention Dashboard - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/retention/dashboard/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "dashboard",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Preview Members - highest risk",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Returns an array', () => pm.expect(body).to.be.an('array'));",
+                      "if (body.length > 0) {",
+                      "  const m = body[0];",
+                      "  ['membershipID','clientID','name','email','churn_risk'].forEach(f => {",
+                      "    pm.test('MemberPreview has ' + f, () => pm.expect(m).to.have.property(f));",
+                      "  });",
+                      "  pm.collectionVariables.set('member_id', m.clientID);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"target_type\": \"highest_risk\",\n  \"number_of_members\": 5\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/retention/preview/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "preview",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Preview Members - all members",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Returns an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"target_type\": \"all_members\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/retention/preview/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "preview",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Preview Members - invalid target_type",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Has detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"target_type\": \"invalid_value\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/retention/preview/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "preview",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Preview Members - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"target_type\": \"highest_risk\",\n  \"number_of_members\": 5\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/retention/preview/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "preview",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create and Send Offer - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                      "const body = pm.response.json();",
+                      "pm.test('Has id or message', () => pm.expect(body.id !== undefined || body.message !== undefined).to.be.true);",
+                      "if (body.id) { pm.collectionVariables.set('offer_id', body.id); }"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Come Back Offer\",\n  \"offer_type\": \"discount\",\n  \"description\": \"We miss you!\",\n  \"benefit\": \"20% off next month\",\n  \"valid_until\": \"2025-12-31\",\n  \"target_type\": \"highest_risk\",\n  \"selected_member_ids\": [5]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/retention/send/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "send",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create and Send Offer - invalid offer_type",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Has detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Bad Offer\",\n  \"offer_type\": \"not_a_real_type\",\n  \"benefit\": \"something\",\n  \"target_type\": \"highest_risk\",\n  \"selected_member_ids\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/retention/send/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "send",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create and Send Offer - missing required fields",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Incomplete Offer\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/retention/send/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "send",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create and Send Offer - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Come Back\",\n  \"offer_type\": \"discount\",\n  \"benefit\": \"20% off\",\n  \"target_type\": \"highest_risk\",\n  \"selected_member_ids\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/retention/send/{{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "retention",
+                    "send",
+                    "{{gym_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Offer Details - normal path",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Has offer data', () => pm.expect(pm.response.json()).to.be.an('object'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/retention-offers/{{offer_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "retention-offers",
+                    "{{offer_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Offer Details - not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{admin_token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/retention-offers/99999",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "retention-offers",
+                    "99999"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Offer Details - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/analytics/{{gym_id}}/retention-offers/{{offer_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "analytics",
+                    "{{gym_id}}",
+                    "retention-offers",
+                    "{{offer_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Gyms",
+          "item": [
+            {
+              "name": "get specific gym",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"gymName\");",
+                      "    pm.expect(response).to.have.property(\"location\");",
+                      "    pm.expect(response).to.have.property(\"QRCode\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"gym ID is present and non-empty\", function () {",
+                      "    pm.expect(response.gymID).to.exist;",
+                      "    pm.expect(response.gymID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0chg}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/gyms/24",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "24"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "list all admin gyms",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "pm.test(\"Response is an array\", function () {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data).to.be.an('array');",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get gym dashboard",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"gymName\");",
+                      "    pm.expect(response).to.have.property(\"totalMembers\");",
+                      "    pm.expect(response).to.have.property(\"activeSubscriptions\");",
+                      "\tpm.expect(response).to.have.property(\"todayAttendance\");",
+                      "    pm.expect(response).to.have.property(\"totalClasses\");",
+                      "",
+                      "});",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"gym ID is present and non-empty\", function () {",
+                      "    pm.expect(response.gymID).to.exist;",
+                      "    pm.expect(response.gymID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/24/dashboard",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "24",
+                    "dashboard"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get gym member count",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"count\");",
+                      "",
+                      "",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/15/member-count",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "15",
+                    "member-count"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get gym coach count",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"count\");",
+                      "",
+                      "",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/15/coach-count",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "15",
+                    "coach-count"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "create a new gym",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 201 created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"gymName\");",
+                      "    pm.expect(response).to.have.property(\"location\");",
+                      "    pm.expect(response).to.have.property(\"gymType\");",
+                      "    pm.expect(response).to.have.property(\"openingHours\");",
+                      "    pm.expect(response).to.have.property(\"closingHours\");",
+                      "    pm.expect(response).to.have.property(\"gymID\");",
+                      "    pm.expect(response).to.have.property(\"adminID\");",
+                      "    pm.expect(response).to.have.property(\"QRCode\");",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gymName\": \"test \",\n  \"location\": \"123 Main St, Cairo\",\n  \"gymType\": \"mixed\",\n  \"openingHours\": \"06:00\",\n  \"closingHours\": \"23:00\",\n  \"machines\": [\n    {\n      \"machineName\": \"Treadmill\",\n      \"machineType\": \"Cardio\",\n      \"quantity\": 5\n    },\n    {\n      \"machineName\": \"Bench Press\",\n      \"machineType\": \"Strength\",\n      \"quantity\": 3\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update gym",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"gymName\");",
+                      "    pm.expect(response).to.have.property(\"location\");",
+                      "    pm.expect(response).to.have.property(\"gymType\");",
+                      "    pm.expect(response).to.have.property(\"openingHours\");",
+                      "    pm.expect(response).to.have.property(\"closingHours\");",
+                      "    pm.expect(response).to.have.property(\"gymID\");",
+                      "    pm.expect(response).to.have.property(\"adminID\");",
+                      "    pm.expect(response).to.have.property(\"QRCode\");",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0chg}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gymName\": \"test \",\n  \"location\": \"123 Main St, Cairo\",\n  \"gymType\": \"mixed\",\n  \"openingHours\": \"06:00\",\n  \"closingHours\": \"23:00\",\n  \"machines\": [\n    {\n      \"machineName\": \"Treadmill\",\n      \"machineType\": \"Cardio\",\n      \"quantity\": 5\n    },\n    {\n      \"machineName\": \"Bench Press\",\n      \"machineType\": \"Strength\",\n      \"quantity\": 3\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/24",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "24"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete a gym",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0chg}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/gyms/27",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "27"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get total member count",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"total\");",
+                      "",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{base_url}}/gyms/total-members",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "gyms",
+                    "total-members"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Admin Profile",
+          "item": [
+            {
+              "name": "get admin profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"userID\");",
+                      "    pm.expect(response).to.have.property(\"name\");",
+                      "    pm.expect(response).to.have.property(\"email\");",
+                      "    pm.expect(response).to.have.property(\"phone\");",
+                      "    pm.expect(response).to.have.property(\"created_at\");",
+                      "    pm.expect(response).to.have.property(\"total_gyms\");",
+                      "});",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"User ID is present and non-empty\", function () {",
+                      "    pm.expect(response.userID).to.exist;",
+                      "    pm.expect(response.userID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "edit admin profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"message\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\" : \"shaza ahmed\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Admin Announcements",
+          "item": [
+            {
+              "name": "list gym announcements",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response contains a detail array\", function () {",
+                      "    pm.expect(response).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/24/announcements",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "24",
+                    "announcements"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "list gym announcements Copy",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"announce_id\");",
+                      "\t\tpm.expect(response).to.have.property(\"gymID\");",
+                      "\t\tpm.expect(response).to.have.property(\"title\");",
+                      "\t\tpm.expect(response).to.have.property(\"content\");",
+                      "\t\tpm.expect(response).to.have.property(\"reciever\");",
+                      "\t\tpm.expect(response).to.have.property(\"created_at\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{supabase_service_role_api_key_0x0m}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": " {\n    \"title\" : \"important announcement\",\n    \"content\" : \"this is so important\",\n    \"reciever\" : \"Clients and Coaches\"\n }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/admin/gyms/24/announcements",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "gyms",
+                    "24",
+                    "announcements"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "supabase_service_role_api_key_0x0m",
+      "secret": true
+    },
+    {
+      "key": "supabase_service_role_api_key_0chg",
+      "secret": true
+    }
+  ]
+}

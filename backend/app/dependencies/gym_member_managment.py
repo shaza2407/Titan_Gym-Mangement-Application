@@ -22,5 +22,4 @@ async def get_admin_gym(gym_id: int, db: AsyncSession = Depends(get_session), cu
                             )).scalar_one_or_none()
     if not gym:
         raise HTTPException(404, "Gym not found or you don't manage it..")
-
     return gym

@@ -70,11 +70,13 @@ class LoginResponse {
   final String accessToken;
   final String role;
   final int userId;
+  final bool isVerified;
 
   LoginResponse({
     required this.accessToken,
     required this.role,
     required this.userId,
+    this.isVerified = true, // default true so existing flow is unaffected
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
@@ -83,6 +85,7 @@ class LoginResponse {
         userId:      json['userID'] is int
             ? json['userID'] as int
             : int.parse(json['userID'].toString()),
+        isVerified:  json['is_verified'] as bool? ?? true,
       );
 }
 
