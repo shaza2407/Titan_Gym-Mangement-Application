@@ -12,7 +12,7 @@ class CoachDashboardStatsModel {
   factory CoachDashboardStatsModel.fromJson(Map<String, dynamic> json) {
     return CoachDashboardStatsModel(
       weeklyClasses: json['weekly_classes'],
-      totalClients: json['total_students'],
+      totalClients: json['total_clients'],
       activeGyms: json['active_gyms'],
     );
   }

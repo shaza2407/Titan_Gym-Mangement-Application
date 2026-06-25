@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/coach/presentation/controllers/coach_schedule_controller.dart';
-import 'package:frontend/features/coach/presentation/screens/request_class_screen.dart';
 import 'package:provider/provider.dart';
-import '../../../shared/logout_button.dart';
-import '../../../coach/presentation/screens/coach_ui_utils.dart';
 import '../../../shared/notifications/notification_badge_controller.dart';
+import '../../../Services/token_helper.dart';
 import '../controllers/coach_dashboard_controller.dart';
-import '../../domain/coach_dashboard_model.dart';
+import '../widgets/coach_ui_utils.dart';
 import 'coach_schedule_screen.dart';
 import 'coach_profile_screen.dart';
-import '../../../Services/token_helper.dart';
-import '../../../Services/notifications_screen.dart';
 import 'coach_gyms_screen.dart';
+
+// --- Import widgets ---
+import '../widgets/dashboard_header.dart';
+import '../widgets/dashboard_stats_row.dart';
+import '../widgets/upcoming_classes_section.dart';
+import '../widgets/quick_actions_section.dart';
 
 class CoachDashboardScreen extends StatefulWidget {
   final String token;
   final int initialIndex;
+  
   const CoachDashboardScreen({
     super.key,
     required this.token,
@@ -36,8 +38,8 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
   void initState() {
     super.initState();
     _ctrl = CoachDashboardController();
-    _ctrl.loadAll(widget.token); // called once — not on every rebuild
-    _currentIndex = widget.initialIndex; // set initial tab index
+    _ctrl.loadAll(widget.token);
+    _currentIndex = widget.initialIndex;
 
     _badgeCtrl = NotificationBadgeController();
     _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
@@ -91,33 +93,17 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
       selectedItemColor: CoachColors.primary,
       unselectedItemColor: Colors.grey,
       items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.grid_view),
-          label: 'Dashboard',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month_outlined),
-          label: 'Schedule',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.fitness_center_outlined),
-          label: 'Gyms',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          label: 'Profile',
-        ),
+        BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Dashboard'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Schedule'),
+        BottomNavigationBarItem(icon: Icon(Icons.fitness_center_outlined), label: 'Gyms'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
       ],
     );
   }
 
+  // 🌟 Look how clean and readable the main layout is now!
   Widget _buildHomeTab(CoachDashboardController ctrl) {
-    final stats = ctrl.stats;
-
-    // Full-screen spinner only on the very first load. A later refresh
-    // (pull-to-refresh) keeps stale content visible with the refresh
-    // spinner on top, instead of blanking the whole tab.
-    if (ctrl.isLoading && stats == null) {
+    if (ctrl.isLoading && ctrl.stats == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -130,380 +116,21 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              DashboardHeader(token: widget.token, badgeCtrl: _badgeCtrl),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  StatCard(
-                    icon: Icons.calendar_today_outlined,
-                    value: '${stats?.weeklyClasses ?? 0}',
-                    label: 'Weekly\nClasses',
-                    color: CoachColors.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  StatCard(
-                    icon: Icons.people_outline,
-                    value: '${stats?.totalClients ?? 0}',
-                    label: 'Total\nClients',
-                    color: CoachColors.success,
-                  ),
-                  const SizedBox(width: 12),
-                  StatCard(
-                    icon: Icons.fitness_center_outlined,
-                    value: '${stats?.activeGyms ?? 0}',
-                    label: 'Active\nGyms',
-                    color: CoachColors.warning,
-                  ),
-                ],
+              DashboardStatsRow(stats: ctrl.stats),
+              const SizedBox(height: 16),
+              UpcomingClassesSection(ctrl: ctrl),
+              const SizedBox(height: 16),
+              QuickActionsSection(
+                ctrl: ctrl,
+                token: widget.token,
+                onTabChange: (index) => setState(() => _currentIndex = index),
               ),
-              const SizedBox(height: 16),
-              _buildUpcomingSection(ctrl),
-              const SizedBox(height: 16),
-              _buildQuickActions(ctrl),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: const Color.fromARGB(255, 206, 132, 28),
-              child: const Icon(
-                Icons.fitness_center,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Coach Dashboard',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Welcome back, Coach!',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            AnimatedBuilder(
-              animation: _badgeCtrl,
-              builder: (context, _) {
-                return IconButton(
-                  icon: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(Icons.notifications_outlined),
-
-                      if (_badgeCtrl.hasUnread)
-                        Positioned(
-                          right: -2,
-                          top: -2,
-                          child: Container(
-                            width: 9,
-                            height: 9,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => NotificationsScreen(
-                          userId: getUserIdFromToken(widget.token),
-                          token: widget.token,
-                        ),
-                      ),
-                    );
-
-                    if (!mounted) return;
-
-                    _badgeCtrl.load(
-                      widget.token,
-                      getUserIdFromToken(widget.token),
-                    );
-                  },
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.logout_outlined),
-              onPressed: () => showLogoutDialog(context),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUpcomingSection(CoachDashboardController ctrl) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Today's Classes",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            _todayLabel(),
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
-          ),
-          const SizedBox(height: 16),
-          if (ctrl.upcoming.isEmpty)
-            const EmptyState(
-              title: 'No classes today',
-              subtitle: "Nothing on the books for today.",
-              icon: Icons.free_breakfast_outlined,
-            )
-          else
-            ...ctrl.upcoming.map(_buildUpcomingCard),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUpcomingCard(CoachUpcomingClassModel c) {
-    final isFull = c.currentClients >= c.maxClients;
-    final ratio = c.maxClients == 0 ? 0.0 : c.currentClients / c.maxClients;
-    final capacityColor = isFull
-        ? CoachColors.danger
-        : (ratio > 0.8 ? CoachColors.warning : CoachColors.success);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.calendar_month, color: Color(0xFF4F46E5)),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  c.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4), // Adds a tiny gap below the title
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_rounded,
-                      size: 14,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        c.gymName ?? 'Unknown Gym',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                formatTime(c.startTime),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: capacityColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '${c.currentClients}/${c.maxClients}',
-                  style: TextStyle(
-                    color: capacityColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(CoachDashboardController ctrl) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Quick Actions',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const Text(
-            'Manage your coaching activities',
-            style: TextStyle(color: Colors.grey, fontSize: 13),
-          ),
-          const SizedBox(height: 16),
-
-          _buildActionItem(
-            Icons.calendar_month_outlined,
-            'My Gyms',
-            'View gyms you are coaching at',
-            () => setState(() => _currentIndex = 2),
-          ),
-          _buildActionItem(
-            Icons.calendar_month_outlined,
-            'Request Class',
-            'Open a request to add a new class',
-            () async {
-              final scheduleCtrl = CoachScheduleController();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => RequestClassScreen(
-                    token: widget.token,
-                    controller: scheduleCtrl,
-                  ),
-                ),
-              );
-              ctrl.loadAll(widget.token);
-            },
-          ),
-          _buildActionItem(
-            Icons.person_outline,
-            'My Profile',
-            'Update your coach information',
-            () => setState(() => _currentIndex = 3),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionItem(
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade200),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: const Color.fromARGB(255, 206, 132, 28),
-              size: 22,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _todayLabel() {
-    final now = DateTime.now();
-    const months = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    const days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    return '${days[now.weekday - 1]}, ${months[now.month]} ${now.day}, ${now.year}';
   }
 }

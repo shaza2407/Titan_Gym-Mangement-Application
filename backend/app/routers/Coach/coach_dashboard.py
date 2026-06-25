@@ -11,10 +11,11 @@ from app.schemas.coach.coach_schemas import (
     CoachProfileUpdate,
     CoachProfileResponse,
 )
-from app.services.coach.coach_schedule import (
+from app.services.coach.coach_dashboard import (
     get_coach_dashboard_stats,
     get_upcoming_classes,
 )
+from app.services.coach.coach_schedule import get_coach_or_404
 from app.services.coach.coach_profile import (
     get_coach_profile,
     update_coach_profile,
@@ -23,12 +24,6 @@ from app.services.coach.coach_profile import (
 router = APIRouter(prefix="/coach", tags=["Coach"])
 
 
-async def get_coach_or_404(userID: int, db: AsyncSession) -> Coach:
-    result = await db.execute(select(Coach).where(Coach.userID == userID))
-    coach = result.scalar_one_or_none()
-    if not coach:
-        raise HTTPException(404, "Coach not found")
-    return coach
 
 
 # GET /coach/me
