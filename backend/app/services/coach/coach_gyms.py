@@ -1,8 +1,7 @@
 from datetime import date
-# from typing import Optional
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy import or_
+from sqlalchemy import select, or_
 from app.models.Gym import Gym
 from app.models.coach import Coach
 from app.models.announcement import Announcement
@@ -10,9 +9,21 @@ from app.models.class_session import ClassSession
 from app.models.gym_coachs_membership import GymCoachMembership, CoachMembershipStatus
 from app.services.coach.coach_schedule import _count_enrolled, _next_occurrence
 
+async def verify_coach_gym(coachID: int, gymID: int, db: AsyncSession) -> int:
+    """Verifies that the coach is a member of the specified gym."""
+    result = await db.execute(
+        select(GymCoachMembership).where(
+            GymCoachMembership.coachID == coachID,
+            GymCoachMembership.gymID == gymID
+        )
+    )
+    membership = result.scalar_one_or_none()
+    if not membership:
+        raise HTTPException(status_code=403, detail="You are not a member of this gym")
+    return gymID
 
-async def get_coach_active_gyms(user_id: int, db: AsyncSession)->list:
-    
+
+async def get_coach_active_gyms(user_id: int, db: AsyncSession) -> list:
     # Find the Coach ID
     coach_query = select(Coach).where(Coach.userID == user_id)
     coach_res = await db.execute(coach_query)
@@ -34,7 +45,6 @@ async def get_coach_active_gyms(user_id: int, db: AsyncSession)->list:
     gyms_result = await db.execute(gyms_query)
     gym_rows = gyms_result.all()
     
-
     results = []
     for row in gym_rows:
         gym_id = row.gymID
@@ -44,20 +54,27 @@ async def get_coach_active_gyms(user_id: int, db: AsyncSession)->list:
         sessions_result = await db.execute(sessions_query)
         sessions = sessions_result.scalars().all()
 
-        classes_count = len(sessions)
         clients_count = 0
         upcoming_instances = []
 
         for s in sessions:
-            if s.is_recurring and s.day_of_week:
-                next_d = _next_occurrence(s.day_of_week)
-                c_count = await _count_enrolled(s.id, next_d, db)
+            if s.is_recurring:
+                # FIX: Fallback to regular date if day_of_week is missing
+                if s.day_of_week:
+                    next_d = _next_occurrence(s.day_of_week)
+                elif s.date and s.date >= date.today():
+                    next_d = s.date
+                else:
+                    continue  # Skip if it is missing both a valid day and a future date                c_count = await _count_enrolled(s.id, next_d, db)
+                clients_count += c_count
                 upcoming_instances.append({"session": s, "date": next_d, "current_clients": c_count})
+                
             elif not s.is_recurring and s.date and s.date >= date.today():
                 c_count = await _count_enrolled(s.id, s.date, db)
                 clients_count += c_count
                 upcoming_instances.append({"session": s, "date": s.date, "current_clients": c_count})
 
+        classes_count = len(upcoming_instances)
         upcoming_instances.sort(key=lambda x: (x["date"], x["session"].start_time))
 
         next_class_date = None
@@ -110,11 +127,14 @@ async def get_coach_announcements(user_id: int, db: AsyncSession, gym_id: int | 
     for row in gym_rows:
         loop_gym_id = row.gymID 
 
-        announcements_query = (select(Announcement)
-        .where(
-        Announcement.gymID == loop_gym_id,
-        Announcement.reciever.in_(["Coaches", "Clients and Coaches"]))
-        .order_by(Announcement.created_at.desc()))
+        announcements_query = (
+            select(Announcement)
+            .where(
+                Announcement.gymID == loop_gym_id,
+                Announcement.reciever.in_(["Coaches", "Clients and Coaches"])
+            )
+            .order_by(Announcement.created_at.desc())
+        )
         announcements_result = await db.execute(announcements_query)
         announcements = announcements_result.scalars().all()
 

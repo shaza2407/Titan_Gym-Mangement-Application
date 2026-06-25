@@ -9,11 +9,23 @@ from app.models.class_enrollment import ClassEnrollment
 from app.models.gym_coachs_membership import GymCoachMembership
 from app.models.Gym import Gym
 from app.models.coach import Coach
-from app.models import User
 from app.schemas.coach.coach_schemas import CreateClassRequestPayload
+from fastapi import HTTPException
+from sqlalchemy import select
+
+from app.models.notification import Notification
+from app.services.notifications.notification_service import notify_admin, notify_gym_clients
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+async def get_coach_or_404(userID: int, db: AsyncSession) -> Coach:
+    result = await db.execute(select(Coach).where(Coach.userID == userID))
+    coach = result.scalar_one_or_none()
+    if not coach:
+        raise HTTPException(404, "Coach not found")
+    return coach
+
 
 async def get_coach_gymID(coachID: int, db: AsyncSession) -> int | None:
     result = await db.execute(
@@ -51,107 +63,6 @@ async def _count_enrolled(session_id: int, class_date: date, db: AsyncSession) -
     )
     return result or 0
 
-
-# ── Dashboard Stats ───────────────────────────────────────────────────────────
-
-async def get_coach_dashboard_stats(coachID: int, db: AsyncSession) -> dict:
-    today = date.today()
-    end_of_week = today + timedelta(days=6)
-    day_names = ["monday", "tuesday", "wednesday",
-                 "thursday", "friday", "saturday", "sunday"]
-
-    # Get all coach classes
-    sessions_result = await db.execute(
-        select(ClassSession).where(ClassSession.coach_id == coachID)
-    )
-    sessions = sessions_result.scalars().all()
-
-    # Weekly classes — recurring classes that fall in next 7 days
-    # + one-time classes in next 7 days
-    weekly_classes = 0
-    days_in_window = set()
-    for i in range(7):
-        d = today + timedelta(days=i)
-        days_in_window.add(day_names[d.weekday()])
-
-    for s in sessions:
-        if s.is_recurring and s.day_of_week and s.day_of_week in days_in_window:
-            weekly_classes += 1
-        elif not s.is_recurring and s.date and today <= s.date <= end_of_week:
-            weekly_classes += 1
-
-    # Total students — count enrollments for upcoming occurrences
-    total_students = 0
-    for s in sessions:
-        if s.is_recurring and s.day_of_week:
-            next_d = _next_occurrence(s.day_of_week)
-            count = await _count_enrolled(s.id, next_d, db)
-            total_students += count
-        elif not s.is_recurring and s.date and s.date >= today:
-            count = await _count_enrolled(s.id, s.date, db)
-            total_students += count
-
-    # Active gyms
-    gyms_result = await db.execute(
-        select(func.count(GymCoachMembership.gymID)).where(
-            GymCoachMembership.coachID == coachID
-        )
-    )
-    active_gyms = gyms_result.scalar() or 0
-
-    return {
-        "weekly_classes": weekly_classes,
-        "total_students": total_students,
-        "active_gyms":    active_gyms,
-    }
-
-
-# ── Upcoming Classes (for dashboard) ─────────────────────────────────────────
-
-async def get_upcoming_classes(coachID: int, db: AsyncSession, limit: int = 3) -> list:
-    today = date.today()
-    day_names = ["monday", "tuesday", "wednesday",
-                 "thursday", "friday", "saturday", "sunday"]
-    today_name = day_names[today.weekday()]
-
-    sessions_result = await db.execute(
-        select(ClassSession).where(ClassSession.coach_id == coachID)
-    )
-    sessions = sessions_result.scalars().all()
-
-    todays_classes = []
-    for s in sessions:
-        gym_name = await get_gym_name(s.gymID, db) if s.gymID else None
-
-        if s.is_recurring and s.day_of_week and s.day_of_week.lower() == today_name:
-            count = await _count_enrolled(s.id, today, db)
-            todays_classes.append({
-                "id":              s.id,
-                "title":           s.title,
-                "day_of_week":     s.day_of_week,
-                "date":            None,
-                "start_time":      s.start_time,
-                "duration":        s.duration,
-                "gym_name":        gym_name,
-                "current_clients": count,
-                "max_clients":     s.max_clients,
-            })
-        elif not s.is_recurring and s.date == today:
-            count = await _count_enrolled(s.id, today, db)
-            todays_classes.append({
-                "id":              s.id,
-                "title":           s.title,
-                "day_of_week":     s.day_of_week,
-                "date":            s.date,
-                "start_time":      s.start_time,
-                "duration":        s.duration,
-                "gym_name":        gym_name,  
-                "current_clients": count,
-                "max_clients":     s.max_clients,
-            })
-
-    todays_classes.sort(key=lambda x: x["start_time"])
-    return todays_classes[:limit]
 
 
 # ── Schedule Stats ────────────────────────────────────────────────────────────
@@ -328,8 +239,6 @@ async def get_class_requests(coachID: int, db: AsyncSession) -> list:
     return items
 
 
-from fastapi import HTTPException
-from sqlalchemy import select
 
 async def create_class_request(
     coachID: int,
@@ -430,6 +339,24 @@ async def create_class_request(
 
     await db.commit()
     await db.refresh(new_request)
+    
+    gym_name = await get_gym_name(gymID, db)
+
+    gym_name_str = gym_name if gym_name else "your gym"
+
+    await notify_admin(
+        db=db,
+        gym_id=gymID,
+        title="new Class Request",
+        body=f"A coach has requested a new class at {gym_name_str}.",
+        type="coach_class_request",
+        data={
+            "gym_id": str(gymID),
+            "coach_id": str(coachID),
+            "class_name": payload.class_name if hasattr(payload, 'class_name') else "",
+            "request_id": str(new_request.id),
+        }
+    )
 
     return {
         "message": "Request submitted successfully",
@@ -437,7 +364,7 @@ async def create_class_request(
     }
 
 
-# Remove requested class
+# Remove class request
 async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
     result = await db.execute(
         select(ClassRequest).where(
@@ -447,9 +374,27 @@ async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
     )
 
     request_obj = result.scalar_one_or_none()
+    
     if not request_obj:
-        return False
+        raise HTTPException(status_code=404, detail="Class request not found")
+        
+    if request_obj.status.value.lower() != "pending":
+        raise HTTPException(
+            status_code=400, 
+            detail="Only pending class requests can be deleted."
+        )
+    
     await db.delete(request_obj)
+
+    # delete notifications of class request after cancelling it
+    await db.execute(
+        delete(Notification).where(
+            Notification.type == "coach_class_request",
+            func.json_extract_path_text(Notification.data, "coach_id") == str(coachID),
+            func.json_extract_path_text(Notification.data, "request_id") == str(request_id),
+        )
+    )
+    
     await db.commit()
     return True
 
@@ -471,7 +416,10 @@ async def remove_class(
     session = result.scalar_one_or_none()
 
     if not session:
-        return False
+        raise HTTPException(status_code=404, detail="Class not found")
+
+    gym_id = session.gymID
+    class_title = session.title
 
     # delete enrollments first
     await db.execute(
@@ -483,8 +431,21 @@ async def remove_class(
     await db.delete(session)
     await db.commit()
 
-    return True
+    # NOTIFICATIONS
+    await notify_gym_clients(
+        db=db,
+        gym_id=gym_id,
+        title="Class Cancelled",
+        body=f"The {class_title} class has been cancelled.",
+        type="class_cancelled",
+        data={
+            "class_id": str(class_id),
+            "gym_id": str(gym_id),
+            "class_title": class_title,
+        }
+    )
 
+    return True
 
 
 # Gyms lookup
