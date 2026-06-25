@@ -1,18 +1,18 @@
 class CoachScheduleStatsModel {
   final int weeklyClasses;
-  final int totalStudents;
+  final int totalClients;
   final int pendingRequests;
 
   CoachScheduleStatsModel({
     required this.weeklyClasses,
-    required this.totalStudents,
+    required this.totalClients,
     required this.pendingRequests,
   });
 
   factory CoachScheduleStatsModel.fromJson(Map<String, dynamic> json) {
     return CoachScheduleStatsModel(
       weeklyClasses: json['weekly_classes'],
-      totalStudents: json['total_students'],
+      totalClients: json['total_clients'],
       pendingRequests: json['pending_requests'],
     );
   }
@@ -50,11 +50,11 @@ class CoachClassModel {
       dayOfWeek: json['day_of_week']?.toString(),
       date: json['date']?.toString(),
       startTime: json['start_time']?.toString() ?? '00:00',
-      duration: json['duration']?? 45,
-      isRecurring: json['is_recurring']?? false,
+      duration: json['duration'] ?? 45,
+      isRecurring: json['is_recurring'] ?? false,
       gymName: json['gym_name']?.toString(),
-      currentClients: json['current_clients']?? 0,
-      maxClients: json['max_clients']?? 0,
+      currentClients: json['current_clients'] ?? 0,
+      maxClients: json['max_clients'] ?? 0,
     );
   }
 }
@@ -158,7 +158,8 @@ class CoachClassRequestModel {
       maxCapacity: json['max_capacity'] ?? 20,
       reason: json['reason_for_request']?.toString(),
       status: json['status']?.toString() ?? 'pending',
-      createdAt: json['created_at']?.toString() ?? '',    );
+      createdAt: json['created_at']?.toString() ?? '',
+    );
   }
 }
 
@@ -166,12 +167,9 @@ class CoachGymLookupModel {
   final int id;
   final String name;
 
-  CoachGymLookupModel({
-    required this.id,
-    required this.name,
-  });
+  CoachGymLookupModel({required this.id, required this.name});
 
-  factory CoachGymLookupModel.fromJson(Map<String, dynamic> json){
+  factory CoachGymLookupModel.fromJson(Map<String, dynamic> json) {
     return CoachGymLookupModel(
       id: json['id'],
       name: json['name'] ?? 'Unknown Gym Branch',

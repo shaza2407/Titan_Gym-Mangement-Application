@@ -58,7 +58,7 @@ async def _count_enrolled(session_id: int, class_date: date, db: AsyncSession) -
     result = await db.scalar(
         select(func.count(ClassEnrollment.id)).where(
             ClassEnrollment.session_id == session_id,
-            ClassEnrollment.class_date == class_date,
+            # ClassEnrollment.class_date == class_date,
         )
     )
     return result or 0
@@ -83,16 +83,16 @@ async def get_schedule_stats(coachID: int, db: AsyncSession) -> dict:
         days_in_window.add(day_names[d.weekday()])
 
     weekly_classes  = 0
-    total_students  = 0
+    total_clients  = 0
 
     for s in sessions:
         if s.is_recurring and s.day_of_week and s.day_of_week in days_in_window:
             weekly_classes += 1
             next_d = _next_occurrence(s.day_of_week)
-            total_students += await _count_enrolled(s.id, next_d, db)
+            total_clients += await _count_enrolled(s.id, next_d, db)
         elif not s.is_recurring and s.date and today <= s.date:
             weekly_classes += 1
-            total_students += await _count_enrolled(s.id, s.date, db)
+            total_clients += await _count_enrolled(s.id, s.date, db)
 
     pending_requests = await db.scalar(
         select(func.count(ClassRequest.id)).where(
@@ -103,7 +103,7 @@ async def get_schedule_stats(coachID: int, db: AsyncSession) -> dict:
 
     return {
         "weekly_classes":   weekly_classes,
-        "total_students":   total_students,
+        "total_clients":   total_clients,
         "pending_requests": pending_requests,
     }
 

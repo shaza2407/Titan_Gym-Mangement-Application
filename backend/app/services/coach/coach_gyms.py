@@ -1,13 +1,14 @@
 from datetime import date
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+from sqlalchemy import func, select, or_
 from app.models.Gym import Gym
 from app.models.coach import Coach
 from app.models.announcement import Announcement
 from app.models.class_session import ClassSession
 from app.models.gym_coachs_membership import GymCoachMembership, CoachMembershipStatus
 from app.services.coach.coach_schedule import _count_enrolled, _next_occurrence
+from app.models.gym_clients_membership import GymClientMembership
 
 async def verify_coach_gym(coachID: int, gymID: int, db: AsyncSession) -> int:
     """Verifies that the coach is a member of the specified gym."""
@@ -49,29 +50,36 @@ async def get_coach_active_gyms(user_id: int, db: AsyncSession) -> list:
     for row in gym_rows:
         gym_id = row.gymID
 
+
+        # clients_count = 0
+        clients_query = (
+            select(func.count(GymClientMembership.id))
+            .where(GymClientMembership.gymID == gym_id)
+        )
+        clients_result = await db.execute(clients_query)
+        clients_count = clients_result.scalar() or 0
+
         # fetch all classes for this coach at this gym
         sessions_query = select(ClassSession).where(ClassSession.coach_id == row.coachID, ClassSession.gymID == gym_id)
         sessions_result = await db.execute(sessions_query)
         sessions = sessions_result.scalars().all()
 
-        clients_count = 0
+
         upcoming_instances = []
 
         for s in sessions:
             if s.is_recurring:
-                # FIX: Fallback to regular date if day_of_week is missing
                 if s.day_of_week:
                     next_d = _next_occurrence(s.day_of_week)
                 elif s.date and s.date >= date.today():
                     next_d = s.date
                 else:
                     continue  # Skip if it is missing both a valid day and a future date                c_count = await _count_enrolled(s.id, next_d, db)
-                clients_count += c_count
+                c_count = await _count_enrolled(s.id, next_d, db)
                 upcoming_instances.append({"session": s, "date": next_d, "current_clients": c_count})
                 
             elif not s.is_recurring and s.date and s.date >= date.today():
                 c_count = await _count_enrolled(s.id, s.date, db)
-                clients_count += c_count
                 upcoming_instances.append({"session": s, "date": s.date, "current_clients": c_count})
 
         classes_count = len(upcoming_instances)

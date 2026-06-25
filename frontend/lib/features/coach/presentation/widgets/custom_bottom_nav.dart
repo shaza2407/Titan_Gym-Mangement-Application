@@ -1,7 +1,7 @@
 // widgets/custom_bottom_nav.dart
 
 import 'package:flutter/material.dart';
-import '../screens/coach_ui_utils.dart';
+import 'coach_ui_utils.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;

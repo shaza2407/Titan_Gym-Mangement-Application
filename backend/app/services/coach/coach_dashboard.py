@@ -13,6 +13,8 @@ from app.services.coach.coach_schedule import (
     _next_occurrence,
     get_gym_name,
 )
+from app.models.gym_clients_membership import GymClientMembership
+from app.models.gym_coachs_membership import GymCoachMembership
 
 
 # ── Dashboard Stats ───────────────────────────────────────────────────────────
@@ -43,16 +45,13 @@ async def get_coach_dashboard_stats(coachID: int, db: AsyncSession) -> dict:
         elif not s.is_recurring and s.date and today <= s.date <= end_of_week:
             weekly_classes += 1
 
-    # Total students — count enrollments for upcoming occurrences
-    total_students = 0
-    for s in sessions:
-        if s.is_recurring and s.day_of_week:
-            next_d = _next_occurrence(s.day_of_week)
-            count = await _count_enrolled(s.id, next_d, db)
-            total_students += count
-        elif not s.is_recurring and s.date and s.date >= today:
-            count = await _count_enrolled(s.id, s.date, db)
-            total_students += count
+    clients_query = (
+        select(func.count(func.distinct(GymClientMembership.clientID)))
+        .join(GymCoachMembership, GymClientMembership.gymID == GymCoachMembership.gymID)
+        .where(GymCoachMembership.coachID == coachID)
+    )
+    total_clients = await db.execute(clients_query)
+    total_clients = total_clients.scalar() or 0
 
     # Active gyms
     gyms_result = await db.execute(
@@ -64,7 +63,7 @@ async def get_coach_dashboard_stats(coachID: int, db: AsyncSession) -> dict:
 
     return {
         "weekly_classes": weekly_classes,
-        "total_students": total_students,
+        "total_clients": total_clients,
         "active_gyms":    active_gyms,
     }
 

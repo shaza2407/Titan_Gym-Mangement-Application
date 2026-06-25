@@ -10,7 +10,7 @@ from typing import Optional, List
 
 class CoachDashboardStatsResponse(BaseModel):
     weekly_classes:  int
-    total_students:  int
+    total_clients:  int
     active_gyms:     int
 
 
@@ -33,7 +33,7 @@ class CoachUpcomingClassResponse(BaseModel):
 
 class CoachScheduleStatsResponse(BaseModel):
     weekly_classes:   int
-    total_students:   int
+    total_clients:   int
     pending_requests: int
 
 
