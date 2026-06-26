@@ -13,6 +13,7 @@ import 'package:frontend/features/notification/presentation/notifications_screen
 import 'package:frontend/features/notification/token_helper.dart';
 import 'announcements_screen.dart';
 import '../../domain/gym_model.dart';
+import 'package:frontend/features/shared/notifications/notification_badge_controller.dart';
 
 class GymDashboardScreen extends StatefulWidget {
   final GymModel gym;
@@ -31,20 +32,31 @@ class GymDashboardScreen extends StatefulWidget {
 }
 
 class _GymDashboardScreenState extends State<GymDashboardScreen> {
+  late NotificationBadgeController _badgeCtrl;
+
   @override
   void initState() {
     super.initState();
+    _badgeCtrl = NotificationBadgeController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<GymDashboardController>().loadDashboardStats(
-            token: widget.token,
-            gymId: widget.gym.gymID,
-          );
+        token: widget.token,
+        gymId: widget.gym.gymID,
+      );
+      _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
     });
+  }
+
+  @override
+  void dispose() {
+    _badgeCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _openGymSettings() async {
     final controller = context.read<GymDashboardController>();
-    final freshGym = await controller.fetchFreshGym(
+    final freshGym =
+        await controller.fetchFreshGym(
           token: widget.token,
           gymId: widget.gym.gymID,
         ) ??
@@ -94,8 +106,11 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
               color: const Color(0xFF4F46E5),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(Icons.grid_view_rounded,
-                color: Colors.white, size: 20),
+            child: const Icon(
+              Icons.grid_view_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 10),
           Flexible(
@@ -106,9 +121,10 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                 const Text(
                   'Admin Dashboard',
                   style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
@@ -122,22 +138,54 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_outlined, color: Colors.black),
-          onPressed: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => NotificationsScreen(
-                  userId: getUserIdFromToken(widget.token),
-                  token: widget.token,
-                  onDataChanged: () {
-                    context.read<GymDashboardController>().loadDashboardStats(
-                          token: widget.token,
-                          gymId: widget.gym.gymID,
-                        );
-                  },
-                ),
+        // AFTER
+        AnimatedBuilder(
+          animation: _badgeCtrl,
+          builder: (context, _) {
+            return IconButton(
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.notifications_outlined, color: Colors.black),
+                  if (_badgeCtrl.hasUnread)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
               ),
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => NotificationsScreen(
+                      userId: getUserIdFromToken(widget.token),
+                      token: widget.token,
+                      onDataChanged: () {
+                        context
+                            .read<GymDashboardController>()
+                            .loadDashboardStats(
+                              token: widget.token,
+                              gymId: widget.gym.gymID,
+                            );
+                      },
+                    ),
+                  ),
+                );
+                if (mounted) {
+                  _badgeCtrl.load(
+                    widget.token,
+                    getUserIdFromToken(widget.token),
+                  );
+                }
+              },
             );
           },
         ),
@@ -173,7 +221,9 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () => controller.loadDashboardStats(
-                  token: widget.token, gymId: widget.gym.gymID),
+                token: widget.token,
+                gymId: widget.gym.gymID,
+              ),
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
@@ -190,7 +240,9 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
 
     return RefreshIndicator(
       onRefresh: () => controller.loadDashboardStats(
-          token: widget.token, gymId: widget.gym.gymID),
+        token: widget.token,
+        gymId: widget.gym.gymID,
+      ),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -240,61 +292,87 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Quick Actions',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const Text('Access key management features',
-                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    const Text(
+                      'Quick Actions',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'Access key management features',
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
                     const SizedBox(height: 16),
                     _buildActionItem(
                       Icons.campaign_outlined,
                       const Color(0xFF4F46E5),
                       'Announcements',
                       'Create and manage gym announcements',
-                      () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => AnnouncementsScreen(
-                            token: widget.token, gymId: widget.gym.gymID),
-                      )),
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AnnouncementsScreen(
+                            token: widget.token,
+                            gymId: widget.gym.gymID,
+                          ),
+                        ),
+                      ),
                     ),
                     _buildActionItem(
                       Icons.people_outline,
                       const Color(0xFF4F46E5),
                       'Client Management',
                       'View and manage gym members',
-                      () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => ClientManagementScreen(
-                            token: widget.token, gym: widget.gym),
-                      )),
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ClientManagementScreen(
+                            token: widget.token,
+                            gym: widget.gym,
+                          ),
+                        ),
+                      ),
                     ),
                     _buildActionItem(
                       Icons.fitness_center,
                       const Color(0xFF4F46E5),
                       'Coach Management',
                       'View and manage gym coaches',
-                      () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => CoachManagementScreen(
-                            token: widget.token, gym: widget.gym),
-                      )),
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CoachManagementScreen(
+                            token: widget.token,
+                            gym: widget.gym,
+                          ),
+                        ),
+                      ),
                     ),
                     _buildActionItem(
                       Icons.person_add_outlined,
                       const Color(0xFF4F46E5),
                       'Add New Member',
                       'Enroll a new member to the gym',
-                      () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => InviteMemberScreen(
-                            gym: widget.gym, token: widget.token),
-                      )),
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => InviteMemberScreen(
+                            gym: widget.gym,
+                            token: widget.token,
+                          ),
+                        ),
+                      ),
                     ),
                     _buildActionItem(
                       Icons.qr_code_scanner,
                       const Color(0xFF4F46E5),
                       'Attendance Tracking',
                       'View attendance records and QR codes',
-                      () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => AttendanceTrackingScreen(
-                            token: widget.token, gym: widget.gym),
-                      )),
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AttendanceTrackingScreen(
+                            token: widget.token,
+                            gym: widget.gym,
+                          ),
+                        ),
+                      ),
                     ),
                     _buildActionItem(
                       Icons.tune,
@@ -308,10 +386,14 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                       const Color(0xFF4F46E5),
                       'Retention Offers',
                       'Create retention offers and predictions',
-                      () => Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => RetentionOfferScreen(
-                            gymId: widget.gym.gymID, token: widget.token),
-                      )),
+                      () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => RetentionOfferScreen(
+                            gymId: widget.gym.gymID,
+                            token: widget.token,
+                          ),
+                        ),
+                      ),
                       showDivider: false,
                     ),
                   ],
@@ -344,12 +426,17 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                 color: const Color(0xFFF0EFFF),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.business_outlined,
-                  color: Color(0xFF4F46E5), size: 18),
+              child: const Icon(
+                Icons.business_outlined,
+                color: Color(0xFF4F46E5),
+                size: 18,
+              ),
             ),
             const SizedBox(width: 10),
-            const Text('Switch Gym',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            const Text(
+              'Switch Gym',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
             const Spacer(),
             const Icon(Icons.keyboard_arrow_right, color: Color(0xFF4F46E5)),
           ],
@@ -359,7 +446,11 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
   }
 
   Widget _buildStatCard(
-      IconData icon, String value, String label, Color color) {
+    IconData icon,
+    String value,
+    String label,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(8),
@@ -374,8 +465,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 2),
             Text(
@@ -420,17 +510,28 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15)),
-                      Text(subtitle,
-                          style: const TextStyle(
-                              color: Colors.grey, fontSize: 13)),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right,
-                    color: Colors.grey.shade400, size: 24),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey.shade400,
+                  size: 24,
+                ),
               ],
             ),
           ),

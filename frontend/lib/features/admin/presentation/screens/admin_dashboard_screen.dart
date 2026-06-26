@@ -10,7 +10,7 @@ import 'package:frontend/features/notification/token_helper.dart';
 import 'package:frontend/main.dart';
 import 'package:frontend/features/admin/presentation/widgets/admin_bottom_navbar.dart';
 import 'package:frontend/features/admin/domain/gym_model.dart';
-
+import 'package:frontend/features/shared/notifications/notification_badge_controller.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   final String token;
@@ -23,13 +23,16 @@ class AdminDashboardScreen extends StatefulWidget {
 class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     with RouteAware {
   late AdminGymController _controller;
+  late NotificationBadgeController _badgeCtrl;
 
   @override
   void initState() {
     super.initState();
     _controller = AdminGymController();
+    _badgeCtrl = NotificationBadgeController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.loadGyms(token: widget.token);
+      _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
       routeObserver.subscribe(this, ModalRoute.of(context)!);
     });
   }
@@ -38,6 +41,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   void dispose() {
     routeObserver.unsubscribe(this);
     _controller.dispose();
+    _badgeCtrl.dispose();
     super.dispose();
   }
 
@@ -64,95 +68,106 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   child: controller.isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : controller.errorMessage != null
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.error_outline,
-                                      color: Colors.red, size: 48),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    controller.errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(color: Colors.red),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton.icon(
-                                    onPressed: () => controller.loadGyms(
-                                        token: widget.token),
-                                    icon: const Icon(Icons.refresh),
-                                    label: const Text('Retry'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF4F46E5),
-                                      foregroundColor: Colors.white,
-                                    ),
-                                  ),
-                                ],
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: Colors.red,
+                                size: 48,
                               ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: () =>
-                                  controller.loadGyms(token: widget.token),
-                              child: ListView(
-                                padding: const EdgeInsets.all(16),
-                                children: [
-                                  // Create New Gym Button
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                      onPressed: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              ChangeNotifierProvider.value(
+                              const SizedBox(height: 12),
+                              Text(
+                                controller.errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () =>
+                                    controller.loadGyms(token: widget.token),
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Retry'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4F46E5),
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: () =>
+                              controller.loadGyms(token: widget.token),
+                          child: ListView(
+                            padding: const EdgeInsets.all(16),
+                            children: [
+                              // Create New Gym Button
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ChangeNotifierProvider.value(
                                             value: controller,
                                             child: CreateGymScreen(
-                                                token: widget.token),
+                                              token: widget.token,
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                      icon: const Icon(Icons.add,
-                                          color: Colors.white),
-                                      label: const Text(
-                                        'Create New Gym',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xFF4F46E5),
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16),
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(14)),
-                                        elevation: 0,
-                                      ),
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
-
-                                  // Gym Cards
-                                  if (controller.gyms.isEmpty)
-                                    const Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(32),
-                                        child: Text(
-                                          'No gyms yet. Create your first one!',
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    ...controller.gyms.map(
-                                      (gym) => _buildGymCard(
-                                          context, controller, stats, gym),
+                                  icon: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                  ),
+                                  label: const Text(
+                                    'Create New Gym',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                ],
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF4F46E5),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 16),
+
+                              // Gym Cards
+                              if (controller.gyms.isEmpty)
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(32),
+                                    child: Text(
+                                      'No gyms yet. Create your first one!',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ),
+                                )
+                              else
+                                ...controller.gyms.map(
+                                  (gym) => _buildGymCard(
+                                    context,
+                                    controller,
+                                    stats,
+                                    gym,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -180,24 +195,58 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               const Text(
                 'Welcome back,\nAdmin User',
                 style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined,
-                        color: Colors.white),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => NotificationsScreen(
-                          userId: getUserIdFromToken(widget.token),
-                          token: widget.token,
+                  AnimatedBuilder(
+                    animation: _badgeCtrl,
+                    builder: (context, _) {
+                      return IconButton(
+                        icon: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(
+                              Icons.notifications_outlined,
+                              color: Colors.white,
+                            ),
+                            if (_badgeCtrl.hasUnread)
+                              Positioned(
+                                right: -2,
+                                top: -2,
+                                child: Container(
+                                  width: 9,
+                                  height: 9,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                      ),
-                    ),
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => NotificationsScreen(
+                                userId: getUserIdFromToken(widget.token),
+                                token: widget.token,
+                              ),
+                            ),
+                          );
+                          if (mounted) {
+                            _badgeCtrl.load(
+                              widget.token,
+                              getUserIdFromToken(widget.token),
+                            );
+                          }
+                        },
+                      );
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.logout, color: Colors.white),
@@ -216,19 +265,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           Row(
             children: [
               Expanded(
-                child: _statCard(
-                  'Total Gyms',
-                  '${controller.gyms.length}',
-                ),
+                child: _statCard('Total Gyms', '${controller.gyms.length}'),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: stats.isLoadingTotalMembers
                     ? _statCard('Total Members', '...')
-                    : _statCard(
-                        'Total Members',
-                        '${stats.totalMembers}',
-                      ),
+                    : _statCard('Total Members', '${stats.totalMembers}'),
               ),
             ],
           ),
@@ -247,17 +290,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(value,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -300,18 +349,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     child: Text(
                       gym.gymName,
                       style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.bold),
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios,
-                      size: 16, color: Colors.grey),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
                 ],
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined,
-                      size: 14, color: Colors.grey),
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 14,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     gym.location,
@@ -349,8 +406,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  Widget _gymStatChip(
-      IconData icon, Color color, String label, String value) {
+  Widget _gymStatChip(IconData icon, Color color, String label, String value) {
     return Row(
       children: [
         Container(
@@ -365,11 +421,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: const TextStyle(color: Colors.grey, fontSize: 13)),
-            Text(value,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+            Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
           ],
         ),
       ],
