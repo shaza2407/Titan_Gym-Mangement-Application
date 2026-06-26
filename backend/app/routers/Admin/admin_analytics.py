@@ -1,21 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pip._internal.operations.install import wheel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, select, cast, Date, extract, case, or_, and_
 from datetime import date, timedelta, datetime, timezone
 from dateutil.relativedelta import relativedelta
-import pytz
 from app.database import get_session
 from app.dependencies.auth import get_current_user
-from app.models import Admin, Subscription, RetentionOffer
-from app.models.attendance import Attendance
-from app.models import User, Admin, Coach
-from app.models.Gym import Gym
-from app.models.gym_clients_membership import GymClientMembership
-from app.models.class_session import ClassSession
-from app.models.class_enrollment import ClassEnrollment
-from app.models.retention_offer import RetentionOfferRecipient
-from app.models.client import Client
 
 from app.schemas.admin.analytics_schemas import (
     AnalyticsSummaryResponse,
@@ -25,121 +13,47 @@ from app.schemas.admin.analytics_schemas import (
     WeeklyPatternResponse,
 )
 
+from app.services.admin.admin_analytics import (
+    _verify_gym_owner, calc_revenue_for_period,
+    get_revenue_change, get_all_active_members,
+    get_active_members_this_month, get_avg_attendance_for_period,
+    get_active_classes_for_period, get_revenue_for_last_6_months,
+    get_members_for_last_6_months, get_membership_distribution,
+    get_weekly_attendance_pattern, get_offer_details
+)
+
 router = APIRouter(prefix="/admin/analytics", tags=["Admin - Analytics"])
-
-## help function
-async def _verify_gym_owner(gym_id: int, user_id: int, db: AsyncSession) -> Gym:
-    result = await db.execute(select(Admin).where(Admin.userID == user_id))
-    admin = result.scalar_one_or_none()
-    if not admin:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found")
-
-    result = await db.execute(select(Gym).where(Gym.gymID == gym_id, Gym.adminID == admin.adminID))
-    gym = result.scalar_one_or_none()
-    if not gym:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Gym not found")
-
-    return gym
-
-
-async def calc_revenue_for_period(db: AsyncSession, gym: Gym, start_date: date, end_date: date) -> float:
-    result = await db.execute(
-        select(func.sum(Subscription.supscriptionPrice * Subscription.duration_count))
-        .where(
-            Subscription.gymID == gym.gymID,
-            cast(Subscription.billingDate, Date) >= start_date,
-            cast(Subscription.billingDate, Date) <= end_date,
-        )
-    )
-    # print("rev: ", result.scalar_one() or 0)
-    return result.scalar_one() or 0
 
 
 
 ## /admin/analytics/{gym_id}/summary
 @router.get("/{gym_id}/summary", response_model=AnalyticsSummaryResponse)
 async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
-    print("Analytics summary requested for gym_id:", gym_id)
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
-    print("finished _verify_gym_owner:", gym_id)
+
     today = date.today()
-    print("Time1: ", datetime.now(timezone.utc))
-    print("Time1: ", today)
 
     month_start = today.replace(day=1)
-    days_elapsed = today.day  # days from the 1st up to and including today
     prev_month_start = (month_start - relativedelta(months=1))
-    prev_month_days = (month_start - timedelta(days=1)).day
+    prev_month_end = (month_start - timedelta(days=1))
 
-    print("/////////////////  HERE 1  /////////////////")
     ## 1- Total Revenue This Month => new memberships * subscription price
     this_month_revenue = await calc_revenue_for_period(db, gym, month_start, today)
-    last_month_revenue = await calc_revenue_for_period(db, gym, prev_month_start, month_start - relativedelta(days=1))
-
-    last_month_revenue = last_month_revenue or 1
-    revenue_change = round(((this_month_revenue - last_month_revenue) / last_month_revenue * 100), 2)
+    revenue_change = await get_revenue_change(db, gym)
 
     ## 2- Active Members
-    active_result = await db.execute(
-        select(func.count(GymClientMembership.id)).where(
-            GymClientMembership.gymID == gym.gymID,
-            GymClientMembership.status == "active",
-            GymClientMembership.subscription_end >= today,
-        )
-    )
-    active_members = active_result.scalar_one_or_none() or 0
+    active_members = await get_all_active_members(db, gym)
+    new_members_this_month = await get_active_members_this_month(db, gym)
 
-    new_this_month = await db.execute(
-        select(func.count(GymClientMembership.id)).where(
-            GymClientMembership.gymID == gym.gymID,
-            GymClientMembership.status == "active",
-            cast(GymClientMembership.joined_at, Date) >= month_start,
-        )
-    )
-    new_members_this_month = new_this_month.scalar_one_or_none() or 0
-
-    print("Before the Avr Attendance: ")
     ## 3- Average Daily Attendance This Month
-    checkins_result = await db.execute(
-        select(func.count(Attendance.id))
-        .where(
-            Attendance.gymID == gym_id,
-            cast(Attendance.checked_in, Date) >= month_start,
-            cast(Attendance.checked_in, Date) <= today,
-        )
-    )
-    total_checkins: int = checkins_result.scalar_one() or 0
-    avg_daily_attendance = round(total_checkins / days_elapsed)
-
-    prev_checkins_result = await db.execute(
-        select(func.count(Attendance.id))
-        .where(
-            Attendance.gymID == gym_id,
-            cast(Attendance.checked_in, Date) >= prev_month_start,
-            cast(Attendance.checked_in, Date) < month_start,
-        )
-    )
-    prev_avg = round((prev_checkins_result.scalar_one() or 0) / prev_month_days) or 1
+    avg_daily_attendance = await get_avg_attendance_for_period(db, gym, month_start, today)
+    prev_avg = await get_avg_attendance_for_period(db, gym, prev_month_start, prev_month_end) or 1
     avg_attendance_change = round((avg_daily_attendance - prev_avg) / prev_avg * 100, 1)
 
-    # 4- Active Classes
-    active_classes_result = await db.execute(
-        select(func.count(ClassSession.id)).where(
-            ClassSession.gymID == gym_id,
-            ClassSession.date >= month_start,
-            ClassSession.date <= today,
-        )
-    )
-    active_classes = active_classes_result.scalar_one_or_none() or 0
 
-    prev_classes_result = await db.execute(
-        select(func.count(ClassSession.id)).where(
-            ClassSession.gymID == gym_id,
-            ClassSession.date >= prev_month_start,
-            ClassSession.date < month_start,
-        )
-    )
-    prev_month_classes = prev_classes_result.scalar_one_or_none() or 0
+    # 4- Active Classes
+    active_classes = await get_active_classes_for_period(db, gym, month_start, today)
+    prev_month_classes = await get_active_classes_for_period(db, gym, prev_month_start, prev_month_end)
     new_classes_this_month: int = active_classes - prev_month_classes
     print("return done for :", gym_id)
 
@@ -155,111 +69,38 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
         new_classes_this_month=new_classes_this_month,
     )
 
+
 ## /admin/analytics/{gym_id}/revenue-trend
 @router.get("/{gym_id}/revenue-trend", response_model=RevenueTrendResponse)
 async def get_revenue_trend(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
-
-    today = date.today()
-    months = []
-
-    for i in range(6, -1, -1):
-        month_date = today - relativedelta(months=i)
-        start = month_date.replace(day=1)
-        end = (start + relativedelta(months=1)) - relativedelta(days=1)
-
-        revenue = await calc_revenue_for_period(db, gym, start, end)
-        months.append({"month": start.strftime("%b"), "revenue": revenue})
-
-    return RevenueTrendResponse(months=months)
+    months = await get_revenue_for_last_6_months(db, gym)
+    return months
 
 
 ## /admin/analytics/{gym_id}/member-trend
 @router.get("/{gym_id}/member-trend", response_model=MemberGrowthResponse)
 async def get_member_trend(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
+    months = await get_members_for_last_6_months(db, gym)
+    return months
 
-    today = date.today()
-    months = []
-    for i in range(6, -1, -1):
-        month_date = today - relativedelta(months=i)
-        start = month_date.replace(day=1)
-        end = (start + relativedelta(months=1)) - relativedelta(days=1)
-
-        result = await db.execute(
-            select(func.count(GymClientMembership.id)).where(
-                GymClientMembership.gymID == gym.gymID,
-                cast(GymClientMembership.joined_at, Date) >= start,
-                cast(GymClientMembership.joined_at, Date) <= end,
-            )
-        )
-        total = result.scalar_one() or 0
-        months.append({"month": start.strftime("%b"), "total_members": total})
-    return MemberGrowthResponse(months=months)
 
 ## /admin/analytics/{gym_id}/membership-dist
 @router.get("/{gym_id}/membership-dist", response_model=MembershipDistributionResponse)
 async def get_membership_dist(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
 
-    result = await db.execute(
-        select(GymClientMembership.subscription.label("type"),
-               func.count(GymClientMembership.id).label("count"))
-        .where(
-            GymClientMembership.gymID == gym.gymID,
-            GymClientMembership.status == "active",
-        ).group_by(GymClientMembership.subscription)
-    )
-    rows = result.all()
-    distribution = [{"type": r.type, "count": r.count} for r in rows]
-    return MembershipDistributionResponse(distribution=distribution)
+    distribution = await get_membership_distribution(db, gym)
+    return distribution
+
 
 ## /admin/analytics/{gym_id}/weekly-pattern
 @router.get("/{gym_id}/weekly-pattern", response_model=WeeklyPatternResponse)
 async def get_weekly_pattern(gym_id: int, db: AsyncSession = Depends(get_session), current_admin=Depends(get_current_user)):
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
-
-    today = date.today()
-    week_start = today - timedelta(days=6)
-    result = await db.execute(
-    select(
-        cast(Attendance.checked_in, Date).label("day"),
-        extract("hour", Attendance.checked_in).label("hour"),
-        func.count(Attendance.id).label("cnt"),
-    )
-    .where(
-        Attendance.gymID == gym_id,
-        cast(Attendance.checked_in, Date) >= week_start,
-        cast(Attendance.checked_in, Date) <= today,
-    )
-    .group_by(
-        cast(Attendance.checked_in, Date),
-        extract("hour", Attendance.checked_in),
-    )
-    )  
-
-    rows = result.all()
-    day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    morning: dict[str, int] = {d: 0 for d in day_names}
-    evening: dict[str, int] = {d: 0 for d in day_names}
-
-    for r in rows:
-        day_offset = (r.day - week_start).days
-        if 0 <= day_offset < 7:
-            label = (week_start + timedelta(days=day_offset)).strftime("%a")
-            # label = r.day.strftime("%a")
-            if int(r.hour) < 12:
-                morning[label] += r.cnt
-            else:
-                evening[label] += r.cnt
-    data = [{
-        "day": (week_start + timedelta(days=i)).strftime("%a"),
-        "morning": morning[(week_start + timedelta(days=i)).strftime("%a")],
-        "evening": evening[(week_start + timedelta(days=i)).strftime("%a")],
-    }for i in range(7)]
-
-    return WeeklyPatternResponse(data=data)
-
+    data = await get_weekly_attendance_pattern(db, gym)
+    return data
 
 
 ## Offer Retention
@@ -267,37 +108,5 @@ async def get_weekly_pattern(gym_id: int, db: AsyncSession = Depends(get_session
 @router.get("/{gym_id}/retention-offers/{offer_id}")
 async def get_offer_details(gym_id: int, offer_id: int, db: AsyncSession = Depends(get_session), current_admin = Depends(get_current_user)):
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
-
-    result = await db.execute(select(RetentionOffer).where(
-            RetentionOffer.id == offer_id,
-            RetentionOffer.gymId == gym_id,)
-    )
-    offer = result.scalar_one_or_none()
-    if not offer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Offer not found")
-
-    recipients_result = await db.execute(
-        select(User.name, User.email, RetentionOfferRecipient.risk_level)
-        .join(GymClientMembership, RetentionOfferRecipient.membership_id == GymClientMembership.id)
-        .join(Client, GymClientMembership.clientID == Client.clientID)
-        .join(User, Client.userID == User.userID)
-        .where(RetentionOfferRecipient.offer_id == offer_id)
-    )
-
-    recipients = [
-        {"name": r.name, "email": r.email, "risk_level": r.risk_level}
-        for r in recipients_result.all()
-    ]
-
-    return {
-        "id":offer.id,
-        "title":offer.title,
-        "offer_type":offer.offer_type,
-        "description":offer.description,
-        "benefit":offer.benefit,
-        "valid_until":offer.valid_until.isoformat() if offer.valid_until else None,
-        "target_type":offer.target_type,
-        "number_of_members":offer.number_of_members,
-        "sent_at":offer.created_at.isoformat() if offer.created_at else None,
-        "recipients": recipients,
-    }
+    data = await get_offer_details(db, gym, offer_id)
+    return data
