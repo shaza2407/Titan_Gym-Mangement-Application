@@ -13,7 +13,7 @@ from app.schemas.admin.analytics_schemas import (
     WeeklyPatternResponse,
 )
 
-from app.services.admin.admin_analytics import (
+from app.services.admin.admin_analytics_service import (
     _verify_gym_owner, calc_revenue_for_period,
     get_revenue_change, get_all_active_members,
     get_active_members_this_month, get_avg_attendance_for_period,
