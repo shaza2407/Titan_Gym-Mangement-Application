@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/coach_gyms_controller.dart';
 import '../widgets/coach_ui_utils.dart';
-import '../widgets/custom_bottom_nav.dart';
-import 'coach_dashboard_screen.dart';
-// import 'coach_gyms_screen.dart';
 import '../widgets/announcement_card.dart';
 
 class GymAnnouncementsScreen extends StatefulWidget {
@@ -31,6 +28,12 @@ class _GymAnnouncementsScreenState extends State<GymAnnouncementsScreen> {
     super.initState();
     _ctrl = GymAnnouncementsController();
     _ctrl.loadGymAnnouncements(widget.token, widget.gymId);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -90,7 +93,7 @@ class _GymAnnouncementsScreenState extends State<GymAnnouncementsScreen> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16),
                             itemCount: ctrl.announcements.length,
-                            separatorBuilder: (_, _) =>
+                            separatorBuilder: (_, __) =>
                                 const SizedBox(height: 16),
                             itemBuilder: (context, index) => AnnouncementCard(
                               announcement: ctrl.announcements[index],
@@ -98,27 +101,7 @@ class _GymAnnouncementsScreenState extends State<GymAnnouncementsScreen> {
                             ),
                           ),
                   ),
-            bottomNavigationBar: CustomBottomNav(
-              currentIndex: 2, // 2 = Gyms Tab
-              onTap: (i) {
-                if (i == 2) {
-                  Navigator.pop(
-                    context,
-                  );
-                } else {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CoachDashboardScreen(
-                        token: widget.token,
-                        initialIndex: i,
-                      ),
-                    ),
-                    (route) => false,
-                  );
-                }
-              },
-            ),
+            // No bottomNavigationBar — back arrow returns to Gyms tab
           );
         },
       ),

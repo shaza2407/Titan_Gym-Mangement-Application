@@ -8,12 +8,14 @@ import '../../../auth/presentation/screens/forget_password_page.dart';
 class AdminProfileScreen extends StatefulWidget {
   final String token;
   final int gymId;
+  final AdminProfileController controller;   
   final void Function(int)? onTabChange;
 
   const AdminProfileScreen({
     super.key,
     required this.token,
     required this.gymId,
+    required this.controller,           
     this.onTabChange,
   });
 
@@ -25,13 +27,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   late AdminProfileController _ctrl;
   // bool _showPasswordSection = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AdminProfileController();
-    _ctrl.loadProfile(widget.token);
-  }
-
+@override
+void initState() {
+  super.initState();
+  _ctrl = widget.controller;              
+}
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(

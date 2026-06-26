@@ -79,7 +79,9 @@ async def get_upcoming_classes(coachID: int, db: AsyncSession, limit: int = 3) -
     sessions_result = await db.execute(
         select(ClassSession).where(ClassSession.coach_id == coachID)
     )
+
     sessions = sessions_result.scalars().all()
+
 
     todays_classes = []
     for s in sessions:

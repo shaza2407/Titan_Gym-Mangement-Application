@@ -54,10 +54,7 @@ async def dashboard(
 
 # GET /coach/dashboard/upcoming
 @router.get("/dashboard/upcoming")
-async def upcoming(
-    current_user=Depends(require_coach),
-    db: AsyncSession = Depends(get_session)
-):
+async def upcoming(current_user=Depends(require_coach),db: AsyncSession = Depends(get_session)):
     coach = await get_coach_or_404(current_user.userID, db)
     return await get_upcoming_classes(coach.coachID, db)
 

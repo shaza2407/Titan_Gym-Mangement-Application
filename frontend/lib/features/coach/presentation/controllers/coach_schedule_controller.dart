@@ -51,7 +51,6 @@ class CoachScheduleController extends ChangeNotifier {
       requests = await _repo.getRequests(token);
     } catch (e) {
       errorMessage = e.toString();
-      print('Debug load all error: $e');
     } finally {
       isLoading = false;
       notifyListeners();
@@ -59,19 +58,35 @@ class CoachScheduleController extends ChangeNotifier {
   }
 
   Future<bool> submitRequest(String token) async {
-    if (classNameController.text.trim().isEmpty || selectedTime == null || selectedGymId == null) {
+    if (classNameController.text.trim().isEmpty ||
+        selectedTime == null ||
+        selectedGymId == null) {
       errorMessage = 'Please fill all required fields';
       notifyListeners();
       return false;
     }
 
-    // if (isRecurring && selectedDay == null) {
-    //   errorMessage = 'Please select a day for recurring class';
-    //   notifyListeners();
-    //   return false;
-    // }
+    final duration = int.tryParse(durationController.text.trim());
+  if (duration == null || duration <= 0) {
+    errorMessage = 'Please enter a valid session duration';
+    notifyListeners();
+    return false;
+  }
 
-    if (selectedDate == null) {
+  final maxCapacity = int.tryParse(maxCapacityController.text.trim());
+  if (maxCapacity == null || maxCapacity <= 0) {
+    errorMessage = 'Please enter a valid max capacity';
+    notifyListeners();
+    return false;
+  }
+
+    if (isRecurring && selectedDay == null) {
+      errorMessage = 'Please select a day for the recurring class';
+      notifyListeners();
+      return false;
+    }
+
+    if (!isRecurring && selectedDate == null) {
       errorMessage = 'Please pick a start date from the calendar';
       notifyListeners();
       return false;
@@ -86,14 +101,12 @@ class CoachScheduleController extends ChangeNotifier {
         'class_name': classNameController.text.trim(),
         'gym_id': selectedGymId,
         'is_recurring': isRecurring,
-        'day_of_week': null,  //backend handles this 
-        'requested_date':  selectedDate,
+        'day_of_week': isRecurring ? selectedDay : null,
+        'requested_date': isRecurring ? null : selectedDate,
         'requested_time': selectedTime,
-        'duration': int.tryParse(durationController.text.trim()) ?? 45,
-        'max_capacity': int.tryParse(maxCapacityController.text.trim()) ?? 20,
-        'reason': reasonController.text.trim().isEmpty
-            ? null
-            : reasonController.text.trim(),
+        'duration': int.tryParse(durationController.text.trim()),
+        'max_capacity': int.tryParse(maxCapacityController.text.trim()),
+        'reason': reasonController.text.trim()
       };
       await _repo.createRequest(token, data);
       await loadAll(token);

@@ -461,7 +461,6 @@ async def get_pending_requests(gymID: int, db: AsyncSession) -> list:
         ).order_by(ClassRequest.created_at.desc())
     )
     requests = result.scalars().all()
-
     items = []
     for r in requests:
         coach_name = await _get_coach_name(r.coach_id, db)

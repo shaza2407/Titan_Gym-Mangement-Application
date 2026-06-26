@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/coach_schedule_controller.dart';
-import '../widgets/coach_ui_utils.dart'; // Adjust path if needed
+import '../widgets/coach_ui_utils.dart';
 
 // --- Import widgets ---
 import '../widgets/schedule_stats_row.dart';
@@ -15,20 +15,36 @@ import '../widgets/class_requests_list.dart';
 class CoachScheduleScreen extends StatefulWidget {
   final String token;
   final VoidCallback? onBack;
-  
-  const CoachScheduleScreen({super.key, required this.token, this.onBack});
+  final CoachScheduleController controller;
+
+  const CoachScheduleScreen({
+    super.key,
+    required this.token,
+    required this.controller,
+    this.onBack,
+  });
 
   @override
-  State<CoachScheduleScreen> createState() => _CoachScheduleScreenState();
+  State<CoachScheduleScreen> createState() => CoachScheduleScreenState();
 }
 
-class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
+class CoachScheduleScreenState extends State<CoachScheduleScreen> {
   late final CoachScheduleController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = CoachScheduleController();
+    _ctrl = widget.controller; // ← use the passed-in controller
+  }
+
+  @override
+  void dispose() {
+    // Do NOT dispose here — dashboard owns and disposes this controller
+    super.dispose();
+  }
+
+  void _onTabChanged(int index) {
+    _ctrl.setTab(index);
     _ctrl.loadAll(widget.token);
   }
 
@@ -53,7 +69,11 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                   : null,
               title: const Text(
                 'Schedule & Requests',
-                style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
             body: ctrl.isLoading && ctrl.stats == null
@@ -62,7 +82,8 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                     onRefresh: () => ctrl.loadAll(widget.token),
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -70,15 +91,19 @@ class _CoachScheduleScreenState extends State<CoachScheduleScreen> {
                           const SizedBox(height: 24),
                           RequestClassButton(ctrl: ctrl, token: widget.token),
                           const SizedBox(height: 24),
-                          ScheduleTabs(ctrl: ctrl),
+                          ScheduleTabs(
+                            ctrl: ctrl,
+                            onTabChanged: _onTabChanged,
+                          ),
                           const SizedBox(height: 20),
-                          
                           if (ctrl.selectedTab == 0) ...[
-                            UpcomingClassesCarousel(ctrl: ctrl, token: widget.token),
+                            UpcomingClassesCarousel(
+                                ctrl: ctrl, token: widget.token),
                             const SizedBox(height: 28),
                             WeeklyAgendaSection(ctrl: ctrl),
                           ],
-                          if (ctrl.selectedTab == 1) ClassRequestsList(ctrl: ctrl, token: widget.token),
+                          if (ctrl.selectedTab == 1)
+                            ClassRequestsList(ctrl: ctrl, token: widget.token),
                         ],
                       ),
                     ),

@@ -4,14 +4,20 @@ import '../widgets/coach_ui_utils.dart';
 
 class ScheduleTabs extends StatelessWidget {
   final CoachScheduleController ctrl;
+  final void Function(int)? onTabChanged;
 
-  const ScheduleTabs({super.key, required this.ctrl});
+  const ScheduleTabs({
+    super.key,
+    required this.ctrl,
+    this.onTabChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: CoachColors.cardBorder, width: 2)),
+        border: Border(
+            bottom: BorderSide(color: CoachColors.cardBorder, width: 2)),
       ),
       child: Row(
         children: [
@@ -19,14 +25,18 @@ class ScheduleTabs extends StatelessWidget {
             label: 'Overview',
             index: 0,
             selectedIndex: ctrl.selectedTab,
-            onTap: () => ctrl.setTab(0),
+            onTap: () {
+              onTabChanged != null ? onTabChanged!(0) : ctrl.setTab(0);
+            },
           ),
           _ScheduleTab(
             label: 'My Requests',
             index: 1,
             selectedIndex: ctrl.selectedTab,
             badge: ctrl.stats?.pendingRequests,
-            onTap: () => ctrl.setTab(1),
+            onTap: () {
+              onTabChanged != null ? onTabChanged!(1) : ctrl.setTab(1);
+            },
           ),
         ],
       ),
@@ -59,7 +69,9 @@ class _ScheduleTab extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: selected ? Colors.black : Colors.transparent, width: 2),
+              bottom: BorderSide(
+                  color: selected ? Colors.black : Colors.transparent,
+                  width: 2),
             ),
           ),
           child: Row(
@@ -76,14 +88,18 @@ class _ScheduleTab extends StatelessWidget {
               if (badge != null && badge! > 0) ...[
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: BoxDecoration(
                     color: CoachColors.warning,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '$badge',
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ],

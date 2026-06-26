@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/coach_gyms_controller.dart';
-
-// --- Import your custom widgets ---
 import '../widgets/gyms_tab_stats.dart';
 import '../widgets/gyms_segmented_control.dart';
 import '../widgets/gyms_list_view.dart';
@@ -12,23 +10,47 @@ import '../widgets/announcements_list_view.dart';
 class CoachGymsScreen extends StatefulWidget {
   final String token;
   final VoidCallback onBack;
+  final CoachGymsController controller;
 
-  const CoachGymsScreen({super.key, required this.token, required this.onBack});
+  const CoachGymsScreen({
+    super.key,
+    required this.token,
+    required this.onBack,
+    required this.controller,
+  });
 
   @override
-  State<CoachGymsScreen> createState() => _CoachGymsScreenState();
+  State<CoachGymsScreen> createState() => CoachGymsScreenState();
 }
 
-class _CoachGymsScreenState extends State<CoachGymsScreen> {
+class CoachGymsScreenState extends State<CoachGymsScreen>
+    with WidgetsBindingObserver {
+
   int _selectedTab = 0;
   late CoachGymsController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = CoachGymsController();
-    _ctrl.loadAll(widget.token);
+    WidgetsBinding.instance.addObserver(this);
+    _ctrl = widget.controller; // ← use the passed-in controller
   }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Do NOT dispose here — dashboard owns and disposes this controller
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _ctrl.loadAll(widget.token);
+    }
+  }
+
+  void _onDataChanged() => _ctrl.loadAll(widget.token);
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +69,16 @@ class _CoachGymsScreenState extends State<CoachGymsScreen> {
                 onPressed: widget.onBack,
               ),
               title: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('Gyms', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Gyms',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
                   SizedBox(height: 4),
-                  Text('Connected gyms and announcements', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  Text('Connected gyms and announcements',
+                      style: TextStyle(color: Colors.grey, fontSize: 13)),
                 ],
               ),
             ),
@@ -68,11 +95,18 @@ class _CoachGymsScreenState extends State<CoachGymsScreen> {
                           const SizedBox(height: 24),
                           GymsSegmentedControl(
                             selectedIndex: _selectedTab,
-                            onChanged: (index) => setState(() => _selectedTab = index),
+                            onChanged: (index) =>
+                                setState(() => _selectedTab = index),
                           ),
                           const SizedBox(height: 20),
-                          if (_selectedTab == 0) GymsListView(ctrl: ctrl, token: widget.token),
-                          if (_selectedTab == 1) AnnouncementsListView(ctrl: ctrl),
+                          if (_selectedTab == 0)
+                            GymsListView(
+                              ctrl: ctrl,
+                              token: widget.token,
+                              onDataChanged: _onDataChanged,
+                            ),
+                          if (_selectedTab == 1)
+                            AnnouncementsListView(ctrl: ctrl),
                         ],
                       ),
                     ),
