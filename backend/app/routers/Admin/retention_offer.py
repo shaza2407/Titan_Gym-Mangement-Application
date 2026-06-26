@@ -15,7 +15,9 @@ from app.routers.Admin.churn import predict_churn_risk
 from app.schemas.admin.retention_offer import (
     PreviewRequest, MemberPreview, CreateOfferRequest, RetentionDashboardResponse, OfferHistoryItem
 )
+import joblib
 
+model = joblib.load("app/ml/churn_model.pkl") 
 router = APIRouter(prefix="/retention", tags=["Retention Offer"])
 RISK_ORDER = {"High": 0, "Mid": 1, "Low": 2}
 
@@ -92,6 +94,8 @@ async def preview_members(gym_id: int, request: PreviewRequest, db: AsyncSession
     previews = []
     for m in members:
         risk = await predict_churn_risk(m, db)
+        if risk not in RISK_ORDER:         
+            continue
         client_result = await db.execute(select(Client).where(Client.clientID == m.clientID))
         client = client_result.scalar_one_or_none()
         if not client:
@@ -113,11 +117,11 @@ async def preview_members(gym_id: int, request: PreviewRequest, db: AsyncSession
 
     ## {m1: r1, m2: r2, m3: r3...}
     if request.target_type == "highest_risk":
-        previews.sort(key=lambda x: RISK_ORDER[x.churn_risk])
+        previews.sort(key=lambda x: RISK_ORDER.get(x.churn_risk, 99))
     elif request.target_type == "lowest_risk":
-        previews.sort(key=lambda x: RISK_ORDER[x.churn_risk], reverse=True)
+        previews.sort(key=lambda x: RISK_ORDER.get(x.churn_risk, 99), reverse=True)
     elif request.target_type == "manual_selection":
-        previews.sort(key=lambda x: RISK_ORDER[x.churn_risk])  # show all sorted
+        previews.sort(key=lambda x: RISK_ORDER.get(x.churn_risk, 99))
         return previews
 
     if request.number_of_members and request.target_type != "all_members":

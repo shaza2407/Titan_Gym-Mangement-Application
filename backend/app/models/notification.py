@@ -8,7 +8,7 @@ from app.database import Base
 class Notification(Base):
     __tablename__ = "notifications"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.userID" , ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String, nullable=False)
     body = Column(String, nullable=False)

@@ -25,7 +25,7 @@ from app.services.admin.admin_schedule import (
     get_admin_gym_or_403,
     get_gym_name
 )
-from app.services.notifications.notification_service import (
+from app.services.notifications.notification_Utils import (
     notify_gym_clients,
     notify_Coach_on_class_approval,
 )

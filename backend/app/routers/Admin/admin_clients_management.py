@@ -4,7 +4,7 @@ from sqlalchemy import select , func
 import secrets
 from datetime import timezone
 from datetime import datetime, timedelta, date ,date as date_type
-from app.services.notifications.notification_service import notify_invite
+from app.services.notifications.notification_Utils import notify_invite
 from dateutil.relativedelta import relativedelta
 from app.database import get_session
 from app.dependencies.auth import get_current_user
