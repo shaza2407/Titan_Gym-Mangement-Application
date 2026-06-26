@@ -14,7 +14,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from app.models.notification import Notification
-from app.services.notifications.notification_service import notify_admin, notify_gym_clients
+from app.services.notifications.notification_Utils import notify_admin, notify_gym_clients
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

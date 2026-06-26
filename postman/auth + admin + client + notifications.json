@@ -1,9 +1,10 @@
 {
   "info": {
-    "_postman_id": "a3a564e7-478e-45e2-a7a0-cba6a042ff97",
+    "_postman_id": "456ed51f-911c-4cd9-9a91-4731f9c7bcdd",
     "name": "Titan Test Space",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "40551115"
+    "_exporter_id": "40474443",
+    "_collection_link": "https://go.postman.co/collection/40474443-456ed51f-911c-4cd9-9a91-4731f9c7bcdd?source=collection_link"
   },
   "item": [
     {
@@ -169,69 +170,6 @@
               "response": []
             },
             {
-              "name": "Sign Up - already registered emaill",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 400 Bad Request\", function () {",
-                      "    pm.response.to.have.status(400);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"detail\");",
-                      "});",
-                      "",
-                      "// ─── Field Values Match Request ────────────────────────────────",
-                      "pm.test(\"Returned user data matches sent payload\", function () {",
-                      "    pm.expect(response.detail).to.eql(\"Email already registered\");",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"shaza\",\n  \"email\": \"shazawagdy@test.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"admin\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/auth/signup",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "signup"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
               "name": "Sign Up - normal path (admin)",
               "event": [
                 {
@@ -290,6 +228,69 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"admin name\",\n  \"email\": \"admin@gym.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"admin\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signup",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signup"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign Up - already registered emaill",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 400 Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"detail\");",
+                      "});",
+                      "",
+                      "// ─── Field Values Match Request ────────────────────────────────",
+                      "pm.test(\"Returned user data matches sent payload\", function () {",
+                      "    pm.expect(response.detail).to.eql(\"Email already registered\");",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"shaza\",\n  \"email\": \"coach@gym.com\",\n  \"phone\": \"01000000000\",\n  \"password\": \"12345678\",\n  \"role\": \"admin\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -507,7 +508,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"email\" : \"client@gym.com\",\n    \"code\" : \"9336335\"\n}",
+                  "raw": "{\n    \"email\" : \"coach@gym.com\",\n    \"code\" : \"111222\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -515,15 +516,10 @@
                   }
                 },
                 "url": {
-                  "raw": "http://127.0.0.1:8000/auth/verify-email",
-                  "protocol": "http",
+                  "raw": "{{base_url}}/auth/verify-email",
                   "host": [
-                    "127",
-                    "0",
-                    "0",
-                    "1"
+                    "{{base_url}}"
                   ],
-                  "port": "8000",
                   "path": [
                     "auth",
                     "verify-email"
@@ -573,7 +569,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"email\" : \"shaza@test.com\",\n    \"code\" : \"488003\"\n}",
+                  "raw": "{\n    \"email\" : \"shaza@test.com\",\n    \"code\" : \"{{correct_verfying_token}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -581,15 +577,10 @@
                   }
                 },
                 "url": {
-                  "raw": "http://127.0.0.1:8000/auth/verify-email",
-                  "protocol": "http",
+                  "raw": "{{base_url}}/auth/verify-email",
                   "host": [
-                    "127",
-                    "0",
-                    "0",
-                    "1"
+                    "{{base_url}}"
                   ],
-                  "port": "8000",
                   "path": [
                     "auth",
                     "verify-email"
@@ -673,7 +664,7 @@
                       "const json = pm.response.json();",
                       "",
                       "if (json.access_token) {",
-                      "    pm.environment.set(\"access_token\", json.access_token);",
+                      "    pm.environment.set(\"admin_token\", json.access_token);",
                       "    console.log(\"Token saved:\", json.access_token);",
                       "} else {",
                       "    console.log(\"No token found in response:\", JSON.stringify(json));",
@@ -728,7 +719,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"client2@gmail.com\",\n  \"password\": \"12345678\"\n}",
+                  "raw": "{\n  \"email\": \"shaza@admin.com\",\n  \"password\": \"12345678\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -846,7 +837,93 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"test@test.com\",\n  \"password\": \"12345678\"\n}",
+                  "raw": "{\n  \"email\": \"coach@gym.com\",\n  \"password\": \"12345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signin",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signin"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign In - Client",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ------ add token to auth --------",
+                      "const json = pm.response.json();",
+                      "",
+                      "if (json.access_token) {",
+                      "    pm.environment.set(\"client_token\", json.access_token);",
+                      "    console.log(\"Token saved:\", json.access_token);",
+                      "} else {",
+                      "    console.log(\"No token found in response:\", JSON.stringify(json));",
+                      "}",
+                      "",
+                      "",
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"access_token\");",
+                      "    pm.expect(response).to.have.property(\"role\");",
+                      "    pm.expect(response).to.have.property(\"userID\");",
+                      "});",
+                      "",
+                      "// // ─── Field Values Match Request ────────────────────────────────",
+                      "pm.test(\"Returned user data matches the role\", function () {",
+                      "    pm.expect(response.role).to.eql(\"client\");",
+                      "});",
+                      "",
+                      "// ─── Password Not Exposed ──────────────────────────────────────",
+                      "pm.test(\"Password is not returned in response\", function () {",
+                      "    pm.expect(response).to.not.have.property(\"password\");",
+                      "});",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"User ID is present and non-empty\", function () {",
+                      "    pm.expect(response.userID).to.exist;",
+                      "    pm.expect(response.userID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"client@test.com\",\n  \"password\": \"12345678\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -997,57 +1074,6 @@
       "name": "Admin tests",
       "item": [
         {
-          "name": "Setup",
-          "item": [
-            {
-              "name": "Get Admin Token",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                      "const res = pm.response.json();",
-                      "pm.collectionVariables.set('admin_token', res.access_token);",
-                      "pm.test('Token received', () => pm.expect(res.access_token).to.be.a('string').and.not.empty);"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"email\": \"shaza@admin.com\",\n  \"password\": \"12345678\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/auth/signin",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "signin"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
           "name": "Gyms",
           "item": [
             {
@@ -1056,12 +1082,14 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "",
                       "const data = pm.response.json();",
                       "pm.test('Response is an array', () => pm.expect(data).to.be.an('array'));",
+                      "",
                       "if (data.length > 0) {",
                       "  const gym = data[0];",
                       "  pm.test('All required fields present and non-null', () => {",
@@ -1071,18 +1099,34 @@
                       "      pm.expect(gym[f], f + ' is empty').to.not.equal('');",
                       "    });",
                       "  });",
+                      "",
                       "  pm.test('gymID and adminID are integers', () => {",
                       "    pm.expect(gym.gymID).to.be.a('number');",
                       "    pm.expect(gym.adminID).to.be.a('number');",
                       "  });",
+                      "",
                       "  pm.test('gymType is valid', () => pm.expect(['males','females','mixed']).to.include(gym.gymType));",
+                      "  ",
                       "  pm.test('QRCode is valid base64', () => pm.expect(gym.QRCode).to.match(/^[A-Za-z0-9+/]+=*$/));",
                       "}"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -1109,7 +1153,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
@@ -1120,11 +1163,24 @@
                       "  pm.expect(res).to.have.property('QRCode');",
                       "});",
                       "pm.test('gymID is a number', () => pm.expect(res.gymID).to.be.a('number'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -1151,7 +1207,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
@@ -1164,11 +1219,24 @@
                       "  pm.expect(res).to.have.property('totalClasses');",
                       "});",
                       "pm.test('gymID is a number', () => pm.expect(res.gymID).to.be.a('number'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -1196,18 +1264,30 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
                       "const res = pm.response.json();",
                       "pm.test('Has total field', () => pm.expect(res).to.have.property('total'));",
                       "pm.test('total is a number', () => pm.expect(res.total).to.be.a('number'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -1234,18 +1314,30 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
                       "const res = pm.response.json();",
                       "pm.test('Has count field', () => pm.expect(res).to.have.property('count'));",
                       "pm.test('count is a number', () => pm.expect(res.count).to.be.a('number'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -1273,18 +1365,30 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
                       "const res = pm.response.json();",
                       "pm.test('Has count field', () => pm.expect(res).to.have.property('count'));",
                       "pm.test('count is a number', () => pm.expect(res.count).to.be.a('number'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -1312,21 +1416,43 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "",
                       "const res = pm.response.json();",
                       "pm.test('Has required fields', () => {",
                       "  ['gymName','location','gymType','openingHours','closingHours','gymID','adminID','QRCode'].forEach(f => {",
                       "    pm.expect(res).to.have.property(f);",
                       "  });",
-                      "});"
-                    ]
+                      "});",
+                      "",
+                      "",
+                      "if (res.gymID) {",
+                      "    pm.environment.set(\"toModifyandDelete_gym_id\", res.gymID);",
+                      "    console.log(\"id saved:\", res.gymID);",
+                      "} else {",
+                      "    console.log(\"No id found in response:\", JSON.stringify(res));",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -1366,7 +1492,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
@@ -1376,11 +1501,24 @@
                       "    pm.expect(res).to.have.property(f);",
                       "  });",
                       "});"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "PATCH",
                 "header": [
                   {
@@ -1402,13 +1540,13 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/gyms/{{gym_id}}",
+                  "raw": "{{base_url}}/gyms/{{toModifyandDelete_gym_id}}",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
                     "gyms",
-                    "{{gym_id}}"
+                    "{{toModifyandDelete_gym_id}}"
                   ]
                 }
               },
@@ -1420,17 +1558,29 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
                       "const res = pm.response.json();",
                       "pm.test('Has detail field', () => pm.expect(res).to.have.property('detail'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "DELETE",
                 "header": [
                   {
@@ -1439,13 +1589,13 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{base_url}}/gyms/{{gym_id}}",
+                  "raw": "{{base_url}}/gyms/{{toModifyandDelete_gym_id}}",
                   "host": [
                     "{{base_url}}"
                   ],
                   "path": [
                     "gyms",
-                    "{{gym_id}}"
+                    "{{toModifyandDelete_gym_id}}"
                   ]
                 }
               },
@@ -1462,7 +1612,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
@@ -1473,11 +1622,24 @@
                       "  });",
                       "});",
                       "pm.test('userID is a number', () => pm.expect(res.userID).to.be.a('number'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -1504,17 +1666,29 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
                       "const res = pm.response.json();",
                       "pm.test('Has message field', () => pm.expect(res).to.have.property('message'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "PUT",
                 "header": [
                   {
@@ -1528,7 +1702,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"shaza ahmed\"\n}",
+                  "raw": "{\n  \"name\": \"updated name\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1559,7 +1733,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
@@ -1578,11 +1751,24 @@
                       "  pm.test('Member has status',() => pm.expect(m.status).to.be.oneOf(['active','pending','expired']));",
                       "  pm.collectionVariables.set('member_id', m.id);",
                       "}"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -1611,14 +1797,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -1642,18 +1833,31 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
                       "const body = pm.response.json();",
                       "pm.test('Has message', () => pm.expect(body).to.have.property('message'));",
                       "pm.test('Has email',   () => pm.expect(body).to.have.property('email'));",
-                      "pm.test('Email matches', () => pm.expect(body.email).to.eql(pm.collectionVariables.get('invite_email')));"
-                    ]
+                      "pm.test('Email matches', () => pm.expect(body.email).to.eql(pm.environment.get('invite_email')));",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -1696,15 +1900,27 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 422', () => pm.response.to.have.status(422));",
                       "pm.test('Has detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -1747,14 +1963,26 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 422', () => pm.response.to.have.status(422));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -1797,15 +2025,27 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 422', () => pm.response.to.have.status(422));",
                       "pm.test('Has detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -1848,14 +2088,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -1894,15 +2139,27 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -1933,18 +2190,23 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{member_id}}/suspend",
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{user_id}}/suspend",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -1953,7 +2215,7 @@
                     "gyms",
                     "{{gym_id}}",
                     "clients",
-                    "{{member_id}}",
+                    "{{user_id}}",
                     "suspend"
                   ]
                 }
@@ -1966,15 +2228,27 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2005,18 +2279,23 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{member_id}}/unsuspend",
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{user_id}}/unsuspend",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -2025,7 +2304,7 @@
                     "gyms",
                     "{{gym_id}}",
                     "clients",
-                    "{{member_id}}",
+                    "{{user_id}}",
                     "unsuspend"
                   ]
                 }
@@ -2038,15 +2317,27 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2090,14 +2381,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2115,7 +2411,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{member_id}}/renew",
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/clients/{{user_id}}/renew",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -2124,7 +2420,7 @@
                     "gyms",
                     "{{gym_id}}",
                     "clients",
-                    "{{member_id}}",
+                    "{{user_id}}",
                     "renew"
                   ]
                 }
@@ -2137,14 +2433,26 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 404', () => pm.response.to.have.status(404));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "DELETE",
                 "header": [
                   {
@@ -2174,14 +2482,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "DELETE",
                 "header": [],
                 "url": {
@@ -2211,7 +2524,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
@@ -2228,11 +2540,24 @@
                       "  pm.test('Coach has status',() => pm.expect(c).to.have.property('status'));",
                       "  pm.collectionVariables.set('coach_id', c.id);",
                       "}"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -2261,14 +2586,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -2292,18 +2622,30 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
                       "const body = pm.response.json();",
                       "pm.test('Has message', () => pm.expect(body).to.have.property('message'));",
                       "pm.test('Has email',   () => pm.expect(body).to.have.property('email'));",
-                      "pm.test('Email matches', () => pm.expect(body.email).to.eql(pm.collectionVariables.get('coach_invite_email')));"
-                    ]
+                      "pm.test('Email matches', () => pm.expect(body.email).to.eql(pm.environment.get('coach_invite_email')));"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2346,15 +2688,27 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 422', () => pm.response.to.have.status(422));",
                       "pm.test('Has detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2397,14 +2751,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2443,15 +2802,27 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2482,14 +2853,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
                 "header": [],
                 "url": {
@@ -2515,15 +2891,27 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Has message', () => pm.expect(pm.response.json()).to.have.property('message'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2532,7 +2920,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/{{coach_id}}/unsuspend",
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/{{user_coach_id}}/unsuspend",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -2541,7 +2929,7 @@
                     "gyms",
                     "{{gym_id}}",
                     "coaches",
-                    "{{coach_id}}",
+                    "{{user_coach_id}}",
                     "unsuspend"
                   ]
                 }
@@ -2554,18 +2942,23 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/{{coach_id}}/unsuspend",
+                  "raw": "{{base_url}}/admin/gyms/{{gym_id}}/coaches/{{user_coach_id}}/unsuspend",
                   "host": [
                     "{{base_url}}"
                   ],
@@ -2574,7 +2967,7 @@
                     "gyms",
                     "{{gym_id}}",
                     "coaches",
-                    "{{coach_id}}",
+                    "{{user_coach_id}}",
                     "unsuspend"
                   ]
                 }
@@ -2592,16 +2985,28 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
                       "pm.test('Response is an array', () => pm.expect(pm.response.json()).to.be.an('array'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -2630,7 +3035,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 201', () => pm.response.to.have.status(201));",
                       "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
@@ -2640,11 +3044,24 @@
                       "    pm.expect(res).to.have.property(f);",
                       "  });",
                       "});"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
                 "header": [
                   {
@@ -2691,7 +3108,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
@@ -2700,11 +3116,24 @@
                       "pm.test('Has this_week',   () => pm.expect(body).to.have.property('this_week'));",
                       "pm.test('today_total is a number', () => pm.expect(body.today_total).to.be.a('number'));",
                       "pm.test('this_week is a number',   () => pm.expect(body.this_week).to.be.a('number'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -2733,14 +3162,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -2764,7 +3198,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "const body = pm.response.json();",
@@ -2772,11 +3205,24 @@
                       "pm.test('Has qr_identifier', () => pm.expect(body).to.have.property('qr_identifier'));",
                       "pm.test('Has gym_name',       () => pm.expect(body).to.have.property('gym_name'));",
                       "pm.test('qr_identifier is a string', () => pm.expect(body.qr_identifier).to.be.a('string').and.not.empty);"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -2805,14 +3251,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -2836,7 +3287,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "const body = pm.response.json();",
@@ -2850,11 +3300,24 @@
                       "    pm.expect(d.count).to.be.a('number');",
                       "  });",
                       "});"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -2883,14 +3346,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -2919,7 +3387,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Response time < 3000ms', () => pm.expect(pm.response.responseTime).to.be.below(3000));",
@@ -2929,11 +3396,24 @@
                       "});",
                       "pm.test('total_revenue is a number',  () => pm.expect(body.total_revenue).to.be.a('number'));",
                       "pm.test('active_members is a number', () => pm.expect(body.active_members).to.be.a('number'));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -2962,14 +3442,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -2993,7 +3478,6 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "const body = pm.response.json();",
@@ -3004,11 +3488,24 @@
                       "  pm.test('Has revenue field', () => pm.expect(m).to.have.property('revenue'));",
                       "  pm.test('revenue is a number', () => pm.expect(m.revenue).to.be.a('number'));",
                       "}"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -3037,14 +3534,19 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -3504,13 +4006,15 @@
                 {
                   "listen": "test",
                   "script": {
-                    "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
                       "const body = pm.response.json();",
                       "pm.test('Has id or message', () => pm.expect(body.id !== undefined || body.message !== undefined).to.be.true);",
                       "if (body.id) { pm.collectionVariables.set('offer_id', body.id); }"
-                    ]
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
                   }
                 }
               ],
@@ -3528,7 +4032,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"title\": \"Come Back Offer\",\n  \"offer_type\": \"discount\",\n  \"description\": \"We miss you!\",\n  \"benefit\": \"20% off next month\",\n  \"valid_until\": \"2025-12-31\",\n  \"target_type\": \"highest_risk\",\n  \"selected_member_ids\": [5]\n}",
+                  "raw": "{\n  \"title\": \"Come Back Offer\",\n  \"offer_type\": \"discount\",\n  \"description\": \"We miss you!\",\n  \"benefit\": \"20% off next month\",\n  \"valid_until\": \"2025-12-31\",\n  \"target_type\": \"highest_risk\",\n  \"selected_member_ids\": [14]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3798,918 +4302,6 @@
               "response": []
             }
           ]
-        },
-        {
-          "name": "Gyms",
-          "item": [
-            {
-              "name": "get specific gym",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"gymName\");",
-                      "    pm.expect(response).to.have.property(\"location\");",
-                      "    pm.expect(response).to.have.property(\"QRCode\");",
-                      "});",
-                      "",
-                      "",
-                      "// ─── ID is valid ───────────────────────────────────────────────",
-                      "pm.test(\"gym ID is present and non-empty\", function () {",
-                      "    pm.expect(response.gymID).to.exist;",
-                      "    pm.expect(response.gymID).to.be.a(\"number\");",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0chg}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/gyms/24",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    "24"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "list all admin gyms",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "pm.test(\"Response is an array\", function () {",
-                      "    const data = pm.response.json();",
-                      "    pm.expect(data).to.be.an('array');",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "GET",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": ""
-                },
-                "url": {
-                  "raw": "{{base_url}}/gyms/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    ""
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "get gym dashboard",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"gymName\");",
-                      "    pm.expect(response).to.have.property(\"totalMembers\");",
-                      "    pm.expect(response).to.have.property(\"activeSubscriptions\");",
-                      "\tpm.expect(response).to.have.property(\"todayAttendance\");",
-                      "    pm.expect(response).to.have.property(\"totalClasses\");",
-                      "",
-                      "});",
-                      "",
-                      "// ─── ID is valid ───────────────────────────────────────────────",
-                      "pm.test(\"gym ID is present and non-empty\", function () {",
-                      "    pm.expect(response.gymID).to.exist;",
-                      "    pm.expect(response.gymID).to.be.a(\"number\");",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "GET",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": ""
-                },
-                "url": {
-                  "raw": "{{base_url}}/gyms/24/dashboard",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    "24",
-                    "dashboard"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "get gym member count",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"count\");",
-                      "",
-                      "",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "GET",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": ""
-                },
-                "url": {
-                  "raw": "{{base_url}}/gyms/15/member-count",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    "15",
-                    "member-count"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "get gym coach count",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"count\");",
-                      "",
-                      "",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "GET",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": ""
-                },
-                "url": {
-                  "raw": "{{base_url}}/gyms/15/coach-count",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    "15",
-                    "coach-count"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "create a new gym",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 201 created\", function () {",
-                      "    pm.response.to.have.status(201);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"gymName\");",
-                      "    pm.expect(response).to.have.property(\"location\");",
-                      "    pm.expect(response).to.have.property(\"gymType\");",
-                      "    pm.expect(response).to.have.property(\"openingHours\");",
-                      "    pm.expect(response).to.have.property(\"closingHours\");",
-                      "    pm.expect(response).to.have.property(\"gymID\");",
-                      "    pm.expect(response).to.have.property(\"adminID\");",
-                      "    pm.expect(response).to.have.property(\"QRCode\");",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"gymName\": \"test \",\n  \"location\": \"123 Main St, Cairo\",\n  \"gymType\": \"mixed\",\n  \"openingHours\": \"06:00\",\n  \"closingHours\": \"23:00\",\n  \"machines\": [\n    {\n      \"machineName\": \"Treadmill\",\n      \"machineType\": \"Cardio\",\n      \"quantity\": 5\n    },\n    {\n      \"machineName\": \"Bench Press\",\n      \"machineType\": \"Strength\",\n      \"quantity\": 3\n    }\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/gyms/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    ""
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "update gym",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"gymName\");",
-                      "    pm.expect(response).to.have.property(\"location\");",
-                      "    pm.expect(response).to.have.property(\"gymType\");",
-                      "    pm.expect(response).to.have.property(\"openingHours\");",
-                      "    pm.expect(response).to.have.property(\"closingHours\");",
-                      "    pm.expect(response).to.have.property(\"gymID\");",
-                      "    pm.expect(response).to.have.property(\"adminID\");",
-                      "    pm.expect(response).to.have.property(\"QRCode\");",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0chg}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "PATCH",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"gymName\": \"test \",\n  \"location\": \"123 Main St, Cairo\",\n  \"gymType\": \"mixed\",\n  \"openingHours\": \"06:00\",\n  \"closingHours\": \"23:00\",\n  \"machines\": [\n    {\n      \"machineName\": \"Treadmill\",\n      \"machineType\": \"Cardio\",\n      \"quantity\": 5\n    },\n    {\n      \"machineName\": \"Bench Press\",\n      \"machineType\": \"Strength\",\n      \"quantity\": 3\n    }\n  ]\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/gyms/24",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    "24"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "delete a gym",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"detail\");",
-                      "});",
-                      "",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0chg}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/gyms/27",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    "27"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "get total member count",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"total\");",
-                      "",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "GET",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": ""
-                },
-                "url": {
-                  "raw": "{{base_url}}/gyms/total-members",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "gyms",
-                    "total-members"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Admin Profile",
-          "item": [
-            {
-              "name": "get admin profile",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"userID\");",
-                      "    pm.expect(response).to.have.property(\"name\");",
-                      "    pm.expect(response).to.have.property(\"email\");",
-                      "    pm.expect(response).to.have.property(\"phone\");",
-                      "    pm.expect(response).to.have.property(\"created_at\");",
-                      "    pm.expect(response).to.have.property(\"total_gyms\");",
-                      "});",
-                      "",
-                      "// ─── ID is valid ───────────────────────────────────────────────",
-                      "pm.test(\"User ID is present and non-empty\", function () {",
-                      "    pm.expect(response.userID).to.exist;",
-                      "    pm.expect(response.userID).to.be.a(\"number\");",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/admin/profile",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "profile"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "edit admin profile",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"message\");",
-                      "});",
-                      "",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "PUT",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\" : \"shaza ahmed\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/admin/profile",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "profile"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        },
-        {
-          "name": "Admin Announcements",
-          "item": [
-            {
-              "name": "list gym announcements",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 200 OK\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response contains a detail array\", function () {",
-                      "    pm.expect(response).to.be.an(\"array\");",
-                      "});",
-                      "",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/admin/gyms/24/announcements",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "gyms",
-                    "24",
-                    "announcements"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "list gym announcements Copy",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "// ─── Status Code ───────────────────────────────────────────────",
-                      "pm.test(\"Status code is 201 Created\", function () {",
-                      "    pm.response.to.have.status(201);",
-                      "});",
-                      "",
-                      "// ─── Content-Type ──────────────────────────────────────────────",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "// ─── Body Structure ────────────────────────────────────────────",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response body has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"announce_id\");",
-                      "\t\tpm.expect(response).to.have.property(\"gymID\");",
-                      "\t\tpm.expect(response).to.have.property(\"title\");",
-                      "\t\tpm.expect(response).to.have.property(\"content\");",
-                      "\t\tpm.expect(response).to.have.property(\"reciever\");",
-                      "\t\tpm.expect(response).to.have.property(\"created_at\");",
-                      "});",
-                      "",
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{supabase_service_role_api_key_0x0m}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": " {\n    \"title\" : \"important announcement\",\n    \"content\" : \"this is so important\",\n    \"reciever\" : \"Clients and Coaches\"\n }",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/admin/gyms/24/announcements",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "gyms",
-                    "24",
-                    "announcements"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
         }
       ]
     },
@@ -4756,6 +4348,16 @@
                 }
               ],
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{client_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "GET",
                 "header": [
                   {
@@ -4772,83 +4374,6 @@
                   "path": [
                     "training-plans",
                     ""
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Generate Training Plan",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 201\", function () {",
-                      "    pm.response.to.have.status(201);",
-                      "});",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"planID\");",
-                      "    pm.expect(response).to.have.property(\"clientID\");",
-                      "    pm.expect(response).to.have.property(\"title\");",
-                      "    pm.expect(response).to.have.property(\"goal\");",
-                      "    pm.expect(response).to.have.property(\"level\");",
-                      "    pm.expect(response).to.have.property(\"weeks\");",
-                      "    pm.expect(response).to.have.property(\"status\");",
-                      "    pm.expect(response).to.have.property(\"version\");",
-                      "    pm.expect(response).to.have.property(\"plan\");",
-                      "    pm.expect(response).to.have.property(\"raw_json\");",
-                      "    pm.expect(response).to.have.property(\"created_at\");",
-                      "});",
-                      "",
-                      "pm.test(\"Save plan_id to environment\", function () {",
-                      "    pm.environment.set(\"plan_id\", response.planID);",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{client_token}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"fitness_goal\": \"weight loss\",\n  \"age\": 28,\n  \"gender\": \"male\",\n  \"level\": \"beginner\",\n  \"weeks\": 8,\n  \"injuries\": null,\n  \"days_per_week\": 4,\n  \"equipment\": \"full gym\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/training-plans/generate",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "training-plans",
-                    "generate"
                   ]
                 }
               },
@@ -4967,80 +4492,6 @@
                     "training-plans",
                     "{{plan_id}}",
                     "versions"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Edit Training Plan",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test(\"Status code is 200\", function () {",
-                      "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Content-Type is application/json\", function () {",
-                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                      "});",
-                      "",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Response has required fields\", function () {",
-                      "    pm.expect(response).to.be.an(\"object\");",
-                      "    pm.expect(response).to.have.property(\"planID\");",
-                      "    pm.expect(response).to.have.property(\"clientID\");",
-                      "    pm.expect(response).to.have.property(\"title\");",
-                      "    pm.expect(response).to.have.property(\"goal\");",
-                      "    pm.expect(response).to.have.property(\"level\");",
-                      "    pm.expect(response).to.have.property(\"weeks\");",
-                      "    pm.expect(response).to.have.property(\"status\");",
-                      "    pm.expect(response).to.have.property(\"version\");",
-                      "    pm.expect(response).to.have.property(\"plan\");",
-                      "    pm.expect(response).to.have.property(\"raw_json\");",
-                      "    pm.expect(response).to.have.property(\"created_at\");",
-                      "    pm.expect(response).to.have.property(\"version\");",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{client_token}}",
-                    "type": "text"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"fitness_goal\": \"muscle gain\",\n  \"age\": 28,\n  \"gender\": \"male\",\n  \"level\": \"intermediate\",\n  \"weeks\": 10,\n  \"injuries\": null,\n  \"days_per_week\": 5,\n  \"equipment\": \"full gym\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{base_url}}/training-plans/{{plan_id}}",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "training-plans",
-                    "{{plan_id}}"
                   ]
                 }
               },
@@ -5528,7 +4979,6 @@
                       "        pm.expect(response[0]).to.have.property(\"target\");",
                       "        pm.expect(response[0]).to.have.property(\"unit\");",
                       "        pm.expect(response[0]).to.have.property(\"current_value\");",
-                      "        pm.expect(response[0]).to.have.property(\"percent\");",
                       "        pm.expect(response[0]).to.have.property(\"is_unlocked\");",
                       "    });",
                       "}"
@@ -5681,7 +5131,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -5747,7 +5197,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -5833,7 +5283,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -5915,7 +5365,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6040,7 +5490,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6114,7 +5564,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6194,7 +5644,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6267,7 +5717,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6350,7 +5800,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6428,7 +5878,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6518,7 +5968,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6599,7 +6049,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6659,7 +6109,11 @@
                       "    pm.test(\"Membership issue\", () => pm.expect(status).to.eql(403));\r",
                       "    console.log(\"Membership suspended or expired:\", json.detail);\r",
                       "\r",
-                      "} else {\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"no sessions found\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"enroll session id not found or invalid:\", json.detail);\r",
+                      "} \r",
+                      " else {\r",
                       "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 400, 403]));\r",
                       "    console.log(\"Unexpected:\", status, json);\r",
                       "}"
@@ -6726,6 +6180,10 @@
                       "    pm.test(\"Unauthorized\", () => pm.expect(status).to.eql(401));\r",
                       "    console.log(\"Token issue:\", json.detail);\r",
                       "\r",
+                      "} else if (status === 404) {\r",
+                      "    pm.test(\"no session enrolled\", () => pm.expect(status).to.eql(404));\r",
+                      "    console.log(\"no enrollement found:\", json.detail);\r",
+                      "\r",
                       "} else {\r",
                       "    pm.test(\"Unexpected response\", () => pm.expect(status).to.be.oneOf([200, 400, 401]));\r",
                       "    console.log(\"Unexpected:\", status, json);\r",
@@ -6743,7 +6201,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6820,7 +6278,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -6906,7 +6364,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -7006,7 +6464,7 @@
                   "bearer": [
                     {
                       "key": "token",
-                      "value": "{{access_token}}",
+                      "value": "{{client_token}}",
                       "type": "string"
                     }
                   ]
@@ -7028,6 +6486,229 @@
               "response": []
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "Notifications Tests",
+      "item": [
+        {
+          "name": "get all user notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "",
+                  "const data = pm.response.json();",
+                  "pm.test('Response is an array', () => pm.expect(data).to.be.an('array'));"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{client_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "unread notifications exists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 Created\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"has_unread\");",
+                  "});",
+                  ";"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{client_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{user_id}}/unread-count",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{user_id}}",
+                "unread-count"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "read a notification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 Created\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// ─── Content-Type ──────────────────────────────────────────────",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "// ─── Body Structure ────────────────────────────────────────────",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test(\"Response body has required fields\", function () {",
+                  "    pm.expect(response).to.be.an(\"object\");",
+                  "    pm.expect(response).to.have.property(\"message\");",
+                  "});",
+                  ";"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{client_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notification_id}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "mark all as read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ─── Status Code ───────────────────────────────────────────────",
+                  "pm.test(\"Status code is 200 Created\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{client_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "file",
+              "file": {}
+            },
+            "url": {
+              "raw": "{{base_url}}/notifications/{{user_id}}/read-all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications",
+                "{{user_id}}",
+                "read-all"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
@@ -7081,6 +6762,22 @@
     },
     {
       "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "unverified_email",
+      "value": ""
+    },
+    {
+      "key": "member_id",
+      "value": ""
+    },
+    {
+      "key": "coach_id",
+      "value": ""
+    },
+    {
+      "key": "offer_id",
       "value": ""
     }
   ]

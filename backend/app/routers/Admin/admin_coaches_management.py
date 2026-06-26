@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import secrets
 from datetime import datetime, timedelta, timezone
-from app.services.notifications.notification_service import notify_invite
+from app.services.notifications.notification_Utils import notify_invite
 from app.dependencies.auth import get_current_user
 from app.database import get_session
 from app.models.User import User
