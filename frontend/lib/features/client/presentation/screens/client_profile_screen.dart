@@ -10,7 +10,7 @@ import '../../../notification/presentation/notifications_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../notification/token_helper.dart';
-
+import '../../../shared/notifications/notification_badge_controller.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   final String token;
@@ -23,12 +23,22 @@ class ClientProfileScreen extends StatefulWidget {
 
 class _ClientProfileScreenState extends State<ClientProfileScreen> {
   late ClientProfileController _ctrl;
+  late NotificationBadgeController _badgeCtrl;
 
   @override
   void initState() {
     super.initState();
     _ctrl = ClientProfileController();
     _ctrl.loadProfile(widget.token);
+    _badgeCtrl = NotificationBadgeController();
+    _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _badgeCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,45 +88,77 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               ),
               centerTitle: true,
               actions: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.black,
-                  ),
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => NotificationsScreen(
-                          userId: getUserIdFromToken(widget.token),
-                          token: widget.token,
-                        ),
+                AnimatedBuilder(
+                  animation: _badgeCtrl,
+                  builder: (context, _) {
+                    return IconButton(
+                      icon: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.black,
+                          ),
+                          if (_badgeCtrl.hasUnread)
+                            Positioned(
+                              right: -2,
+                              top: -2,
+                              child: Container(
+                                width: 9,
+                                height: 9,
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    );
-
-                    // Only re-check if opened standalone (not connected to gym)
-                    if (widget.onBack == null && mounted) {
-                      try {
-                        final meRes = await http.get(
-                          Uri.parse('${ApiConstants.baseUrl}/client/me'),
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ${widget.token}',
-                          },
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => NotificationsScreen(
+                              userId: getUserIdFromToken(widget.token),
+                              token: widget.token,
+                            ),
+                          ),
                         );
-                        if (meRes.statusCode == 200 && mounted) {
-                          final meData = jsonDecode(meRes.body);
-                          final isConnected = meData['is_connected'] as bool;
-                          if (isConnected && mounted) {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              '/client-dashboard',
-                              arguments: widget.token,
-                            );
-                          }
+
+                        // Reload badge after returning
+                        if (mounted) {
+                          _badgeCtrl.load(
+                            widget.token,
+                            getUserIdFromToken(widget.token),
+                          );
                         }
-                      } catch (_) {}
-                    }
+
+                        // Only re-check gym connection if opened standalone
+                        if (widget.onBack == null && mounted) {
+                          try {
+                            final meRes = await http.get(
+                              Uri.parse('${ApiConstants.baseUrl}/client/me'),
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ${widget.token}',
+                              },
+                            );
+                            if (meRes.statusCode == 200 && mounted) {
+                              final meData = jsonDecode(meRes.body);
+                              final isConnected =
+                                  meData['is_connected'] as bool;
+                              if (isConnected && mounted) {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/client-dashboard',
+                                  arguments: widget.token,
+                                );
+                              }
+                            }
+                          } catch (_) {}
+                        }
+                      },
+                    );
                   },
                 ),
                 IconButton(
