@@ -159,7 +159,7 @@ async def create_and_send_offer(gym_id: int, request: CreateOfferRequest, db: As
             risk_level=risk,
         ))
 
-    print("Debug from send offer: ", request.selected_member_ids)
+    # print("Debug from send offer: ", request.selected_member_ids)
     await db.commit()
     await db.refresh(offer)
     return {

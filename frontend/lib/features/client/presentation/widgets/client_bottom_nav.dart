@@ -20,7 +20,7 @@ class ClientBottomNav extends StatelessWidget {
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: currentIndex < 0
-          ? Colors.grey // no tab active → treat all as unselected
+          ? Colors.grey 
           : const Color(0xFF4F46E5),
       unselectedItemColor: Colors.grey,
       items: const [

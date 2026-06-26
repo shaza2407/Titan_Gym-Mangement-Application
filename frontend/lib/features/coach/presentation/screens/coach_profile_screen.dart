@@ -14,21 +14,32 @@ import '../widgets/save_profile_button.dart';
 class CoachProfileScreen extends StatefulWidget {
   final String token;
   final VoidCallback? onBack;
-  
-  const CoachProfileScreen({super.key, required this.token, this.onBack});
+  final CoachProfileController controller;
+
+  const CoachProfileScreen({
+    super.key,
+    required this.token,
+    required this.controller,
+    this.onBack,
+  });
 
   @override
-  State<CoachProfileScreen> createState() => _CoachProfileScreenState();
+  State<CoachProfileScreen> createState() => CoachProfileScreenState();
 }
 
-class _CoachProfileScreenState extends State<CoachProfileScreen> {
+class CoachProfileScreenState extends State<CoachProfileScreen> {
   late CoachProfileController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = CoachProfileController();
-    _ctrl.loadProfile(widget.token);
+    _ctrl = widget.controller; // ← use the passed-in controller
+  }
+
+  @override
+  void dispose() {
+    // Do NOT dispose here — dashboard owns and disposes this controller
+    super.dispose();
   }
 
   @override
@@ -38,7 +49,8 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
       child: Consumer<CoachProfileController>(
         builder: (context, ctrl, _) {
           if (ctrl.isLoading) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(
+                body: Center(child: CircularProgressIndicator()));
           }
 
           return Scaffold(
@@ -92,10 +104,20 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                     title: 'Basic Information',
                     subtitle: 'Your personal details',
                     children: [
-                      ProfileTextField(label: 'Full Name', controller: ctrl.nameController),
-                      ProfileReadOnlyField(label: 'Email Address', value: ctrl.profile?.email ?? ''),
-                      ProfileTextField(label: 'Phone Number', controller: ctrl.phoneController, keyboardType: TextInputType.phone),
-                      ProfileTextField(label: 'Years of Experience', controller: ctrl.yearsExperienceController, keyboardType: TextInputType.number),
+                      ProfileTextField(
+                          label: 'Full Name',
+                          controller: ctrl.nameController),
+                      ProfileReadOnlyField(
+                          label: 'Email Address',
+                          value: ctrl.profile?.email ?? ''),
+                      ProfileTextField(
+                          label: 'Phone Number',
+                          controller: ctrl.phoneController,
+                          keyboardType: TextInputType.phone),
+                      ProfileTextField(
+                          label: 'Years of Experience',
+                          controller: ctrl.yearsExperienceController,
+                          keyboardType: TextInputType.number),
                       ProfileDatePicker(ctrl: ctrl),
                     ],
                   ),
@@ -107,7 +129,10 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                     title: 'About Me',
                     subtitle: 'Tell us about yourself',
                     children: [
-                      ProfileTextField(label: 'Bio', controller: ctrl.bioController, maxLines: 3),
+                      ProfileTextField(
+                          label: 'Bio',
+                          controller: ctrl.bioController,
+                          maxLines: 3),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -118,7 +143,10 @@ class _CoachProfileScreenState extends State<CoachProfileScreen> {
                     title: 'Professional Information',
                     subtitle: 'Your coaching credentials',
                     children: [
-                      ProfileTextField(label: 'Certifications', controller: ctrl.certificationsController, hint: 'e.g. NASM-CPT, ACE'),
+                      ProfileTextField(
+                          label: 'Certifications',
+                          controller: ctrl.certificationsController,
+                          hint: 'e.g. NASM-CPT, ACE'),
                       const SizedBox(height: 4),
                       SpecializationsSelector(ctrl: ctrl),
                     ],

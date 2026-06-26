@@ -139,7 +139,7 @@ async def get_coach_announcements(user_id: int, db: AsyncSession, gym_id: int | 
             select(Announcement)
             .where(
                 Announcement.gymID == loop_gym_id,
-                Announcement.reciever.in_(["Coaches", "Clients and Coaches"])
+                Announcement.reciever.in_(["Coaches only", "Clients and Coaches"])
             )
             .order_by(Announcement.created_at.desc())
         )

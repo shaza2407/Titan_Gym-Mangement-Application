@@ -9,8 +9,9 @@ import 'coach_ui_utils.dart';
 class GymsListView extends StatelessWidget {
   final CoachGymsController ctrl;
   final String token;
+  final VoidCallback onDataChanged;
 
-  const GymsListView({super.key, required this.ctrl, required this.token});
+  const GymsListView({super.key, required this.ctrl, required this.token, required this.onDataChanged,});
 
   @override
   Widget build(BuildContext context) {

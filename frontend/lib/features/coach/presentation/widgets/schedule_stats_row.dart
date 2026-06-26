@@ -21,7 +21,7 @@ class ScheduleStatsRow extends StatelessWidget {
         StatCard(
           icon: Icons.people_outline,
           value: '${ctrl.stats?.totalClients ?? 0}',
-          label: 'Total\nClients',
+          label: 'Enrolled in \n My Classes',
           color: CoachColors.success,
         ),
         const SizedBox(width: 12),

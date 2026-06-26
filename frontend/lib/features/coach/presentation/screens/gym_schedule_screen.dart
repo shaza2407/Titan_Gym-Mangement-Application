@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/gym_schedule_controller.dart';
-import 'coach_dashboard_screen.dart';
-import '../widgets/custom_bottom_nav.dart';
 import '../widgets/gym_schedule_list_view.dart';
 
 class GymScheduleScreen extends StatefulWidget {
@@ -10,7 +8,12 @@ class GymScheduleScreen extends StatefulWidget {
   final int gymId;
   final String gymName;
 
-  const GymScheduleScreen({super.key, required this.token, required this.gymId, required this.gymName});
+  const GymScheduleScreen({
+    super.key,
+    required this.token,
+    required this.gymId,
+    required this.gymName,
+  });
 
   @override
   State<GymScheduleScreen> createState() => _GymScheduleScreenState();
@@ -24,6 +27,12 @@ class _GymScheduleScreenState extends State<GymScheduleScreen> {
     super.initState();
     _ctrl = GymScheduleController();
     _ctrl.loadGymSchedule(widget.token, widget.gymId);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -46,11 +55,18 @@ class _GymScheduleScreenState extends State<GymScheduleScreen> {
                 children: [
                   Text(
                     '${widget.gymName} — Schedule',
-                    style: const TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  const Text('Weekly class timetable', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  const Text(
+                    'Weekly class timetable',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -60,20 +76,7 @@ class _GymScheduleScreenState extends State<GymScheduleScreen> {
                     onRefresh: () => ctrl.loadGymSchedule(widget.token, widget.gymId),
                     child: GymScheduleListView(ctrl: ctrl),
                   ),
-            bottomNavigationBar: CustomBottomNav(
-              currentIndex: 2, 
-              onTap: (i) {
-                if (i == 2) {
-                  Navigator.pop(context);
-                } else {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => CoachDashboardScreen(token: widget.token, initialIndex: i)),
-                    (route) => false,
-                  );
-                }
-              },
-            ),
+            // No bottomNavigationBar — back arrow or swipe returns to Gyms tab
           );
         },
       ),

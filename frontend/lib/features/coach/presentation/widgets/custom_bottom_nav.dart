@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'coach_ui_utils.dart';
 
 class CustomBottomNav extends StatelessWidget {
-  final int currentIndex;
+  final int currentIndex; // -1 = no tab highlighted
   final Function(int) onTap;
 
   const CustomBottomNav({
@@ -15,11 +15,13 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayIndex = currentIndex < 0 ? 0 : currentIndex;
+
     return BottomNavigationBar(
-      currentIndex: currentIndex,
+      currentIndex: displayIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: CoachColors.primary,
+      selectedItemColor: currentIndex < 0 ? Colors.grey : CoachColors.primary,
       unselectedItemColor: Colors.grey,
       items: const [
         BottomNavigationBarItem(

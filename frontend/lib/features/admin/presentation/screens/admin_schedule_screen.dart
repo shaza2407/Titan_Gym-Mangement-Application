@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/admin_schedule_controller.dart';
@@ -8,6 +7,7 @@ import 'class_form_screen.dart';
 class AdminScheduleScreen extends StatefulWidget {
   final String token;
   final int gymId;
+  final AdminScheduleController controller;
   final VoidCallback? onBack;
   final void Function(int index) onTabChange;
 
@@ -15,6 +15,7 @@ class AdminScheduleScreen extends StatefulWidget {
     super.key,
     required this.token,
     required this.gymId,
+    required this.controller,
     this.onBack,
     required this.onTabChange,
   });
@@ -29,10 +30,9 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    _ctrl = AdminScheduleController();
-    _ctrl.loadAll(widget.token, widget.gymId);
+    _ctrl = widget.controller;
   }
-  
+
   void _goToDashboard() {
     if (widget.onBack != null) {
       widget.onBack!();
@@ -207,49 +207,16 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Schedule Tab (weekly view only) ───────────────────────────────────────
+  // ── Schedule Tab ──────────────────────────────────────────────────────────
   Widget _buildScheduleTab(AdminScheduleController ctrl) {
     final weekly = ctrl.weeklySchedule;
-
     return Column(
       children: [
         const SizedBox(height: 16),
-        // ── Weekly schedule ──
         ...weekly.entries.map(
           (entry) => _buildDaySection(ctrl, entry.key, entry.value),
         ),
       ],
-    );
-  }
-
-  Widget _buildStatCard(
-    IconData icon,
-    String value,
-    String label,
-    Color color,
-  ) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -269,7 +236,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Day header
           Row(
             children: [
               Container(
@@ -332,7 +298,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          // Time column
           SizedBox(
             width: 64,
             child: Text(
@@ -345,10 +310,8 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          // Divider bar
           Container(width: 2, height: 40, color: const Color(0xFFF0F0F0)),
           const SizedBox(width: 12),
-          // Class info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,7 +352,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
               ],
             ),
           ),
-          // Capacity badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
@@ -407,7 +369,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
             ),
           ),
           const SizedBox(width: 4),
-          // Three-dot dropdown menu
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
             shape: RoundedRectangleBorder(
@@ -423,11 +384,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                 value: 'view',
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.people_outline,
-                      size: 18,
-                      color: Color(0xFF4F46E5),
-                    ),
+                    Icon(Icons.people_outline, size: 18, color: Color(0xFF4F46E5)),
                     SizedBox(width: 10),
                     Text('View Members'),
                   ],
@@ -466,7 +423,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     final s = ctrl.stats;
     return Column(
       children: [
-        // ── Stats row ──
         Row(
           children: [
             _buildStatCard(
@@ -492,7 +448,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        // ── Create New Class button ──
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -517,13 +472,12 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        // ── Day filter chips ──
         SizedBox(
           height: 40,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: AdminScheduleController.days.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (_, i) {
               final day = AdminScheduleController.days[i];
               final selected = ctrl.selectedDay == day;
@@ -548,9 +502,8 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                     style: TextStyle(
                       color: selected ? Colors.white : Colors.black,
                       fontSize: 13,
-                      fontWeight: selected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      fontWeight:
+                          selected ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -559,12 +512,42 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        // ── Class cards ──
         if (classes.isEmpty)
           _buildEmpty('No classes', 'Try a different day')
         else
           ...classes.map((c) => _buildAllClassesCard(ctrl, c)),
       ],
+    );
+  }
+
+  Widget _buildStatCard(
+    IconData icon,
+    String value,
+    String label,
+    Color color,
+  ) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -718,7 +701,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
 
   Widget _buildRequestCard(AdminScheduleController ctrl, ClassRequestModel r) {
     final isRecurring = r.isRecurring;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -730,7 +712,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header: avatar + name + badge ──
           Row(
             children: [
               CircleAvatar(
@@ -783,13 +764,10 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
               ),
             ],
           ),
-
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(height: 1, color: Color(0xFFF0F0F0)),
           ),
-
-          // ── Chips ──
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -811,8 +789,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
               ),
             ],
           ),
-
-          // ── Reason box ──
           if (r.reasonForRequest != null && r.reasonForRequest!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Container(
@@ -844,15 +820,12 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
               ),
             ),
           ],
-
           const SizedBox(height: 10),
           Text(
             'Requested on ${r.createdAt}',
             style: const TextStyle(color: Colors.grey, fontSize: 11),
           ),
           const SizedBox(height: 12),
-
-          // ── Actions ──
           Row(
             children: [
               Expanded(
@@ -906,7 +879,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // Replace _buildChip with these two helpers:
+  // ── Chip helpers ──────────────────────────────────────────────────────────
   Widget _buildInfoChip(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -1010,11 +983,12 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
       ),
     );
     if (confirm == true) {
-      final success = await ctrl.deleteClass(widget.token, widget.gymId, c.id);
+      final success =
+          await ctrl.deleteClass(widget.token, widget.gymId, c.id);
       if (success && mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Class deleted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Class deleted')),
+        );
       }
     }
   }
@@ -1087,7 +1061,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: snapshot.data!.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (_, i) {
                         final m = snapshot.data![i];
                         return ListTile(
@@ -1117,7 +1091,6 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-
   Widget _buildEmpty(String title, String subtitle) {
     return Container(
       width: double.infinity,
@@ -1155,8 +1128,8 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     final h = hour > 12
         ? hour - 12
         : hour == 0
-        ? 12
-        : hour;
+            ? 12
+            : hour;
     return '${h.toString().padLeft(2, '0')}:$min $period';
   }
 
