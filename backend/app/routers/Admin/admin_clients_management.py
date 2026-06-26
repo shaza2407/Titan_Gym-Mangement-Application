@@ -172,7 +172,7 @@ async def invite_member(body: InviteClientRequest,
     )).scalar_one_or_none()
 
     if suspended_membership :
-        raise HTTPException(400, "This client is already an suspended member in this gym ,unsuspend him.")
+        raise HTTPException(400, "This client is already a suspended member in this gym ,unsuspend him.")
     
     ## check for existing pending invitation
     existing_inv = (await db.execute(
@@ -182,7 +182,7 @@ async def invite_member(body: InviteClientRequest,
             MemberInvitation.status == InvitationStatus.pending,
             MemberInvitation.invited_as == "client",
         )
-    )).scalar_one_or_none()
+    )).scalar_one_or_none()        
 
     now = datetime.now(timezone.utc)
     if body.subscription_type == "yearly":
@@ -191,6 +191,14 @@ async def invite_member(body: InviteClientRequest,
     else:
         subscription_label = "monthly"
         subscription_end = (now + relativedelta(months=body.subscription_months)).date()
+    
+    existing_notification = (await db.execute(
+    select(Notification).where(
+        Notification.data["gym_id"].as_integer() == gym.gymID,
+        Notification.user_id == existing_user.userID,
+        Notification.is_read == False,
+    )
+    )).scalar_one_or_none() 
 
     #if it's already there just extend invitation expiration
     if existing_inv:
@@ -218,8 +226,11 @@ async def invite_member(body: InviteClientRequest,
         )
         db.add(inv)
 
+    if existing_notification :
+        await db.delete(existing_notification)
+    
     await db.commit()
-    await notify_invite(db, body.email, gym.gymName, "client",gym_id=gym.gymID, token=inv.token)
+    await notify_invite(db, body.email, gym.gymName, "client", gym_id=gym.gymID, token=inv.token)
     return InviteClientResponse(message="Invitation sent successfully.", email=body.email)
 
 @router.delete("/{gym_id}/invitations/{email}")

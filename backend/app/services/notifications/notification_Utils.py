@@ -57,7 +57,7 @@ async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, 
     if not user:
         return
 
-    title = f"You've been invited to {gym_name} as a {role}. "
+    title = f"You've been invited to {gym_name} as a {role}."
     body = f"Tap to accept or decline."
     data = {
         "gym_name": gym_name,
@@ -66,7 +66,6 @@ async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, 
         "invite_token": token or "",
         "type": f"gym_invite_{role}",
     }
-
     await save_notification(db, user.userID, title, body, f"gym_invite_{role}", data)
     await send_push_notification(db, user.userID, title, body, data)
 
