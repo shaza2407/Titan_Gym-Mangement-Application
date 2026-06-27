@@ -42,7 +42,7 @@ async def get_analytics_summary(gym_id: int, db: AsyncSession = Depends(get_sess
     revenue_change = await get_revenue_change(db, gym)
 
     ## 2- Active Members
-    active_members = await get_all_active_members(db, gym)
+    active_members = await get_all_active_members(db, gym.gymID)
     new_members_this_month = await get_active_members_this_month(db, gym)
 
     ## 3- Average Daily Attendance This Month

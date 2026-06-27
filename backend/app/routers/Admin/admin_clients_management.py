@@ -10,7 +10,7 @@ from app.schemas.client.client_schemas import (
     ClientListResponse,
 )
 from app.dependencies.gym_member_managment import get_admin_gym
-from app.services.admin.admin_managment_service import (
+from app.services.admin.admin_client_management_service import (
     get_clients_list, invite_client,
     cancel_client_invitation, suspend_a_client,
     unsuspend_a_client, accept_client_invitation,
