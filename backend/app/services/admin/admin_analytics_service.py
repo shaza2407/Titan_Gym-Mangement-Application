@@ -59,13 +59,13 @@ async def get_revenue_change(db: AsyncSession, gym: Gym) -> float:
     return revenue_change
 
 
-async def get_all_active_members(db: AsyncSession, gym: Gym):
+async def get_all_active_members(db: AsyncSession, gym_id: int):
     today = date.today()
 
     ## 2- Active Members
     active_result = await db.execute(
         select(func.count(GymClientMembership.id)).where(
-            GymClientMembership.gymID == gym.gymID,
+            GymClientMembership.gymID == gym_id,
             GymClientMembership.status == "active",
             GymClientMembership.subscription_end >= today,
         )
