@@ -1,7 +1,7 @@
 # tests/services/client/test_client_utils.py
 #
 # Run with:
-#   pytest tests/services/client/test_client_utils.py -v
+#   pytest tests/services/client/test_client_utils_service.py -v
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
