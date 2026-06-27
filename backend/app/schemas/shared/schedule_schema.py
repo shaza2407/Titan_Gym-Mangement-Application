@@ -1,6 +1,6 @@
 # app/schemas/schedule_schema.py
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from datetime import date as DateType, time, datetime
 
@@ -8,6 +8,8 @@ from datetime import date as DateType, time, datetime
 # ── Shared ────────────────────────────────────────────────────────────────────
 
 class ClassSessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id:              int
     title:           str
     day_of_week:     Optional[str] = None
@@ -21,11 +23,10 @@ class ClassSessionResponse(BaseModel):
     current_clients: int
     max_clients:     int
 
-    class Config:
-        from_attributes = True
-
 
 class ClassRequestResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id:                 int
     coach_id:           int
     coach_name:         Optional[str] = None
@@ -41,9 +42,6 @@ class ClassRequestResponse(BaseModel):
     reason_for_request: Optional[str] = None
     status:             str
     created_at:         datetime
-
-    class Config:
-        from_attributes = True
 
 
 # ── Admin ─────────────────────────────────────────────────────────────────────
@@ -65,15 +63,16 @@ class AdminScheduleStatsResponse(BaseModel):
     total_coaches:    int
     pending_requests: int
 
+
 class EditClassRequest(BaseModel):
-    title:        Optional[str]  = None
-    coach_id:     Optional[int]  = None
-    day_of_week:  Optional[str]  = None
+    title:        Optional[str]      = None
+    coach_id:     Optional[int]      = None
+    day_of_week:  Optional[str]      = None
     date:         Optional[DateType] = None
-    start_time:   Optional[time] = None
-    duration:     Optional[int]  = None
-    max_clients:  Optional[int]  = None
-    is_recurring: Optional[bool] = None
+    start_time:   Optional[time]     = None
+    duration:     Optional[int]      = None
+    max_clients:  Optional[int]      = None
+    is_recurring: Optional[bool]     = None
 
 
 # ── Client ────────────────────────────────────────────────────────────────────
@@ -91,6 +90,8 @@ class ClientScheduleStatsResponse(BaseModel):
 
 
 class ClientClassResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id:              int
     title:           str
     coach_name:      Optional[str] = None
@@ -105,9 +106,6 @@ class ClientClassResponse(BaseModel):
     is_full:         bool = False
     next_date:       Optional[DateType] = None
 
-    class Config:
-        from_attributes = True
-
 
 class WeeklyScheduleDay(BaseModel):
     day:     str
@@ -117,12 +115,12 @@ class WeeklyScheduleDay(BaseModel):
 # ── Coach request ─────────────────────────────────────────────────────────────
 
 class CreateClassRequestPayload(BaseModel):
-    class_name:   str
-    gym_location: Optional[str] = None
-    is_recurring: bool = True
-    day_of_week:  Optional[str] = None
+    class_name:     str
+    gym_location:   Optional[str]      = None
+    is_recurring:   bool               = True
+    day_of_week:    Optional[str]      = None
     requested_date: Optional[DateType] = None
     requested_time: time
-    duration:     int
-    max_capacity: int
-    reason:       Optional[str] = None
+    duration:       int
+    max_capacity:   int
+    reason:         Optional[str]      = None

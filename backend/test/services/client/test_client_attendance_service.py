@@ -1,7 +1,7 @@
 # tests/services/client/test_attendance_service.py
 #
 # Run with:
-#   pytest tests/services/client/test_attendance_service.py -v
+#   pytest test/services/client/test_client_attendance_service.py -v
 
 import pytest
 from datetime import datetime, date, timedelta

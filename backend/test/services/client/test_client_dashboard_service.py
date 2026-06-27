@@ -1,7 +1,7 @@
 # tests/services/client/test_dashboard_service.py
 #
 # Run with:
-#   pytest tests/services/client/test_dashboard_service.py -v
+#   pytest test/services/client/test_client_dashboard_service.py -v
 #
 # Pure unit tests — no real DB, no server.
 # The AsyncSession is fully mocked so tests run instantly.
