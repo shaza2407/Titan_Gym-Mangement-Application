@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'notification_badge_repository.dart';
 
-
 class NotificationBadgeController extends ChangeNotifier {
-  final _repo = NotificationBadgeRepository();
+  final NotificationBadgeRepository _repo;
+
+  NotificationBadgeController() : _repo = NotificationBadgeRepository();
+  NotificationBadgeController.withRepo(this._repo);
 
   bool hasUnread = false;
   bool _disposed = false;

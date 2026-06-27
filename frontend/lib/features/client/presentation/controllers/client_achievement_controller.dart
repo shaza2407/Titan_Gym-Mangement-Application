@@ -5,7 +5,10 @@ import '../../data/client_achievement_repository.dart';
 import '../../domain/achievement_model.dart';
 
 class ClientAchievementController extends ChangeNotifier {
-  final ClientAchievementRepository _repo = ClientAchievementRepository();
+  final ClientAchievementRepository _repo;
+
+  ClientAchievementController() : _repo = ClientAchievementRepository();
+  ClientAchievementController.withRepo(this._repo);
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;

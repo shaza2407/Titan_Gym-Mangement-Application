@@ -3,7 +3,9 @@ import '../../data/dashboard_repository.dart';
 import '../../domain/dashboard_model.dart';
 
 class ClientDashboardController extends ChangeNotifier {
-  final DashboardRepository _repo = DashboardRepository();
+  final DashboardRepository _repo;
+  ClientDashboardController() : _repo = DashboardRepository();
+  ClientDashboardController.withRepo(this._repo);
 
   DashboardStatsModel? stats;
   bool isLoading = false;
