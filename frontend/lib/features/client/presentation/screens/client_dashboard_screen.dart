@@ -20,7 +20,17 @@ import '../../../shared/notifications/notification_badge_controller.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
-  const ClientDashboardScreen({super.key, required this.token});
+  final ClientDashboardController? testDashCtrl;
+  final ClientAchievementController? testAchCtrl;
+  final NotificationBadgeController? testBadgeCtrl;
+
+  const ClientDashboardScreen({
+    super.key,
+    required this.token,
+    this.testDashCtrl,
+    this.testAchCtrl,
+    this.testBadgeCtrl,
+  });
 
   @override
   State<ClientDashboardScreen> createState() => _ClientDashboardScreenState();
@@ -39,14 +49,18 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _ctrl = ClientDashboardController();
-    _ctrl.loadStats(widget.token);
+    _ctrl = widget.testDashCtrl ?? ClientDashboardController();
+    if (widget.testDashCtrl == null) _ctrl.loadStats(widget.token);
 
-    _achievementCtrl = ClientAchievementController();
-    _achievementCtrl.loadAchievements(widget.token);
+    _achievementCtrl = widget.testAchCtrl ?? ClientAchievementController();
+    if (widget.testAchCtrl == null) {
+      _achievementCtrl.loadAchievements(widget.token);
+    }
 
-    _badgeCtrl = NotificationBadgeController();
-    _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+    _badgeCtrl = widget.testBadgeCtrl ?? NotificationBadgeController();
+    if (widget.testBadgeCtrl == null) {
+      _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+    }
   }
 
   @override
