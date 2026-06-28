@@ -145,7 +145,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text('Gym Settings',
                 style: TextStyle(

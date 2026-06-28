@@ -35,7 +35,7 @@ class _CreateGymView extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
             ),
             title: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text('Create New Gym',
                     style: TextStyle(

@@ -12,8 +12,8 @@ from jose import jwt
 import datetime
 import bcrypt
 import random
-from app.services.notifications.email_utils import send_verification_email, send_reset_email
-from datetime import datetime, timedelta
+from app.dependencies.email_utils import send_verification_email, send_reset_email
+from datetime import datetime, timedelta ,timezone
 from app.schemas.auth.SignInResponse import SignInResponse
 from app.schemas.auth.SignInRequest import SignInRequest
 from app.schemas.auth.SignUpRequest import SignUpRequest
@@ -68,7 +68,7 @@ async def signup_user(payload: SignUpRequest, db: AsyncSession) -> User:
 
         verify_token = str(random.randint(100000, 999999))
         user.reset_token = verify_token
-        user.reset_token_exp = datetime.utcnow() + timedelta(hours=24)
+        user.reset_token_exp = datetime.now(timezone.utc) + timedelta(hours=24)
 
         await db.commit()
         await db.refresh(user)
@@ -102,7 +102,7 @@ async def signin_user(payload: SignInRequest, db: AsyncSession) -> SignInRespons
         {
             "sub": str(user.userID),
             "role": role,
-            "exp": datetime.utcnow() + timedelta(hours=24),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=24),
         },
         SECRET_KEY,
         algorithm=ALGORITHM,
@@ -115,7 +115,6 @@ async def signin_user(payload: SignInRequest, db: AsyncSession) -> SignInRespons
         userID=user.userID,
     )
 
-# app/services/auth_service.py
 
 async def verify_email(request: VerifyEmailRequest, db: AsyncSession) -> dict:
     result = await db.execute(select(User).where(User.email == request.email))
@@ -130,7 +129,7 @@ async def verify_email(request: VerifyEmailRequest, db: AsyncSession) -> dict:
     if user.reset_token != request.code:
         raise HTTPException(400, "Invalid verification code")
 
-    if user.reset_token_exp < datetime.utcnow():
+    if user.reset_token_exp < datetime.now(timezone.utc):
         raise HTTPException(400, "Verification code has expired")
 
     user.is_verified = True
@@ -153,7 +152,7 @@ async def resend_verification(request: ResendVerificationRequest, db: AsyncSessi
 
     code = str(random.randint(100000, 999999))
     user.reset_token = code
-    user.reset_token_exp = datetime.utcnow() + timedelta(hours=24)
+    user.reset_token_exp = datetime.now(timezone.utc) + timedelta(hours=24)
     await db.commit()
 
     await send_verification_email(user.email, code)
@@ -170,7 +169,7 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession) -> d
 
     code = str(random.randint(100000, 999999))
     user.reset_token = code
-    user.reset_token_exp = datetime.utcnow() + timedelta(minutes=30)
+    user.reset_token_exp = datetime.now(timezone.utc) + timedelta(minutes=30)
     await db.commit()
 
     await send_reset_email(user.email, code)
