@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../shared/api_constants.dart';
+import '../../shared/connectivity_helper.dart';
 import '../domain/renew_membership_model.dart';
 
 class RenewMembershipRepository {
@@ -15,9 +16,13 @@ class RenewMembershipRepository {
     required int memberId,
     required RenewMembershipRequest request,
   }) async {
+    final isOnline = await ConnectivityHelper.isOnline();
+    if (!isOnline) {
+      throw Exception('You are offline. Please try again when you\'re connected.');
+    }
+
     final response = await http.post(
-      Uri.parse(
-          '${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$memberId/renew'),
+      Uri.parse('${ApiConstants.baseUrl}/admin/gyms/$gymId/clients/$memberId/renew'),
       headers: _headers(token),
       body: jsonEncode(request.toJson()),
     );

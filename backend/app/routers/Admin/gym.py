@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
 from app.dependencies.auth import get_current_user
 from app.models import User , Admin
-from app.services.admin.gym_service import (get_total_members, get_member_count,get_coach_count,)
+from app.services.admin.gym_service import (get_total_members, get_member_count,get_coach_count, get_class_count)
 
 router = APIRouter(
     prefix="/gyms",
@@ -44,6 +44,10 @@ async def get_gym_coach_count(gym_id: int, db: AsyncSession = Depends(get_sessio
     count = await get_coach_count(db=db, gym_id=gym_id)
     return {"count": count}
 
+@router.get("/{gym_id}/class-count")
+async def get_gym_class_count(gym_id: int, db: AsyncSession = Depends(get_session), current_user: User = Depends(get_current_user),):
+    count = await get_class_count(db=db, gym_id=gym_id)
+    return {"count" : count}
 
 @router.get("/{gym_id}/dashboard", response_model=GymDashboardStats, status_code=status.HTTP_200_OK)
 async def get_gym_dashboard(gym_id: int, db: Session = Depends(get_session), current_admin: Admin = Depends(require_admin)):
@@ -63,3 +67,5 @@ async def update_gym(gym_id: int, gym_data: GymUpdate, db: Session = Depends(get
 @router.delete("/{gym_id}", status_code=status.HTTP_200_OK)
 async def delete_gym(gym_id: int, db: Session = Depends(get_session), current_admin: Admin = Depends(require_admin)):
     return await gym_crud.delete_gym(db, gym_id=gym_id, admin_id=current_admin.adminID)
+
+
