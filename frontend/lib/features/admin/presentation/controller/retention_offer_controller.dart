@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/retention_offer_model.dart';
 import '../../data/retention_offer_repository.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class RetentionOfferController extends ChangeNotifier {
   final RetentionOfferRepository _repo;
@@ -125,6 +126,7 @@ class RetentionOfferController extends ChangeNotifier {
     required String benefit,
     required String? validUntil,
   }) async {
+    
     isSending = true;
     sendError = null;
     sendSuccess = false;
@@ -135,6 +137,10 @@ class RetentionOfferController extends ChangeNotifier {
         : previewMembers.map((m) => m.membershipId).toList();
 
     try {
+      final online = await ConnectivityHelper.isOnline();
+      if(!online){
+        throw Exception('You are offline. Please try again when you\'re connected.');
+      }
       await _repo.sendOffer(
         title:             title,
         offerType:         offerType,

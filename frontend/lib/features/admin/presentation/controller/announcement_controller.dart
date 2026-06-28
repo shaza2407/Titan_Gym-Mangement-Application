@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/announcement_repository.dart';
 import '../../domain/announcement_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class AnnouncementController extends ChangeNotifier {
   final AnnouncementRepository _repo = AnnouncementRepository();
@@ -35,7 +36,15 @@ class AnnouncementController extends ChangeNotifier {
     required String token,
     required int gymId,
     required CreateAnnouncementRequest request,
-  }) async {
+
+  }) 
+  async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
     isSubmitting = true;
     submitError  = null;
     notifyListeners();

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/admin_repository.dart';
 import '../../domain/admin_profile_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class AdminProfileController extends ChangeNotifier {
   final AdminRepository _repo = AdminRepository();
@@ -33,6 +34,12 @@ class AdminProfileController extends ChangeNotifier {
   }
 
   Future<bool> saveProfile(String token) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
     if (newPasswordController.text.isNotEmpty) {
       if (newPasswordController.text != confirmPasswordController.text) {
         errorMessage = 'New passwords do not match';

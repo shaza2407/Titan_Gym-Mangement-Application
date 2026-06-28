@@ -136,7 +136,6 @@ class AdminScheduleRepository {
     String? classDate,
   }) async {
     final isOnline = await ConnectivityHelper.isOnline();
-
     if (!isOnline) {
       final cached = await CacheService.load(_membersKey(sessionId));
       if (cached != null) {

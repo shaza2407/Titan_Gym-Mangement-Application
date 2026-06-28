@@ -279,6 +279,10 @@ class AdminRepository {
     required int gymId,
     required String token,
   }) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      throw Exception('You are offline. Please try again when you\'re connected.');
+    }
     final res = await http.delete(
       Uri.parse('${ApiConstants.baseUrl}/gyms/$gymId'),
       headers: _headers(token),

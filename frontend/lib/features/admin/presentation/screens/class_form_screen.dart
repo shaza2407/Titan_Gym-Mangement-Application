@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/admin/presentation/controller/admin_schedule_controller.dart';
 import '../../domain/schedule_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 // Simple, consistent palette used throughout this screen.
 class _Palette {
@@ -103,6 +104,14 @@ class _ClassFormScreenState extends State<ClassFormScreen> {
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   Future<void> _submit() async {
+    final online = await ConnectivityHelper.isOnline();
+
+    if(!online){
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('You are offline. Please try again when you\'re connected.')),
+        );
+      }
+    else{
     if (_titleController.text.trim().isEmpty) {
       setState(() => _error = 'Please enter a class title');
       return;
@@ -153,6 +162,7 @@ class _ClassFormScreenState extends State<ClassFormScreen> {
       setState(
         () => _error = widget.controller.errorMessage ?? 'Something went wrong',
       );
+    }
     }
   }
 
