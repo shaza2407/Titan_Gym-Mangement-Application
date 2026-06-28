@@ -236,3 +236,14 @@ async def get_coach_count(db: AsyncSession, gym_id: int) -> int:
         .where(GymCoachMembership.gymID == gym_id)
     )
     return result.scalar() or 0
+
+async def get_class_count(db: AsyncSession, gym_id: int) -> int:
+    today = date.today()
+    today_day = calendar.day_name[today.weekday()].lower()
+    result = await db.execute(
+        select(func.count (ClassSession.id))
+        .where(ClassSession.gymID == gym_id,
+               or_(ClassSession.day_of_week == today_day ,
+                   ClassSession.date == today))
+    )
+    return result.scalar() or 0

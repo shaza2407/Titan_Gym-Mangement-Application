@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/gym_repository.dart';
 import '../../domain/gym_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class CreateGymController extends ChangeNotifier {
   final GymRepository _repo = GymRepository();
@@ -77,6 +78,13 @@ class CreateGymController extends ChangeNotifier {
 
   // ── Create gym ────────────────────────────────────────────────────────────
   Future<bool> createGym({required String token}) async {
+    final isOnline = await ConnectivityHelper.isOnline();
+
+    if (!isOnline) {
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
     final validationError = validate();
     if (validationError != null) {
       errorMessage = validationError;
