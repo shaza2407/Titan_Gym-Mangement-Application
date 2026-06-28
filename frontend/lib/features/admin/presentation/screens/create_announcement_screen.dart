@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/announcement_controller.dart';
 import '../../domain/announcement_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class CreateAnnouncementScreen extends StatefulWidget {
   final String token;
@@ -50,29 +51,39 @@ class _CreateAnnouncementScreenState
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    final controller = context.read<AnnouncementController>();
-    final success = await controller.createAnnouncement(
-      token:  widget.token,
-      gymId:  widget.gymId,
-      request: CreateAnnouncementRequest(
-        title:    _titleCtrl.text.trim(),
-        content:  _contentCtrl.text.trim(),
-        receiver: _selectedReceiver,
-      ),
+  // Check connectivity before attempting the request
+  final online = await ConnectivityHelper.isOnline();
+  if (!online) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('You are offline. Please try again when you\'re connected.')),
     );
-
-    if (!mounted) return;
-
-    if (success) {
-      Navigator.pop(context, true);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(controller.submitError ?? 'Failed to create')),
-      );
-    }
+    return;
   }
+
+  final controller = context.read<AnnouncementController>();
+
+  final success = await controller.createAnnouncement(
+    token:  widget.token,
+    gymId:  widget.gymId,
+    request: CreateAnnouncementRequest(
+      title:    _titleCtrl.text.trim(),
+      content:  _contentCtrl.text.trim(),
+      receiver: _selectedReceiver,
+    ),
+  );
+
+  if (!mounted) return;
+
+  if (success) {
+    Navigator.pop(context, true);
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(controller.submitError ?? 'Failed to create')),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/admin_repository.dart';
 import '../../domain/gym_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class GymSettingsController extends ChangeNotifier {
   final AdminRepository _repo = AdminRepository();
@@ -100,10 +101,17 @@ class GymSettingsController extends ChangeNotifier {
   }
 
 Future<void> deleteGym() async {
+  
   await _repo.deleteGym(gymId: gym.gymID, token: token);
 }
   // ── Save ──────────────────────────────────────────────────────────────────
   Future<bool> save() async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
     final error = validate();
     if (error != null) {
       errorMessage = error;

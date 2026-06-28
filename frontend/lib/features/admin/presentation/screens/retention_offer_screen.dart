@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import '../controller/retention_offer_controller.dart';
 import '../../domain/retention_offer_model.dart';
 import 'offer_details_screen.dart';
+import '../../../shared/connectivity_helper.dart';
 
-// ── Main Screen ───────────────────────────────────────────────────────────────
 
 class RetentionOfferScreen extends StatelessWidget {
   final String token;
@@ -522,6 +522,12 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
     if (_titleCtrl.text.trim().isEmpty ||
         _benefitCtrl.text.trim().isEmpty) {
       setState(() => _formError = 'Please fill all required fields');
+      return;
+    }
+
+    final online = await ConnectivityHelper.isOnline();
+    if (!online) {
+      setState(() => _formError = 'No internet connection. Please try again.');
       return;
     }
     setState(() => _formError = null);

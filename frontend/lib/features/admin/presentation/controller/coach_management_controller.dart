@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/admin_repository.dart';
 import '../../domain/coach_model.dart';
-
+import '../../../shared/connectivity_helper.dart';
 class CoachManagementController extends ChangeNotifier {
   final AdminRepository _repo = AdminRepository();
 
@@ -48,6 +48,12 @@ class CoachManagementController extends ChangeNotifier {
     required String token,
   }) async {
     try {
+      final online = await ConnectivityHelper.isOnline();
+      if(!online){
+        errorMessage = 'You are offline. Please try again when you\'re connected.';
+        notifyListeners();
+        return false;
+      }
       await _repo.suspendCoach(gymId, coachId, token);
       return true;
     } catch (e) {
@@ -63,6 +69,12 @@ class CoachManagementController extends ChangeNotifier {
     required String token,
   }) async {
     try {
+      final online = await ConnectivityHelper.isOnline();
+      if(!online){
+        errorMessage = 'You are offline. Please try again when you\'re connected.';
+        notifyListeners();
+        return null;
+    }
       await _repo.unsuspendCoach(gymId, coachId, token);
       return null; // success
     } catch (e) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/renew_membership_repository.dart';
 import '../../domain/renew_membership_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class RenewMembershipController extends ChangeNotifier {
   final RenewMembershipRepository _repo = RenewMembershipRepository();
@@ -30,6 +31,12 @@ class RenewMembershipController extends ChangeNotifier {
     required int gymId,
     required int memberId,
   }) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
     final count = int.tryParse(monthsController.text) ?? 1;
     final price = double.tryParse(priceController.text) ?? 0;
 

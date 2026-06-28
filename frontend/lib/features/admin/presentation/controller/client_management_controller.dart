@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/admin_repository.dart';
 import '../../domain/client_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class ClientManagementController extends ChangeNotifier {
   final AdminRepository _repo = AdminRepository();
@@ -37,6 +38,11 @@ class ClientManagementController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     try {
+      final online = await ConnectivityHelper.isOnline();
+      if(!online){
+        errorMessage = 'You are offline. Please try again when you\'re connected.';
+        notifyListeners();
+      }
       data = await _repo.fetchClients(gymId, token);
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -52,6 +58,12 @@ class ClientManagementController extends ChangeNotifier {
     required String token,
   }) async {
     try {
+      final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
       await _repo.suspendClient(gymId, memberId, token);
       return true;
     } catch (e) {
@@ -67,6 +79,12 @@ class ClientManagementController extends ChangeNotifier {
     required String token,
   }) async {
     try {
+      final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return null;
+    }
       await _repo.unsuspendClient(gymId, memberId, token);
       return null; // success
     } catch (e) {
@@ -86,6 +104,12 @@ class ClientManagementController extends ChangeNotifier {
     required String token,
   }) async {
     try {
+      final online = await ConnectivityHelper.isOnline();
+      if(!online){
+        errorMessage = 'You are offline. Please try again when you\'re connected.';
+        notifyListeners();
+        return false;
+    }
       await _repo.cancelInvitation(gymId, email, token);
       return true;
     } catch (e) {

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../data/admin_schedule_repository.dart';
 import '../../domain/schedule_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class AdminScheduleController extends ChangeNotifier {
   final AdminScheduleRepository _repo = AdminScheduleRepository();
@@ -147,6 +148,12 @@ class AdminScheduleController extends ChangeNotifier {
     int gymId,
     Map<String, dynamic> payload,
   ) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
     isMutating = true;
     errorMessage = null;
     notifyListeners();
@@ -169,6 +176,12 @@ class AdminScheduleController extends ChangeNotifier {
     int sessionId,
     Map<String, dynamic> payload,
   ) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
     isMutating = true;
     errorMessage = null;
     notifyListeners();
@@ -187,6 +200,12 @@ class AdminScheduleController extends ChangeNotifier {
 
   Future<bool> deleteClass(String token, int gymId, int sessionId) async {
     try {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
       await _repo.deleteClass(token, gymId, sessionId);
       await loadAll(token, gymId);
       return true;
@@ -203,6 +222,7 @@ class AdminScheduleController extends ChangeNotifier {
     int sessionId, {
     String? classDate,
   }) {
+    
     return _repo.getClassMembers(token, gymId, sessionId, classDate: classDate);
   }
 
@@ -220,6 +240,12 @@ class AdminScheduleController extends ChangeNotifier {
 
   Future<bool> rejectRequest(String token, int gymId, int requestId) async {
     try {
+      final online = await ConnectivityHelper.isOnline();
+      if(!online){
+        errorMessage = 'You are offline. Please try again when you\'re connected.';
+        notifyListeners();
+        return false;
+    }
       await _repo.rejectRequest(token, gymId, requestId);
       await loadAll(token, gymId);
       return true;

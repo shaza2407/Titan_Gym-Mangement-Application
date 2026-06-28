@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/gym_model.dart';
+import '../../../shared/connectivity_helper.dart';
 import '../controller/invite_member_controller.dart';
 
 class InviteMemberScreen extends StatelessWidget {
@@ -323,6 +324,13 @@ class _InviteMemberView extends StatelessWidget {
             onPressed: controller.isLoading
                 ? null
                 : () async {
+                  final online = await ConnectivityHelper.isOnline();
+                  if(!online){
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('You are offline. Please try again when you\'re connected.')),
+                      );
+                    }
+                    else{
                     final success = await controller.send();
                     if (success && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -331,7 +339,7 @@ class _InviteMemberView extends StatelessWidget {
                       );
                       Navigator.pop(context);
                     }
-                  },
+              }},
             icon: controller.isLoading
                 ? const SizedBox(
                     width: 16,

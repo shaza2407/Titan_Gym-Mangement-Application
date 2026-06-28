@@ -1,17 +1,15 @@
 import 'dart:convert';
-
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:saver_gallery/saver_gallery.dart';
-import 'dart:ui' as ui;
-import '../../domain/attendance_models.dart';
-import '../../data/attendance_repository.dart';
 import '../../domain/gym_model.dart';
+import '../../domain/attendance_models.dart';
+import '../controller/attendance_controller.dart';
 
-
-class AttendanceTrackingScreen extends StatefulWidget{
+class AttendanceTrackingScreen extends StatefulWidget {
   final String token;
-  // final int gymId;
   final GymModel gym;
 
   const AttendanceTrackingScreen({
@@ -26,95 +24,90 @@ class AttendanceTrackingScreen extends StatefulWidget{
 
 class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
   static const _primary = Color(0xFF4F46E5);
-  static const _green = Color(0xFF22C55E);
+  static const _green   = Color(0xFF22C55E);
 
-  late final AttendanceAnalyticsService _service;
-  AttendanceStats? _stats;
-  QRCodeInfo? _qrInfo;
-  WeeklyAttendance? _weeklyAttendance;
-  bool _loading = true;
-  String? _error;
+  late final AttendanceController _controller;
 
   @override
   void initState() {
     super.initState();
-    _service = AttendanceAnalyticsService(token: widget.token, gymId: widget.gym.gymID);
-    _load();
+    _controller = AttendanceController(
+      token: widget.token,
+      gymId: widget.gym.gymID,
+    );
+    _controller.load();
   }
 
-  Future<void> _load() async {
-    setState(() {_loading = true; _error = null;});
-    try {
-      final results = await Future.wait([
-        _service.fetchStats(),
-        _service.fetchQRCode(),
-        _service.fetchWeeklyAttendance(),
-      ]);
-      setState(() {
-        _stats = results[0] as AttendanceStats;
-        _qrInfo = results[1] as QRCodeInfo;
-        _weeklyAttendance = results[2] as WeeklyAttendance;
-        _loading = false;
-      });
-    } catch (e) {
-      setState(() {_loading = false; _error = e.toString();});
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: const BackButton(color: Colors.black87),
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Attendance Tracking',
-                style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('View attendance records and QR codes',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
-          ],
-        ),
+    return ChangeNotifierProvider.value(
+      value: _controller,
+      child: Consumer<AttendanceController>(
+        builder: (context, ctrl, _) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF8F9FA),
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: const BackButton(color: Colors.black87),
+              title: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Attendance Tracking',
+                      style: TextStyle(color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text('View attendance records and QR codes',
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+            ),
+            body: ctrl.isLoading
+                ? const Center(child: CircularProgressIndicator(color: _primary))
+                : ctrl.error != null
+                    ? _buildError(ctrl)
+                    : RefreshIndicator(
+                        onRefresh: ctrl.load,
+                        child: ListView(
+                          padding: const EdgeInsets.all(16),
+                          children: [
+                            _buildStatCards(ctrl.stats!),
+                            const SizedBox(height: 16),
+                            ctrl.qrInfo != null
+                                ? _buildQRSection(ctrl.qrInfo!)
+                                : _buildQROffline(),
+                            const SizedBox(height: 16),
+                            _buildWeeklyOverview(ctrl.weeklyAttendance!),
+                          ],
+                        ),
+                      ),
+          );
+        },
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _primary))
-          : _error != null
-              ? _buildError()
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildStatCards(),
-                      const SizedBox(height: 16),
-                      _buildQRSection(),
-                      const SizedBox(height: 16),
-                      _buildWeeklyOverview(),
-                    ],
-                  ),
-                ),
     );
   }
 
-  ////////////////////////////////////////////////////////////////////
-  Widget _buildStatCards() {
+  // ── Stat Cards ──────────────────────────────────────────────────────────────
+
+  Widget _buildStatCards(AttendanceStats stats) {
     return Row(
       children: [
         _statCard(
           icon: Icons.trending_up,
           iconColor: _primary,
           label: "Today's Total",
-          value: '${_stats!.totalToday}',
+          value: '${stats.totalToday}',
         ),
         const SizedBox(width: 10),
         _statCard(
           icon: Icons.calendar_today_outlined,
           iconColor: _green,
           label: 'Last 7 Days',
-          value: '${_stats!.thisWeek}',
+          value: '${stats.thisWeek}',
         ),
       ],
     );
@@ -150,9 +143,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
     );
   }
 
-  ////////////////////////////////////////////////////////////////////
-  Widget _buildQRSection() {
-    final qr = _qrInfo!;
+  // ── QR Section ──────────────────────────────────────────────────────────────
+
+  Widget _buildQRSection(QRCodeInfo qr) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -179,8 +172,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
               OutlinedButton.icon(
                 onPressed: () {
                   final gymName = widget.gym.gymName.toUpperCase().replaceAll(' ', '-');
-                  final expectedQrData = 'TITAN-GYM-${widget.gym.gymID}-$gymName';
-                  _downloadQR(expectedQrData);
+                  _downloadQR('TITAN-GYM-${widget.gym.gymID}-$gymName');
                 },
                 icon: const Icon(Icons.download, size: 16),
                 label: const Text('Download'),
@@ -203,15 +195,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
             ),
             child: Column(
               children: [
-                Image.memory(
-                  base64Decode(qr.qrIdentifier),
-                  width: 180,
-                  height: 180,
-                ),
+                Image.memory(base64Decode(qr.qrIdentifier), width: 180, height: 180),
                 const SizedBox(height: 10),
                 const Text('Display this QR code at the gym entrance',
                     style: TextStyle(color: Colors.grey, fontSize: 12)),
-                Text('Gym ID: ${qr.qrIdentifier}',
+                Text('Gym ID: ${qr.gymId}',
                     style: const TextStyle(color: Colors.grey, fontSize: 11)),
               ],
             ),
@@ -221,42 +209,58 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
     );
   }
 
-  void _downloadQR(String data) async{
-    try{
-      // 1. render the QR code to an image in memory
+  Widget _buildQROffline() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.qr_code, size: 48, color: Colors.grey),
+          SizedBox(height: 8),
+          Text(
+            'QR code unavailable offline',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _downloadQR(String data) async {
+    try {
       final qrPainter = QrPainter(
         data: data,
         version: QrVersions.auto,
         eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.white),
-        dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.white),
+        dataModuleStyle: const QrDataModuleStyle(
+            dataModuleShape: QrDataModuleShape.square, color: Colors.white),
       );
       final pictureRecorder = ui.PictureRecorder();
       final canvas = Canvas(pictureRecorder);
       const size = 300.0;
-
-      /// 2. fill background with your primary color
       canvas.drawRect(
-          Rect.fromLTWH(0, 0, size, size),
-          Paint()..color = const Color(0xFF4F46E5),
+        Rect.fromLTWH(0, 0, size, size),
+        Paint()..color = const Color(0xFF4F46E5),
       );
       qrPainter.paint(canvas, const Size(size, size));
-
       final picture = pictureRecorder.endRecording();
       final image = await picture.toImage(size.toInt(), size.toInt());
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final bytes = byteData!.buffer.asUint8List();
 
-      /// 3. save to gallery
       final result = await SaverGallery.saveImage(
         bytes,
         fileName: 'gym_qr_$data.png',
         skipIfExists: false,
-        // androidRelativePath: 'Pictures',
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.isSuccess ? 'QR code saved to gallery' : 'Failed to save')),
-        );
+        SnackBar(content: Text(result.isSuccess ? 'QR code saved to gallery' : 'Failed to save')),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -265,12 +269,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
     }
   }
 
+  // ── Weekly Overview ─────────────────────────────────────────────────────────
 
-  ////////////////////////////////////////////////////////////////////
-  Widget _buildWeeklyOverview() {
-    final days = _weeklyAttendance!.days;
+  Widget _buildWeeklyOverview(WeeklyAttendance weekly) {
+    final days = weekly.days;
     final maxCount = days.map((d) => d.count).fold(0, (a, b) => a > b ? a : b);
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -281,13 +284,15 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("This Week's Overview", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text("This Week's Overview",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 2),
-          const Text('Daily attendance count', style: TextStyle(color: Color(0xFF4F46E5), fontSize: 12)),
+          const Text('Daily attendance count',
+              style: TextStyle(color: Color(0xFF4F46E5), fontSize: 12)),
           const SizedBox(height: 16),
           ...days.map((d) => _weeklyBar(d, maxCount)),
         ],
-      )
+      ),
     );
   }
 
@@ -299,12 +304,12 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
         children: [
           SizedBox(
             width: 34,
-            child: Text(d.day, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            child: Text(d.day,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
           ),
           Expanded(
             child: Stack(
               children: [
-                // track
                 Container(
                   height: 28,
                   decoration: BoxDecoration(
@@ -312,7 +317,6 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                // fill
                 FractionallySizedBox(
                   widthFactor: fraction.clamp(0.05, 1.0),
                   child: Container(
@@ -323,7 +327,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
                     ),
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 10),
-                    child: Text('${d.count}', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: Text('${d.count}',
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -334,32 +340,20 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
     );
   }
 
+  // ── Error ───────────────────────────────────────────────────────────────────
 
-  Widget _buildError() {
+  Widget _buildError(AttendanceController ctrl) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
           const SizedBox(height: 12),
-          Text(_error!, textAlign: TextAlign.center,),
+          Text(ctrl.error!, textAlign: TextAlign.center),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: _load, child: Text('Retry')),
+          ElevatedButton(onPressed: ctrl.load, child: const Text('Retry')),
         ],
       ),
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
