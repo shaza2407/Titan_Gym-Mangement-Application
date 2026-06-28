@@ -1,9 +1,10 @@
 {
   "info": {
-    "_postman_id": "14024ab3-8228-4290-b589-1c3e19302797",
+    "_postman_id": "6d88792a-5883-4323-a1d6-6e5682b93c26",
     "name": "Titan Test Space",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "40551115"
+    "_exporter_id": "40499505",
+    "_collection_link": "https://go.postman.co/collection/40499505-6d88792a-5883-4323-a1d6-6e5682b93c26?source=collection_link"
   },
   "item": [
     {
@@ -711,6 +712,13 @@
                     "packages": {},
                     "requests": {}
                   }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
                 }
               ],
               "request": {
@@ -923,6 +931,103 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"email\": \"client@test.com\",\n  \"password\": \"12345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/signin",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "signin"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sign In - Coach",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// ------ add token to auth --------",
+                      "const json = pm.response.json();",
+                      "",
+                      "if (json.access_token) {",
+                      "    pm.environment.set(\"coach_token\", json.access_token);",
+                      "    console.log(\"Token saved:\", json.access_token);",
+                      "} else {",
+                      "    console.log(\"No token found in response:\", JSON.stringify(json));",
+                      "}",
+                      "",
+                      "",
+                      "// ─── Status Code ───────────────────────────────────────────────",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// ─── Content-Type ──────────────────────────────────────────────",
+                      "",
+                      "pm.test(\"Content-Type is application/json\", function () {",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                      "});",
+                      "",
+                      "// ─── Body Structure ────────────────────────────────────────────",
+                      "",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Response body has required fields\", function () {",
+                      "    pm.expect(response).to.be.an(\"object\");",
+                      "    pm.expect(response).to.have.property(\"access_token\");",
+                      "    pm.expect(response).to.have.property(\"role\");",
+                      "    pm.expect(response).to.have.property(\"userID\");",
+                      "});",
+                      "",
+                      "// // ─── Field Values Match Request ────────────────────────────────",
+                      "pm.test(\"Returned user data matches the role\", function () {",
+                      "    pm.expect(response.role).to.eql(\"coach\");",
+                      "});",
+                      "",
+                      "// ─── Password Not Exposed ──────────────────────────────────────",
+                      "pm.test(\"Password is not returned in response\", function () {",
+                      "    pm.expect(response).to.not.have.property(\"password\");",
+                      "});",
+                      "",
+                      "// ─── ID is valid ───────────────────────────────────────────────",
+                      "pm.test(\"User ID is present and non-empty\", function () {",
+                      "    pm.expect(response.userID).to.exist;",
+                      "    pm.expect(response.userID).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"coach@gym.com\",\n  \"password\": \"12345678\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -7491,6 +7596,1234 @@
             }
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "Coach Tests",
+      "item": [
+        {
+          "name": "Gyms & Announcements",
+          "item": [
+            {
+              "name": "Get My Gyms - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type is JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                      "",
+                      "const res = pm.response.json();",
+                      "pm.test('Response is an array', () => pm.expect(res).to.be.an('array'));",
+                      "",
+                      "if (res.length > 0) {",
+                      "  const gym = res[0];",
+                      "  pm.test('Gym has required fields', () => {",
+                      "    ['gym_id', 'name', 'address', 'status', 'clients_count', 'classes_count'].forEach(f => {",
+                      "      pm.expect(gym).to.have.property(f);",
+                      "    });",
+                      "  });",
+                      "  pm.test('Counts are numbers', () => {",
+                      "    pm.expect(gym.clients_count).to.be.a('number');",
+                      "    pm.expect(gym.classes_count).to.be.a('number');",
+                      "  });",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/gyms/my-gyms/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "gyms",
+                    "my-gyms",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get My Gyms - Unauthorized (No Token)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 401 Unauthorized', () => pm.response.to.have.status(401));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response contains error detail', () => {\r",
+                      "    pm.expect(res).to.have.property('detail');\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/gyms/my-gyms/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "gyms",
+                    "my-gyms",
+                    ""
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get gym Announcements",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response is an array', () => pm.expect(res).to.be.an('array'));\r",
+                      "\r",
+                      "if (res.length > 0) {\r",
+                      "  pm.test('Announcement has required fields', () => {\r",
+                      "    ['id', 'gym_name', 'title', 'content', 'created_at'].forEach(f => {\r",
+                      "      pm.expect(res[0]).to.have.property(f);\r",
+                      "    });\r",
+                      "  });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/gyms/my-announcements?gym_id={{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "gyms",
+                    "my-announcements"
+                  ],
+                  "query": [
+                    {
+                      "key": "gym_id",
+                      "value": "{{gym_id}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get All Announcements",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response is an array', () => pm.expect(res).to.be.an('array'));\r",
+                      "\r",
+                      "if (res.length > 0) {\r",
+                      "  pm.test('Announcement has required fields', () => {\r",
+                      "    ['id', 'gym_name', 'title', 'content', 'created_at'].forEach(f => {\r",
+                      "      pm.expect(res[0]).to.have.property(f);\r",
+                      "    });\r",
+                      "  });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/gyms/my-announcements",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "gyms",
+                    "my-announcements"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Gym Classes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response is an array', () => pm.expect(res).to.be.an('array'));\r",
+                      "\r",
+                      "if (res.length > 0) {\r",
+                      "  pm.test('Class has required fields', () => {\r",
+                      "    ['id', 'title', 'start_time', 'duration', 'current_clients', 'max_clients'].forEach(f => {\r",
+                      "      pm.expect(res[0]).to.have.property(f);\r",
+                      "    });\r",
+                      "  });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/gyms/classes/?gym_id={{gym_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "gyms",
+                    "classes",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "gym_id",
+                      "value": "{{gym_id}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Schedule & Requests",
+          "item": [
+            {
+              "name": "Get Schedule Stats",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Stats contain numeric fields', () => {\r",
+                      "  ['weekly_classes', 'total_clients', 'pending_requests'].forEach(f => {\r",
+                      "    pm.expect(res).to.have.property(f);\r",
+                      "    pm.expect(res[f]).to.be.a('number');\r",
+                      "  });\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/stats",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "stats"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Weekly Schedule",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response is an array (days of the week)', () => pm.expect(res).to.be.an('array'));\r",
+                      "\r",
+                      "if (res.length > 0) {\r",
+                      "  pm.test('Each day contains a classes array', () => {\r",
+                      "    res.forEach(day => {\r",
+                      "      pm.expect(day).to.have.property('day');\r",
+                      "      pm.expect(day).to.have.property('classes');\r",
+                      "      pm.expect(day.classes).to.be.an('array');\r",
+                      "    });\r",
+                      "  });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/weekly",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "weekly"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get My Classes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response is an array', () => pm.expect(res).to.be.an('array'));\r",
+                      "\r",
+                      "if (res.length > 0) {\r",
+                      "  pm.test('Class has coach-specific fields', () => {\r",
+                      "    ['id', 'title', 'gym_name', 'start_time', 'is_recurring'].forEach(f => {\r",
+                      "      pm.expect(res[0]).to.have.property(f);\r",
+                      "    });\r",
+                      "  });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/my-classes",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "my-classes"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Schedule Gyms",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response is an array', () => pm.expect(res).to.be.an('array'));\r",
+                      "\r",
+                      "if (res.length > 0) {\r",
+                      "  pm.test('Gym lookup has id and name', () => {\r",
+                      "    pm.expect(res[0]).to.have.property('id');\r",
+                      "    pm.expect(res[0]).to.have.property('name');\r",
+                      "  });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/gyms",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "gyms"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Class Requests",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response is an array', () => pm.expect(res).to.be.an('array'));\r",
+                      "\r",
+                      "if (res.length > 0) {\r",
+                      "  pm.test('Request has status fields', () => {\r",
+                      "    ['id','gymID','coach_id', 'class_name', 'duration','max_capacity', 'status', 'requested_time'].forEach(f => {\r",
+                      "      pm.expect(res[0]).to.have.property(f);\r",
+                      "    });\r",
+                      "  });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/requests",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "requests"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Submit Class Request - Success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                      "",
+                      "const res = pm.response.json();",
+                      "",
+                      "pm.test('Response has request_id', () => {",
+                      "    pm.expect(res).to.have.property('request_id');",
+                      "});",
+                      "",
+                      "if (res.request_id) {",
+                      "    pm.environment.set(\"coach_request_id\", res.request_id);",
+                      "    console.log(\"Saved coach_request_id:\", res.request_id);",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n\n  \"class_name\": \"Strength Training Basics\",\n  \"gym_id\": {{gym_id}},\n  \"is_recurring\": true,\n  \"day_of_week\": \"Monday\",\n  \"requested_date\": null,\n  \"requested_time\": \"11:40:00\",\n  \"duration\": 60,\n  \"max_capacity\": 20,\n  \"reason\": \"Weekly beginner strength training\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/requests",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "requests"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Submit Class Request - Missing Data (422)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 422 Unprocessable Entity', () => pm.response.to.have.status(422));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response contains validation detail array', () => {\r",
+                      "  pm.expect(res).to.have.property('detail');\r",
+                      "  pm.expect(res.detail).to.be.an('array');\r",
+                      "  pm.expect(res.detail).to.have.length.above(0);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"class_name\": \"Invalid Class Missing Gym ID\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/requests",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "requests"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Request",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 or 204 (Successfully Deleted)', () => {\r",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
+                      "});\r",
+                      "\r",
+                      "pm.environment.unset(\"coach_request_id\");"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/requests/{{coach_request_id}}",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "requests",
+                    "{{coach_request_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete My Class",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 or 204 (Successfully Deleted)', () => {\r",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/schedule/my-classes/5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "schedule",
+                    "my-classes",
+                    "5"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Dashboard & Profile",
+          "item": [
+            {
+              "name": "Get Coach Me",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Has required identity fields', () => {\r",
+                      "  ['userID','coachID', 'name', 'email'].forEach(f => {\r",
+                      "    pm.expect(res).to.have.property(f);\r",
+                      "  });\r",
+                      "});\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/me",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "me"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Dashboard",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "",
+                      "const res = pm.response.json();",
+                      "pm.test('Dashboard has correct stat fields', () => {",
+                      "  ['weekly_classes', 'total_clients', 'active_gyms'].forEach(f => {",
+                      "    pm.expect(res).to.have.property(f);",
+                      "    pm.expect(res[f]).to.be.a('number');",
+                      "  });",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/dashboard",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "dashboard"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Dashboard Upcoming",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response is an array', () => pm.expect(res).to.be.an('array'));\r",
+                      "\r",
+                      "if (res.length > 0) {\r",
+                      "  pm.test('Upcoming class has required fields', () => {\r",
+                      "    ['id', 'title', 'start_time', 'gym_name', 'duration',\"current_clients\", 'max_clients'].forEach(f => {\r",
+                      "      pm.expect(res[0]).to.have.property(f);\r",
+                      "    });\r",
+                      "  });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/dashboard/upcoming",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "dashboard",
+                    "upcoming"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Profile has required coach fields', () => {\r",
+                      "  ['userID','coachID', 'name', 'email', 'phone'].forEach(f => {\r",
+                      "    pm.expect(res).to.have.property(f);\r",
+                      "  });\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response confirms update', () => {\r",
+                      "  pm.expect(res).to.be.an('object');\r",
+                      "});\r",
+                      "\r",
+                      "if (res.bio !== undefined) {\r",
+                      "    pm.test('Bio was updated correctly', () => {\r",
+                      "        pm.expect(res.bio).to.eql('bio updated through Postman');\r",
+                      "    });\r",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bio\": \"bio updated through Postman\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/coach/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "profile"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Specializations",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status 200 OK', () => pm.response.to.have.status(200));\r",
+                      "\r",
+                      "const res = pm.response.json();\r",
+                      "pm.test('Response contains specializations array', () => {\r",
+                      "  pm.expect(res).to.have.property('specializations');\r",
+                      "  pm.expect(res.specializations).to.be.an('array');\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{coach_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/coach/specializations",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "coach",
+                    "specializations"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ]
     }
