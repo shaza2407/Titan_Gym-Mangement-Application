@@ -268,6 +268,39 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    if (ctrl.stats == null && ctrl.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                ctrl.errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey, fontSize: 15),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => ctrl.loadStats(widget.token),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4F46E5),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final stats = ctrl.stats;
 
     return SafeArea(
@@ -278,6 +311,8 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
           children: [
             if (stats != null) _buildSubscriptionCard(stats),
             const SizedBox(height: 12),
+
+            // ── rest of the home tab exactly as before ──────────
             Row(
               children: [
                 _buildStatCard(
@@ -366,14 +401,12 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
                       if (achCtrl.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
-
                       if (achCtrl.achievements.isEmpty) {
                         return const Text(
                           'No badges available.',
                           style: TextStyle(color: Colors.grey),
                         );
                       }
-
                       final unlocked = achCtrl.achievements
                           .where((a) => a.isUnlocked)
                           .toList();

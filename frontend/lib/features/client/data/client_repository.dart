@@ -2,66 +2,100 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../domain/client_profile_model.dart';
 import '../../shared/api_constants.dart';
+import '../../shared/cache_service.dart';
+import '../../shared/connectivity_helper.dart';
 
 class ClientRepository {
+  static const _profileKey = 'cache_client_profile';
 
+  Map<String, String> _headers(String token) => {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $token',
+  };
 
-  // Check if client is connected to a gym
-  // Returns true/false → used right after sign in
   Future<bool> isConnectedToGym(String token) async {
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/client/me'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['is_connected'] as bool;
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/client/me'),
+        headers: _headers(token),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['is_connected'] as bool;
+      }
+      throw Exception('Failed to check gym connection');
+    } catch (e) {
+      throw Exception('No internet connection. Please check your network.');
     }
-    throw Exception('Failed to check gym connection');
   }
 
-  // GET /client/profile
   Future<ClientProfileModel> getProfile(String token) async {
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/client/profile'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-    if (response.statusCode == 200) {
-      return ClientProfileModel.fromJson(jsonDecode(response.body));
+    final isOnline = await ConnectivityHelper.isOnline();
+
+    if (!isOnline) {
+      final cached = await CacheService.load(_profileKey);
+      if (cached != null) {
+        return ClientProfileModel.fromJson(jsonDecode(cached));
+      }
+      throw Exception('You\'re offline and no saved profile was found.');
     }
-    throw Exception('Failed to load profile');
+
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/client/profile'),
+        headers: _headers(token),
+      );
+      if (response.statusCode == 200) {
+        await CacheService.save(_profileKey, response.body);
+        return ClientProfileModel.fromJson(jsonDecode(response.body));
+      }
+      final cached = await CacheService.load(_profileKey);
+      if (cached != null) {
+        return ClientProfileModel.fromJson(jsonDecode(cached));
+      }
+      throw Exception('Unable to load profile (${response.statusCode}).');
+    } catch (e) {
+      final cached = await CacheService.load(_profileKey);
+      if (cached != null) {
+        return ClientProfileModel.fromJson(jsonDecode(cached));
+      }
+      throw Exception('You\'re offline and no saved profile was found.');
+    }
   }
 
-  // PUT /client/profile
   Future<ClientProfileModel> updateProfile(
-  String token,
-  Map<String, dynamic> data,
-) async {
-  final response = await http.put(
-    Uri.parse('${ApiConstants.baseUrl}/client/profile'),
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
-    body: jsonEncode(data),
-  );
-  if (response.statusCode == 200) {
-    return ClientProfileModel.fromJson(jsonDecode(response.body));
-  }
+    String token,
+    Map<String, dynamic> data,
+  ) async {
+    final isOnline = await ConnectivityHelper.isOnline();
+    if (!isOnline) {
+      throw Exception(
+        'You\'re offline. Connect to the internet to save changes.',
+      );
+    }
 
-  final detail = jsonDecode(response.body)['detail'];
-  if (detail is List && detail.isNotEmpty) {
-    final msg = (detail.first['message'] as String?) ??
-        (detail.first['msg'] as String? ?? 'Unknown error')
-            .replaceAll('Value error, ', '');
-    throw Exception(msg);
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConstants.baseUrl}/client/profile'),
+        headers: _headers(token),
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 200) {
+        await CacheService.save(_profileKey, response.body);
+        return ClientProfileModel.fromJson(jsonDecode(response.body));
+      }
+      final detail = jsonDecode(response.body)['detail'];
+      if (detail is List && detail.isNotEmpty) {
+        final msg =
+            (detail.first['message'] as String?) ??
+            (detail.first['msg'] as String? ?? 'Unknown error').replaceAll(
+              'Value error, ',
+              '',
+            );
+        throw Exception(msg);
+      }
+      throw Exception(detail ?? 'Failed to update profile.');
+    } catch (e) {
+      rethrow;
+    }
   }
-  throw Exception(detail ?? 'Failed to update profile');
-}
 }
