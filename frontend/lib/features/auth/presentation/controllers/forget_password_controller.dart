@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/auth_repository.dart';
 import '../../domain/i_auth_repository.dart';
 import '../../domain/auth_model.dart'; 
+import '../../../shared/connectivity_helper.dart';
 
 class ForgotPasswordController extends ChangeNotifier {
   final IAuthRepository _repo;
@@ -21,6 +22,12 @@ class ForgotPasswordController extends ChangeNotifier {
 
   // Step 1 — send code to email
   Future<void> sendCode() async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return;
+    }
     if (emailController.text.trim().isEmpty) {
       errorMessage = 'Please enter your email';
       notifyListeners();
@@ -47,6 +54,12 @@ class ForgotPasswordController extends ChangeNotifier {
   // Returns true on success so the UI can show a confirmation dialog
   // and decide where to navigate next.
   Future<bool> resetPassword() async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return false;
+    }
     if (passwordController.text != confirmController.text) {
       errorMessage = 'Passwords do not match';
       notifyListeners();

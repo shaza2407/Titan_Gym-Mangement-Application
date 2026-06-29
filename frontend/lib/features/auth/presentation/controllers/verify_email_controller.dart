@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/auth_repository.dart';
 import '../../domain/i_auth_repository.dart';
 import '../../domain/auth_model.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class VerifyEmailController extends ChangeNotifier {
   final IAuthRepository _repo;
@@ -17,6 +18,12 @@ class VerifyEmailController extends ChangeNotifier {
   String? successMessage;
 
   Future<void> verifyEmail(BuildContext context, String email) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return;
+    }
     if (codeController.text.trim().isEmpty) {
       errorMessage = 'Please enter the verification code';
       notifyListeners();
@@ -47,6 +54,12 @@ class VerifyEmailController extends ChangeNotifier {
   }
 
   Future<void> resendVerification(String email) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return;
+    }
     isResending = true;
     errorMessage = null;
     successMessage = null;

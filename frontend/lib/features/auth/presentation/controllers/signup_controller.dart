@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/auth_model.dart';
 import '../../domain/i_auth_repository.dart';
 import '../../data/auth_repository.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class SignupController extends ChangeNotifier {
   final IAuthRepository _repo;
@@ -70,6 +71,12 @@ class SignupController extends ChangeNotifier {
   }
 
   Future<void> signUp(BuildContext context) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return;
+    }
     if (!_validateFields()) return;
 
     isLoading = true;
