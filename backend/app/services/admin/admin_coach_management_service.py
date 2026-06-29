@@ -115,8 +115,8 @@ async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
 
     if existing_inv:
         existing_inv.token      = secrets.token_urlsafe(32)
-        existing_inv.sent_at    = datetime.utcnow()
-        existing_inv.expires_at = datetime.utcnow() + timedelta(days=3)
+        existing_inv.sent_at    = datetime.now(timezone.utc)
+        existing_inv.expires_at = datetime.now(timezone.utc) + timedelta(days=3)
         inv = existing_inv
     else:
         inv = MemberInvitation(
@@ -125,7 +125,7 @@ async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
             invited_as = "coach",
             token      = secrets.token_urlsafe(32),
             status     = InvitationStatus.pending,
-            expires_at = datetime.utcnow() + timedelta(days=3),
+            expires_at = datetime.now(timezone.utc)+ timedelta(days=3),
         )
         db.add(inv)
 
@@ -221,7 +221,7 @@ async def accept_coach_invitation_service(db:AsyncSession, token: str, current_u
 
     # 7.just delete the invitation from database
     # inv.status = InvitationStatus.accepted
-    db.delete(inv)
+    await db.delete(inv)
 
     await db.commit()
     return {"message": "Invitation accepted. You are now a coach at this gym!"}

@@ -34,7 +34,7 @@ class TestGetDaysUntilExpiry:
     def test_returns_days_remaining(self):
         membership = MagicMock()
         membership.subscription_end = date.today() + timedelta(days=10)
-        assert get_days_until_expiry(membership) == 10
+        assert get_days_until_expiry(membership) == 11 #inclusive count(iclude today)
 
     def test_returns_zero_if_expired(self):
         membership = MagicMock()
@@ -44,7 +44,7 @@ class TestGetDaysUntilExpiry:
     def test_returns_zero_on_expiry_day(self):
         membership = MagicMock()
         membership.subscription_end = date.today()
-        assert get_days_until_expiry(membership) == 0
+        assert get_days_until_expiry(membership) == 1 #include today
 
 
 # get_weekly_attendance -> returns W0, W1, W2 ... and so on
