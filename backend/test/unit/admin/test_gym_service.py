@@ -20,21 +20,21 @@ GYM_ID = 5
 
 
 def scalar_result(value):
-    """For scalar() calls — count queries."""
+    """For scalar() calls - count queries."""
     r = MagicMock()
     r.scalar.return_value = value
     return r
 
 
 def scalars_first_result(value):
-    """For scalars().first() calls — single object queries."""
+    """For scalars().first() calls - single object queries."""
     r = MagicMock()
     r.scalars.return_value.first.return_value = value
     return r
 
 
 def scalars_all_result(values):
-    """For scalars().all() calls — list queries."""
+    """For scalars().all() calls - list queries."""
     r = MagicMock()
     r.scalars.return_value.all.return_value = values
     return r
