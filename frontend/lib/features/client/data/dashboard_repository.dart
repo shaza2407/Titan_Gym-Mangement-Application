@@ -18,8 +18,9 @@ class DashboardRepository {
 
     if (!isOnline) {
       final cached = await CacheService.load(_statsKey);
-      if (cached != null)
+      if (cached != null) {
         return DashboardStatsModel.fromJson(jsonDecode(cached));
+      }
       throw Exception('You\'re offline and no saved dashboard data was found.');
     }
 
@@ -33,13 +34,15 @@ class DashboardRepository {
         return DashboardStatsModel.fromJson(jsonDecode(res.body));
       }
       final cached = await CacheService.load(_statsKey);
-      if (cached != null)
+      if (cached != null) {
         return DashboardStatsModel.fromJson(jsonDecode(cached));
+      }
       throw Exception('Unable to load dashboard data (${res.statusCode}).');
     } catch (e) {
       final cached = await CacheService.load(_statsKey);
-      if (cached != null)
+      if (cached != null) {
         return DashboardStatsModel.fromJson(jsonDecode(cached));
+      }
       throw Exception('No internet connection. Please check your network.');
     }
   }

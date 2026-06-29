@@ -33,8 +33,9 @@ class ClientRepository {
 
     if (!isOnline) {
       final cached = await CacheService.load(_profileKey);
-      if (cached != null)
+      if (cached != null) {
         return ClientProfileModel.fromJson(jsonDecode(cached));
+      }
       throw Exception('You\'re offline and no saved profile was found.');
     }
 
@@ -48,13 +49,15 @@ class ClientRepository {
         return ClientProfileModel.fromJson(jsonDecode(response.body));
       }
       final cached = await CacheService.load(_profileKey);
-      if (cached != null)
+      if (cached != null) {
         return ClientProfileModel.fromJson(jsonDecode(cached));
+      }
       throw Exception('Unable to load profile (${response.statusCode}).');
     } catch (e) {
       final cached = await CacheService.load(_profileKey);
-      if (cached != null)
+      if (cached != null) {
         return ClientProfileModel.fromJson(jsonDecode(cached));
+      }
       throw Exception('You\'re offline and no saved profile was found.');
     }
   }
@@ -92,7 +95,6 @@ class ClientRepository {
       }
       throw Exception(detail ?? 'Failed to update profile.');
     } catch (e) {
-      // Re-throw validation errors from the server as-is
       rethrow;
     }
   }

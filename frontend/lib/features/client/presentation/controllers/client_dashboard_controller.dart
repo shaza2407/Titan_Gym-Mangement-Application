@@ -22,7 +22,6 @@ class ClientDashboardController extends ChangeNotifier {
     try {
       stats = await _repo.getDashboardStats(token);
     } catch (e) {
-      // Only surface the error if we have nothing to show at all
       if (stats == null) {
         errorMessage = e.toString().replaceAll('Exception: ', '');
       }

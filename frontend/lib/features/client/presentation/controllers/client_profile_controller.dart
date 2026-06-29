@@ -42,7 +42,6 @@ class ClientProfileController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Both repos now cache — safe to run in parallel even offline
       final results = await Future.wait([
         _repo.getProfile(token),
         _dashRepo.getDashboardStats(token),
@@ -60,12 +59,9 @@ class ClientProfileController extends ChangeNotifier {
           : null;
       dateOfBirth = profile!.dateOfBirth;
     } catch (e) {
-      // Only show error if we have nothing to show at all
       if (profile == null) {
         errorMessage = e.toString().replaceAll('Exception: ', '');
       }
-      // If profile loaded but dashboardStats failed (or vice versa),
-      // stay silent — partial data is better than an error screen
     } finally {
       isLoading = false;
       notifyListeners();
@@ -78,7 +74,6 @@ class ClientProfileController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Repo throws a clear offline message — no need to duplicate the check here
       profile = await _repo.updateProfile(token, {
         'name': nameController.text.trim(),
         'phone': phoneController.text.trim(),
@@ -88,7 +83,7 @@ class ClientProfileController extends ChangeNotifier {
         'fitness_goal': selectedFitnessGoal,
         'date_of_birth': dateOfBirth,
       });
-      isOffline = false; // successful save means we're back online
+      isOffline = false;
       return true;
     } catch (e) {
       errorMessage = e.toString().replaceAll('Exception: ', '');
