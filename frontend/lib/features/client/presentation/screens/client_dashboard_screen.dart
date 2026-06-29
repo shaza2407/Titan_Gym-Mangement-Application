@@ -263,146 +263,37 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   }
 
   // ── Home Tab ──────────────────────────────────────────────────────────────
-  Widget _buildHomeTab(ClientDashboardController ctrl) {
-    if (ctrl.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+Widget _buildHomeTab(ClientDashboardController ctrl) {
+  if (ctrl.isLoading) {
+    return const Center(child: CircularProgressIndicator());
+  }
 
-    final stats = ctrl.stats;
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+  // Hard failure — nothing to show at all
+  if (ctrl.stats == null && ctrl.errorMessage != null) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            if (stats != null) _buildSubscriptionCard(stats),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _buildStatCard(
-                  Icons.trending_up,
-                  stats != null ? '${stats.daysThisWeek}/7' : '-',
-                  'Days This\nWeek',
-                  const Color(0xFF4CAF50),
-                ),
-                const SizedBox(width: 12),
-                _buildStatCard(
-                  Icons.emoji_events_outlined,
-                  stats != null ? '${stats.currentStreak} days' : '-',
-                  'Current Streak',
-                  const Color(0xFFFF9800),
-                ),
-                const SizedBox(width: 12),
-                _buildStatCard(
-                  Icons.qr_code,
-                  stats != null ? '${stats.totalVisits}' : '-',
-                  'Total Visits',
-                  const Color(0xFF4F46E5),
-                ),
-              ],
-            ),
+            const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Actions',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    'Access your fitness features',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildActionItem(
-                    Icons.notifications_outlined,
-                    'My Gym${stats?.gymName != null ? ' - ${stats!.gymName}' : ''}',
-                    'View Gym info and announcements',
-                    () => _navigateTo(_kGym),
-                  ),
-                  _buildActionItem(
-                    Icons.track_changes_outlined,
-                    'Training Plans',
-                    'Generate personalized workout plans',
-                    () => _navigateTo(_kTraining),
-                  ),
-                  _buildActionItem(
-                    Icons.emoji_events_outlined,
-                    'My Badges',
-                    'View your achievements',
-                    () => _navigateTo(_kAchievements),
-                  ),
-                ],
-              ),
+            Text(
+              ctrl.errorMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey, fontSize: 15),
             ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'My Achievements',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const Text(
-                    'Unlock badges by reaching milestones',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  Consumer<ClientAchievementController>(
-                    builder: (context, achCtrl, _) {
-                      if (achCtrl.isLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      if (achCtrl.achievements.isEmpty) {
-                        return const Text(
-                          'No badges available.',
-                          style: TextStyle(color: Colors.grey),
-                        );
-                      }
-
-                      final unlocked = achCtrl.achievements
-                          .where((a) => a.isUnlocked)
-                          .toList();
-                      final locked = achCtrl.achievements
-                          .where((a) => !a.isUnlocked)
-                          .toList();
-                      final displayAch = [
-                        ...unlocked,
-                        ...locked,
-                      ].take(4).toList();
-
-                      return GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 1.2,
-                        children: displayAch.map((a) {
-                          String shortName = a.name;
-                          if (shortName.contains('—')) {
-                            shortName = shortName.split('—').first.trim();
-                          }
-                          return _buildBadge(a.icon, shortName, a.isUnlocked);
-                        }).toList(),
-                      );
-                    },
-                  ),
-                ],
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => ctrl.loadStats(widget.token),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4F46E5),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -410,6 +301,168 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
       ),
     );
   }
+
+  final stats = ctrl.stats;
+
+  return SafeArea(
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          // ── Offline banner ──────────────────────────────────
+          if (ctrl.isOffline)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF93C5FD)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.wifi_off, color: Color(0xFF1D4ED8), size: 18),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'You\'re offline. Showing your last saved data.',
+                      style: TextStyle(color: Color(0xFF1D4ED8), fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          if (stats != null) _buildSubscriptionCard(stats),
+          const SizedBox(height: 12),
+
+          // ── rest of the home tab exactly as before ──────────
+          Row(
+            children: [
+              _buildStatCard(
+                Icons.trending_up,
+                stats != null ? '${stats.daysThisWeek}/7' : '-',
+                'Days This\nWeek',
+                const Color(0xFF4CAF50),
+              ),
+              const SizedBox(width: 12),
+              _buildStatCard(
+                Icons.emoji_events_outlined,
+                stats != null ? '${stats.currentStreak} days' : '-',
+                'Current Streak',
+                const Color(0xFFFF9800),
+              ),
+              const SizedBox(width: 12),
+              _buildStatCard(
+                Icons.qr_code,
+                stats != null ? '${stats.totalVisits}' : '-',
+                'Total Visits',
+                const Color(0xFF4F46E5),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Actions',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const Text(
+                  'Access your fitness features',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                _buildActionItem(
+                  Icons.notifications_outlined,
+                  'My Gym${stats?.gymName != null ? ' - ${stats!.gymName}' : ''}',
+                  'View Gym info and announcements',
+                  () => _navigateTo(_kGym),
+                ),
+                _buildActionItem(
+                  Icons.track_changes_outlined,
+                  'Training Plans',
+                  'Generate personalized workout plans',
+                  () => _navigateTo(_kTraining),
+                ),
+                _buildActionItem(
+                  Icons.emoji_events_outlined,
+                  'My Badges',
+                  'View your achievements',
+                  () => _navigateTo(_kAchievements),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'My Achievements',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const Text(
+                  'Unlock badges by reaching milestones',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                Consumer<ClientAchievementController>(
+                  builder: (context, achCtrl, _) {
+                    if (achCtrl.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (achCtrl.achievements.isEmpty) {
+                      return const Text(
+                        'No badges available.',
+                        style: TextStyle(color: Colors.grey),
+                      );
+                    }
+                    final unlocked = achCtrl.achievements.where((a) => a.isUnlocked).toList();
+                    final locked   = achCtrl.achievements.where((a) => !a.isUnlocked).toList();
+                    final displayAch = [...unlocked, ...locked].take(4).toList();
+
+                    return GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.2,
+                      children: displayAch.map((a) {
+                        String shortName = a.name;
+                        if (shortName.contains('—')) {
+                          shortName = shortName.split('—').first.trim();
+                        }
+                        return _buildBadge(a.icon, shortName, a.isUnlocked);
+                      }).toList(),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   // ── Subscription Card ─────────────────────────────────────────────────────
   Widget _buildSubscriptionCard(DashboardStatsModel stats) {

@@ -1,3 +1,5 @@
+// frontend/lib/features/shared/connectivity_helper.dart
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class ConnectivityHelper {
