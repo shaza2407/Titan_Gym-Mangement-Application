@@ -110,7 +110,7 @@ async def get_avg_attendance_for_period(db: AsyncSession, gym: Gym, start_date: 
         )
     )
     total_checkins: int = checkins_result.scalar_one() or 0
-    days = (end_date - start_date).days or 1
+    days = (end_date - start_date).days + 1
     avg_daily_attendance = round(total_checkins / days)
     return avg_daily_attendance
 
@@ -130,7 +130,7 @@ async def get_revenue_for_last_6_months(db: AsyncSession, gym: Gym):
     today = date.today()
     months = []
 
-    for i in range(6, -1, -1):
+    for i in range(5, -1, -1):
         month_date = today - relativedelta(months=i)
         start = month_date.replace(day=1)
         end = (start + relativedelta(months=1)) - relativedelta(days=1)
@@ -144,7 +144,7 @@ async def get_revenue_for_last_6_months(db: AsyncSession, gym: Gym):
 async def get_members_for_last_6_months(db: AsyncSession, gym: Gym):
     today = date.today()
     months = []
-    for i in range(6, -1, -1):
+    for i in range(5, -1, -1):
         month_date = today - relativedelta(months=i)
         start = month_date.replace(day=1)
         end = (start + relativedelta(months=1)) - relativedelta(days=1)
