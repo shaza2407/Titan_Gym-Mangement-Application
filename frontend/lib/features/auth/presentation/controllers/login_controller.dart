@@ -3,6 +3,7 @@ import '../../domain/auth_model.dart';
 import '../../domain/i_auth_repository.dart';
 import '../../data/auth_repository.dart';
 import '../../../notification/presentation/notification_service.dart';
+import '../../../shared/connectivity_helper.dart';
 
 class LoginController extends ChangeNotifier {
   final IAuthRepository _repo;
@@ -34,6 +35,12 @@ class LoginController extends ChangeNotifier {
   }
 
   Future<void> signIn(BuildContext context) async {
+    final online = await ConnectivityHelper.isOnline();
+    if(!online){
+      errorMessage = 'You are offline. Please try again when you\'re connected.';
+      notifyListeners();
+      return;
+    }
   if (!_validateFields()) return;
 
   isLoading = true;
