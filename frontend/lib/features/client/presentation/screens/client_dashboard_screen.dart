@@ -309,37 +309,6 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Offline banner ──────────────────────────────────
-            if (ctrl.isOffline)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF93C5FD)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.wifi_off, color: Color(0xFF1D4ED8), size: 18),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'You\'re offline. Showing your last saved data.',
-                        style: TextStyle(
-                          color: Color(0xFF1D4ED8),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
             if (stats != null) _buildSubscriptionCard(stats),
             const SizedBox(height: 12),
 
