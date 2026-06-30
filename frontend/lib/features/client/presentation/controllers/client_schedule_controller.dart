@@ -16,7 +16,7 @@ class ClientScheduleController extends ChangeNotifier {
   bool isBrowseLoading = false;
   String? errorMessage;
 
-  int selectedTab = 0; // 0=MyClasses, 1=Browse
+  int selectedTab = 0;
   String? selectedDay;
 
   final List<String> days = [
@@ -35,16 +35,30 @@ class ClientScheduleController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
+    final results = await Future.wait([
+      _safe(() async => stats = await _repo.getStats(token)),
+      _safe(() async => myClasses = await _repo.getMyClasses(token)),
+      _safe(() async => browseClasses = await _repo.browseClasses(token)),
+      _safe(() async => weekly = await _repo.getWeekly(token)),
+    ]);
+
+    final allFailed = results.every((ok) => ok == false);
+    final nothingToShow = stats == null && myClasses.isEmpty && weekly.isEmpty;
+    if (allFailed && nothingToShow) {
+      errorMessage =
+          'Unable to load your schedule. Check your connection and try again.';
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> _safe(Future<void> Function() action) async {
     try {
-      stats = await _repo.getStats(token);
-      myClasses = await _repo.getMyClasses(token);
-      browseClasses = await _repo.browseClasses(token);
-      weekly = await _repo.getWeekly(token);
-    } catch (e) {
-      errorMessage = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
+      await action();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -59,7 +73,7 @@ class ClientScheduleController extends ChangeNotifier {
         day: day == 'All' || day == null ? null : day,
       );
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
       isBrowseLoading = false;
       notifyListeners();
@@ -72,7 +86,7 @@ class ClientScheduleController extends ChangeNotifier {
       await loadAll(token);
       return true;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       return false;
     }
@@ -84,7 +98,7 @@ class ClientScheduleController extends ChangeNotifier {
       await loadAll(token);
       return true;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       return false;
     }

@@ -21,7 +21,27 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
   void initState() {
     super.initState();
     _ctrl = ClientScheduleController();
+    _ctrl.addListener(_onError);
     _ctrl.loadAll(widget.token);
+  }
+
+  void _onError() {
+    if (_ctrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_ctrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _ctrl.errorMessage = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.removeListener(_onError);
+    _ctrl.dispose();
+    super.dispose();
   }
 
   // ── Past-class check ──────────────────────────────────────────────────────

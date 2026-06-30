@@ -8,6 +8,8 @@ class ClientScanController extends ChangeNotifier {
   bool isLoading = false;
   bool isCheckingIn = false;
   bool checkedInNow = false;
+  bool isOfflineStatus =
+      false; // true => status is from cache, not verified live
   String? errorMessage;
 
   CheckinStatusModel? status;
@@ -18,15 +20,30 @@ class ClientScanController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
+    bool statusOk = true;
     try {
-      status = await _repo.getCheckinStatus(token);
+      final result = await _repo.getCheckinStatus(token);
+      status = result.status;
+      isOfflineStatus = !result.isLive;
+    } catch (e) {
+      statusOk = false;
+    }
+
+    try {
       recentCheckins = await _repo.getRecentCheckins(token);
     } catch (e) {
-      errorMessage = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
+      // history failing isn't fatal
     }
+
+    if (!statusOk && status == null) {
+      errorMessage =
+          'Unable to load check-in status. Check your connection and try again.';
+    } else if (isOfflineStatus) {
+      errorMessage = "You're offline — reconnect to check in.";
+    }
+
+    isLoading = false;
+    notifyListeners();
   }
 
   Future<bool> doCheckin(String token, String qrCode) async {
@@ -35,9 +52,22 @@ class ClientScanController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final result = await _repo.getCheckinStatus(token);
+      status = result.status;
+      isOfflineStatus = !result.isLive;
+
+      if (isOfflineStatus) {
+        errorMessage = "You're offline — reconnect to check in.";
+        return false;
+      }
+      if (!status!.canCheckin) {
+        errorMessage = 'Your status changed — please review and try again.';
+        return false;
+      }
+
       await _repo.doCheckin(token, qrCode);
       checkedInNow = true;
-      await loadStatus(token); // refresh everything
+      await loadStatus(token);
       return true;
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -49,6 +79,12 @@ class ClientScanController extends ChangeNotifier {
   }
 
   Map<String, dynamic> get statusInfo {
+    if (isOfflineStatus) {
+      return {
+        'message': "Offline — showing last known status",
+        'color': Colors.grey,
+      };
+    }
     switch (status?.reason) {
       case 'ok':
         return {
@@ -73,11 +109,13 @@ class ClientScanController extends ChangeNotifier {
       case 'not_connected':
         return {'message': 'Not connected to any gym', 'color': Colors.grey};
       default:
-        return {'message': 'Loading...', 'color': Colors.grey};
+        if (isLoading) return {'message': 'Loading...', 'color': Colors.grey};
+        return {'message': 'Unable to load status', 'color': Colors.grey};
     }
   }
 
-  bool get canCheckin => status?.canCheckin ?? false;
+  // Button is only enabled when status is live AND the server says canCheckin.
+  bool get canCheckin => !isOfflineStatus && (status?.canCheckin ?? false);
   bool get isBlocked =>
       status?.reason == 'expired' || status?.reason == 'suspended';
 }

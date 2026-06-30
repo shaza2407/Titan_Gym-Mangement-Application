@@ -22,7 +22,27 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
   void initState() {
     super.initState();
     _ctrl = ClientScanController();
+    _ctrl.addListener(_onError);
     _ctrl.loadStatus(widget.token);
+  }
+
+  void _onError() {
+    if (_ctrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_ctrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _ctrl.errorMessage = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.removeListener(_onError);
+    _ctrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -228,6 +248,8 @@ class _ClientScanScreenState extends State<ClientScanScreen> {
         ? 'Check-In Complete!'
         : ctrl.isCheckingIn
         ? 'Verifying...'
+        : ctrl.isOfflineStatus
+        ? 'Offline — Reconnect to Check In'
         : ctrl.canCheckin
         ? 'Press to open Camera'
         : reason == 'already_checked_in'
