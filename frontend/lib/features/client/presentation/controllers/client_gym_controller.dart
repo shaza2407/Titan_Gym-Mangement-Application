@@ -26,19 +26,50 @@ class ClientGymController extends ChangeNotifier {
     isLoading = true;
     errorMessage = null;
     notifyListeners();
-    try {
-      final gymFuture = _repo.getMyGym(token);
-      final announcementsFuture = _repo.getAnnouncements(token);
-      final scheduleFuture = _repo.getWeeklySchedule(token);
 
-      gym = await gymFuture;
-      announcements = await announcementsFuture;
-      weeklySchedule = await scheduleFuture;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
-    } finally {
-      isLoading = false;
-      notifyListeners();
+    final results = await Future.wait([
+      _safeLoadGym(token),
+      _safeLoadAnnouncements(token),
+      _safeLoadSchedule(token),
+    ]);
+
+    final allFailed = results.every((success) => success == false);
+    if (allFailed &&
+        gym == null &&
+        announcements.isEmpty &&
+        weeklySchedule.isEmpty) {
+      errorMessage =
+          'Unable to load gym info. Check your connection and try again.';
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> _safeLoadGym(String token) async {
+    try {
+      gym = await _repo.getMyGym(token);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _safeLoadAnnouncements(String token) async {
+    try {
+      announcements = await _repo.getAnnouncements(token);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _safeLoadSchedule(String token) async {
+    try {
+      weeklySchedule = await _repo.getWeeklySchedule(token);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }

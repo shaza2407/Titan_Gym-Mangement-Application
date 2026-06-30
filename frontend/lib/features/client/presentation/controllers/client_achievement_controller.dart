@@ -27,10 +27,14 @@ class ClientAchievementController extends ChangeNotifier {
     try {
       _achievements = await _repo.getAchievements(token);
     } catch (e) {
-      _errorMessage = 'Failed to load achievements.';
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void clearError() {
+    _errorMessage = null;
   }
 }

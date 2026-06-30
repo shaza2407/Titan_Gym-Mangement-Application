@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/client_training_plan_controller.dart';
 
-
 class TrainingPlanScreen extends StatefulWidget {
   final String token;
   final VoidCallback? onBack;
@@ -21,7 +20,27 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
   void initState() {
     super.initState();
     _ctrl = ClientTrainingPlanController();
+    _ctrl.addListener(_onError);
     _ctrl.loadActivePlan(widget.token);
+  }
+
+  void _onError() {
+    if (_ctrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_ctrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _ctrl.errorMessage = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.removeListener(_onError);
+    _ctrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -682,7 +701,9 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                 style: TextStyle(
                   color: isSelected ? Colors.white : Colors.black,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  decoration: (plan.plan[index].days.isNotEmpty && plan.plan[index].days.every((d) => d.isCompleted))
+                  decoration:
+                      (plan.plan[index].days.isNotEmpty &&
+                          plan.plan[index].days.every((d) => d.isCompleted))
                       ? TextDecoration.lineThrough
                       : null,
                 ),
@@ -784,8 +805,8 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              day.day.toLowerCase().startsWith('day') 
-                                  ? day.day 
+                              day.day.toLowerCase().startsWith('day')
+                                  ? day.day
                                   : 'Day ${day.day}',
                               style: const TextStyle(
                                 color: Colors.black,
@@ -1039,11 +1060,15 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
                         backgroundColor: Color(0xFF10B981),
                       ),
                     );
-                    
+
                     // Open the next week automatically
-                    final nextWeekIndex = ctrl.activePlan!.plan.indexWhere((w) => w.week > ctrl.selectedWeekNumber);
+                    final nextWeekIndex = ctrl.activePlan!.plan.indexWhere(
+                      (w) => w.week > ctrl.selectedWeekNumber,
+                    );
                     if (nextWeekIndex != -1) {
-                      ctrl.setSelectedWeek(ctrl.activePlan!.plan[nextWeekIndex].week);
+                      ctrl.setSelectedWeek(
+                        ctrl.activePlan!.plan[nextWeekIndex].week,
+                      );
                     }
                   } else if (!success && mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
