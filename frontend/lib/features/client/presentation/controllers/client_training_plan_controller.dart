@@ -33,13 +33,17 @@ class ClientTrainingPlanController extends ChangeNotifier {
     'Weight Loss',
     'Cardio/Endurance',
     'Flexibility',
-    'Overall Fitness'
+    'Overall Fitness',
   ];
 
   final List<String> levels = ['beginner', 'intermediate', 'advanced'];
   final List<int> weekOptions = [4, 8, 12, 16];
   final List<int> daysPerWeekOptions = [3, 4, 5, 6];
-  final List<String> equipmentOptions = ['Full Gym', 'Home/Bodyweight', 'Dumbbells Only'];
+  final List<String> equipmentOptions = [
+    'Full Gym',
+    'Home/Bodyweight',
+    'Dumbbells Only',
+  ];
 
   void setGoal(String val) {
     selectedGoal = val;
@@ -78,11 +82,15 @@ class ClientTrainingPlanController extends ChangeNotifier {
 
     try {
       summaries = await _repo.listTrainingPlans(token);
-      final activeSummaries = summaries.where((s) => s.isActive && s.status != 'COMPLETED').toList();
+      final activeSummaries = summaries
+          .where((s) => s.isActive && s.status != 'COMPLETED')
+          .toList();
 
       if (activeSummaries.isNotEmpty) {
-        activePlan = await _repo.getTrainingPlan(token, activeSummaries.first.planID);
-        // Default to first week of the plan
+        activePlan = await _repo.getTrainingPlan(
+          token,
+          activeSummaries.first.planID,
+        );
         if (activePlan != null && activePlan!.plan.isNotEmpty) {
           selectedWeekNumber = activePlan!.plan.first.week;
         }
@@ -90,7 +98,7 @@ class ClientTrainingPlanController extends ChangeNotifier {
         activePlan = null;
       }
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
       isLoading = false;
       notifyListeners();
@@ -130,19 +138,19 @@ class ClientTrainingPlanController extends ChangeNotifier {
 
   Future<bool> toggleExerciseCompletion(int dayIndex, int exerciseIndex) async {
     if (activePlan == null || activePlan!.plan.isEmpty) return false;
-    
+
     final week = activePlan!.plan.firstWhere(
       (w) => w.week == selectedWeekNumber,
       orElse: () => activePlan!.plan.first,
     );
     final day = week.days[dayIndex];
     final exercise = day.exercises[exerciseIndex];
-    
+
     exercise.isCompleted = !exercise.isCompleted;
-    
-    // We intentionally DO NOT auto-complete the day here, because the user must 
+
+    // We intentionally DO NOT auto-complete the day here, because the user must
     // explicitly tap "Complete Workout Day" to log their duration and hit the API.
-    
+
     notifyListeners();
     return true;
   }
@@ -258,16 +266,16 @@ class ClientTrainingPlanController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final baseUrl = ApiConstants.baseUrl; 
+      final baseUrl = ApiConstants.baseUrl;
       final res = await http.get(
         Uri.parse('$baseUrl/training-plans/${activePlan!.planID}/pdf'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
       if (res.statusCode == 200) {
         final dir = await getTemporaryDirectory();
-        final file = File('${dir.path}/training_plan_${activePlan!.planID}.pdf');
+        final file = File(
+          '${dir.path}/training_plan_${activePlan!.planID}.pdf',
+        );
         await file.writeAsBytes(res.bodyBytes);
         await OpenFilex.open(file.path);
       } else {

@@ -22,7 +22,27 @@ class _ClientAchievementScreenState extends State<ClientAchievementScreen> {
   void initState() {
     super.initState();
     _ctrl = ClientAchievementController();
+    _ctrl.addListener(_onError);
     _ctrl.loadAchievements(widget.token);
+  }
+
+  void _onError() {
+    if (_ctrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_ctrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _ctrl.clearError();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.removeListener(_onError);
+    _ctrl.dispose();
+    super.dispose();
   }
 
   @override
