@@ -44,16 +44,33 @@ class CoachScheduleController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
+    final results = await Future.wait([
+      _safe(() async => stats = await _repo.getStats(token)),
+      _safe(() async => weekly = await _repo.getWeekly(token)),
+      _safe(() async => myClasses = await _repo.getMyClasses(token)),
+      _safe(() async => requests = await _repo.getRequests(token)),
+    ]);
+
+    final allFailed = results.every((ok) => ok == false);
+    if (allFailed &&
+        stats == null &&
+        weekly.isEmpty &&
+        myClasses.isEmpty &&
+        requests.isEmpty) {
+      errorMessage =
+          'Unable to load your schedule. Check your connection and try again.';
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> _safe(Future<void> Function() action) async {
     try {
-      stats = await _repo.getStats(token);
-      weekly = await _repo.getWeekly(token);
-      myClasses = await _repo.getMyClasses(token);
-      requests = await _repo.getRequests(token);
-    } catch (e) {
-      errorMessage = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
+      await action();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -67,18 +84,18 @@ class CoachScheduleController extends ChangeNotifier {
     }
 
     final duration = int.tryParse(durationController.text.trim());
-  if (duration == null || duration <= 0) {
-    errorMessage = 'Please enter a valid session duration';
-    notifyListeners();
-    return false;
-  }
+    if (duration == null || duration <= 0) {
+      errorMessage = 'Please enter a valid session duration';
+      notifyListeners();
+      return false;
+    }
 
-  final maxCapacity = int.tryParse(maxCapacityController.text.trim());
-  if (maxCapacity == null || maxCapacity <= 0) {
-    errorMessage = 'Please enter a valid max capacity';
-    notifyListeners();
-    return false;
-  }
+    final maxCapacity = int.tryParse(maxCapacityController.text.trim());
+    if (maxCapacity == null || maxCapacity <= 0) {
+      errorMessage = 'Please enter a valid max capacity';
+      notifyListeners();
+      return false;
+    }
 
     if (isRecurring && selectedDay == null) {
       errorMessage = 'Please select a day for the recurring class';
@@ -106,14 +123,14 @@ class CoachScheduleController extends ChangeNotifier {
         'requested_time': selectedTime,
         'duration': int.tryParse(durationController.text.trim()),
         'max_capacity': int.tryParse(maxCapacityController.text.trim()),
-        'reason': reasonController.text.trim()
+        'reason': reasonController.text.trim(),
       };
       await _repo.createRequest(token, data);
       await loadAll(token);
       _resetForm();
       return true;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       return false;
     } finally {
@@ -164,17 +181,12 @@ class CoachScheduleController extends ChangeNotifier {
   Future<bool> deleteClass(String token, int classId) async {
     try {
       await _repo.removeClass(token, classId);
-
-      // Remove locally
       myClasses.removeWhere((c) => c.id == classId);
-
-      // Refresh stats/schedule if needed
       await loadAll(token);
-
       notifyListeners();
       return true;
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       return false;
     }
@@ -185,12 +197,11 @@ class CoachScheduleController extends ChangeNotifier {
     isLoadingGyms = true;
     errorMessage = null;
     notifyListeners();
-    try{
+    try {
       gyms = await _repo.getGyms(token);
     } catch (e) {
-      errorMessage = e.toString();
-    }
-    finally {
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } finally {
       isLoadingGyms = false;
       notifyListeners();
     }
@@ -203,17 +214,25 @@ class CoachScheduleController extends ChangeNotifier {
   }
 
   // -Added method to delete a class request-
-  Future<bool> deleteRequest(String token, int requestId) async{
-    try{
+  Future<bool> deleteRequest(String token, int requestId) async {
+    try {
       await _repo.removeRequest(token, requestId);
       requests.removeWhere((r) => r.id == requestId);
       await loadAll(token);
       return true;
-    }catch(e){
-      errorMessage = e.toString();
+    } catch (e) {
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       return false;
     }
   }
 
+  @override
+  void dispose() {
+    classNameController.dispose();
+    durationController.dispose();
+    maxCapacityController.dispose();
+    reasonController.dispose();
+    super.dispose();
+  }
 }
