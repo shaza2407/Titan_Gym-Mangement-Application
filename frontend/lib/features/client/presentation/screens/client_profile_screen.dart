@@ -72,7 +72,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'Client Settings',
+                    'Client Profile',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
