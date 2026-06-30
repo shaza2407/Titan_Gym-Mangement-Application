@@ -33,12 +33,12 @@ class CoachProfileScreenState extends State<CoachProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _ctrl = widget.controller; // ← use the passed-in controller
+    _ctrl = widget.controller;
   }
 
   @override
   void dispose() {
-    // Do NOT dispose here — dashboard owns and disposes this controller
+    // dashboard owns and disposes this controller
     super.dispose();
   }
 
@@ -50,7 +50,53 @@ class CoachProfileScreenState extends State<CoachProfileScreen> {
         builder: (context, ctrl, _) {
           if (ctrl.isLoading) {
             return const Scaffold(
-                body: Center(child: CircularProgressIndicator()));
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (ctrl.profile == null) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF5F5F5),
+              appBar: AppBar(
+                backgroundColor: Colors.white,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () {
+                    if (widget.onBack != null) widget.onBack!();
+                  },
+                ),
+                title: const Text(
+                  'Coach Profile',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        ctrl.errorMessage ?? 'Unable to load your profile.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ctrl.loadProfile(widget.token),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
           }
 
           return Scaffold(
@@ -105,19 +151,23 @@ class CoachProfileScreenState extends State<CoachProfileScreen> {
                     subtitle: 'Your personal details',
                     children: [
                       ProfileTextField(
-                          label: 'Full Name',
-                          controller: ctrl.nameController),
+                        label: 'Full Name',
+                        controller: ctrl.nameController,
+                      ),
                       ProfileReadOnlyField(
-                          label: 'Email Address',
-                          value: ctrl.profile?.email ?? ''),
+                        label: 'Email Address',
+                        value: ctrl.profile?.email ?? '',
+                      ),
                       ProfileTextField(
-                          label: 'Phone Number',
-                          controller: ctrl.phoneController,
-                          keyboardType: TextInputType.phone),
+                        label: 'Phone Number',
+                        controller: ctrl.phoneController,
+                        keyboardType: TextInputType.phone,
+                      ),
                       ProfileTextField(
-                          label: 'Years of Experience',
-                          controller: ctrl.yearsExperienceController,
-                          keyboardType: TextInputType.number),
+                        label: 'Years of Experience',
+                        controller: ctrl.yearsExperienceController,
+                        keyboardType: TextInputType.number,
+                      ),
                       ProfileDatePicker(ctrl: ctrl),
                     ],
                   ),
@@ -130,9 +180,10 @@ class CoachProfileScreenState extends State<CoachProfileScreen> {
                     subtitle: 'Tell us about yourself',
                     children: [
                       ProfileTextField(
-                          label: 'Bio',
-                          controller: ctrl.bioController,
-                          maxLines: 3),
+                        label: 'Bio',
+                        controller: ctrl.bioController,
+                        maxLines: 3,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -144,9 +195,10 @@ class CoachProfileScreenState extends State<CoachProfileScreen> {
                     subtitle: 'Your coaching credentials',
                     children: [
                       ProfileTextField(
-                          label: 'Certifications',
-                          controller: ctrl.certificationsController,
-                          hint: 'e.g. NASM-CPT, ACE'),
+                        label: 'Certifications',
+                        controller: ctrl.certificationsController,
+                        hint: 'e.g. NASM-CPT, ACE',
+                      ),
                       const SizedBox(height: 4),
                       SpecializationsSelector(ctrl: ctrl),
                     ],
