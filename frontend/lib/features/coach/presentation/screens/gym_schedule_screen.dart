@@ -26,11 +26,25 @@ class _GymScheduleScreenState extends State<GymScheduleScreen> {
   void initState() {
     super.initState();
     _ctrl = GymScheduleController();
+    _ctrl.addListener(_onError);
     _ctrl.loadGymSchedule(widget.token, widget.gymId);
+  }
+
+  void _onError() {
+    if (_ctrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_ctrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _ctrl.errorMessage = null;
+    }
   }
 
   @override
   void dispose() {
+    _ctrl.removeListener(_onError);
     _ctrl.dispose();
     super.dispose();
   }
@@ -73,7 +87,8 @@ class _GymScheduleScreenState extends State<GymScheduleScreen> {
             body: ctrl.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : RefreshIndicator(
-                    onRefresh: () => ctrl.loadGymSchedule(widget.token, widget.gymId),
+                    onRefresh: () =>
+                        ctrl.loadGymSchedule(widget.token, widget.gymId),
                     child: GymScheduleListView(ctrl: ctrl),
                   ),
             // No bottomNavigationBar — back arrow or swipe returns to Gyms tab

@@ -27,11 +27,25 @@ class _GymAnnouncementsScreenState extends State<GymAnnouncementsScreen> {
   void initState() {
     super.initState();
     _ctrl = GymAnnouncementsController();
+    _ctrl.addListener(_onError);
     _ctrl.loadGymAnnouncements(widget.token, widget.gymId);
+  }
+
+  void _onError() {
+    if (_ctrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_ctrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _ctrl.errorMessage = null;
+    }
   }
 
   @override
   void dispose() {
+    _ctrl.removeListener(_onError);
     _ctrl.dispose();
     super.dispose();
   }

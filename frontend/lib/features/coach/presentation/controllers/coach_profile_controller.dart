@@ -7,47 +7,59 @@ class CoachProfileController extends ChangeNotifier {
 
   CoachProfileModel? profile;
   List<String> availableSpecializations = [];
-  List<String> selectedSpecializations  = [];
+  List<String> selectedSpecializations = [];
 
   bool isLoading = false;
-  bool isSaving  = false;
+  bool isSaving = false;
   String? errorMessage;
 
-  final nameController            = TextEditingController();
-  final phoneController           = TextEditingController();
-  final bioController             = TextEditingController();
-  final certificationsController  = TextEditingController();
+  final nameController = TextEditingController();
+  final phoneController = TextEditingController();
+  final bioController = TextEditingController();
+  final certificationsController = TextEditingController();
   final yearsExperienceController = TextEditingController();
   String? dateOfBirth;
 
   Future<void> loadProfile(String token) async {
-    isLoading    = true;
+    isLoading = true;
     errorMessage = null;
     notifyListeners();
 
+    bool profileOk = true;
     try {
-      profile                  = await _repo.getProfile(token);
-      availableSpecializations = await _repo.getSpecializations(token);
-
-      nameController.text            = profile!.name;
-      phoneController.text           = profile!.phone ?? '';
-      bioController.text             = profile!.bio ?? '';
-      certificationsController.text  = profile!.certifications ?? '';
-      yearsExperienceController.text = profile!.yearsExperience?.toString() ?? '';
-      dateOfBirth                    = profile!.dateOfBirth;
-      selectedSpecializations        = profile!.specializations ?? [];
+      profile = await _repo.getProfile(token);
+      nameController.text = profile!.name;
+      phoneController.text = profile!.phone ?? '';
+      bioController.text = profile!.bio ?? '';
+      certificationsController.text = profile!.certifications ?? '';
+      yearsExperienceController.text =
+          profile!.yearsExperience?.toString() ?? '';
+      dateOfBirth = profile!.dateOfBirth;
+      selectedSpecializations = profile!.specializations ?? [];
     } catch (e) {
-      errorMessage = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
+      profileOk = false;
     }
+
+    try {
+      availableSpecializations = await _repo.getSpecializations(token);
+    } catch (e) {
+      // non-fatal — specialization selector will just be empty/unavailable
+    }
+
+    if (!profileOk && profile == null) {
+      errorMessage =
+          'Unable to load your profile. Check your connection and try again.';
+    }
+
+    isLoading = false;
+    notifyListeners();
   }
 
   void toggleSpecialization(String spec) {
     if (selectedSpecializations.contains(spec)) {
-      selectedSpecializations =
-          selectedSpecializations.where((s) => s != spec).toList();
+      selectedSpecializations = selectedSpecializations
+          .where((s) => s != spec)
+          .toList();
     } else {
       selectedSpecializations = [...selectedSpecializations, spec];
     }
@@ -55,21 +67,31 @@ class CoachProfileController extends ChangeNotifier {
   }
 
   Future<bool> saveProfile(String token) async {
-    isSaving     = true;
+    isSaving = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      String? phone = phoneController.text.trim().isEmpty ? null : phoneController.text.trim();
-      
+      String? phone = phoneController.text.trim().isEmpty
+          ? null
+          : phoneController.text.trim();
+
       profile = await _repo.updateProfile(token, {
-        'name':             nameController.text.trim().isEmpty ? null : nameController.text.trim(),
-        'phone':            phone,
-        'bio':              bioController.text.trim().isEmpty ? null : bioController.text.trim(),
-        'specializations':  selectedSpecializations.isEmpty ? null : selectedSpecializations,
-        'certifications':   certificationsController.text.trim().isEmpty ? null : certificationsController.text.trim(),
+        'name': nameController.text.trim().isEmpty
+            ? null
+            : nameController.text.trim(),
+        'phone': phone,
+        'bio': bioController.text.trim().isEmpty
+            ? null
+            : bioController.text.trim(),
+        'specializations': selectedSpecializations.isEmpty
+            ? null
+            : selectedSpecializations,
+        'certifications': certificationsController.text.trim().isEmpty
+            ? null
+            : certificationsController.text.trim(),
         'years_experience': int.tryParse(yearsExperienceController.text.trim()),
-        'date_of_birth':    dateOfBirth,
+        'date_of_birth': dateOfBirth,
       });
       return true;
     } catch (e) {

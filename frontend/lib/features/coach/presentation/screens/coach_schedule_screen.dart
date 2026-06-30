@@ -34,12 +34,29 @@ class CoachScheduleScreenState extends State<CoachScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    _ctrl = widget.controller; // ← use the passed-in controller
+    _ctrl = widget.controller; // ← was missing, caused LateInitializationError
+    _ctrl.addListener(_onError);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ctrl.loadGyms(widget.token);
+    });
+  }
+
+  void _onError() {
+    if (_ctrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_ctrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _ctrl.errorMessage = null;
+    }
   }
 
   @override
   void dispose() {
-    // Do NOT dispose here — dashboard owns and disposes this controller
+    _ctrl.removeListener(_onError);
+    // Do NOT dispose _ctrl — it's owned by the dashboard
     super.dispose();
   }
 
@@ -83,7 +100,9 @@ class CoachScheduleScreenState extends State<CoachScheduleScreen> {
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -91,14 +110,13 @@ class CoachScheduleScreenState extends State<CoachScheduleScreen> {
                           const SizedBox(height: 24),
                           RequestClassButton(ctrl: ctrl, token: widget.token),
                           const SizedBox(height: 24),
-                          ScheduleTabs(
-                            ctrl: ctrl,
-                            onTabChanged: _onTabChanged,
-                          ),
+                          ScheduleTabs(ctrl: ctrl, onTabChanged: _onTabChanged),
                           const SizedBox(height: 20),
                           if (ctrl.selectedTab == 0) ...[
                             UpcomingClassesCarousel(
-                                ctrl: ctrl, token: widget.token),
+                              ctrl: ctrl,
+                              token: widget.token,
+                            ),
                             const SizedBox(height: 28),
                             WeeklyAgendaSection(ctrl: ctrl),
                           ],

@@ -25,7 +25,6 @@ class CoachGymsScreen extends StatefulWidget {
 
 class CoachGymsScreenState extends State<CoachGymsScreen>
     with WidgetsBindingObserver {
-
   int _selectedTab = 0;
   late CoachGymsController _ctrl;
 
@@ -33,13 +32,27 @@ class CoachGymsScreenState extends State<CoachGymsScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _ctrl = widget.controller; // ← use the passed-in controller
+    _ctrl = widget.controller;
+    _ctrl.addListener(_onError);
+  }
+
+  void _onError() {
+    if (_ctrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_ctrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _ctrl.errorMessage = null;
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // Do NOT dispose here — dashboard owns and disposes this controller
+    _ctrl.removeListener(_onError);
+    // No dispose the controller itself — dashboard owns it
     super.dispose();
   }
 
@@ -71,14 +84,19 @@ class CoachGymsScreenState extends State<CoachGymsScreen>
               title: const Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text('Gyms',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
+                  Text(
+                    'Gyms',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   SizedBox(height: 4),
-                  Text('Connected gyms and announcements',
-                      style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  Text(
+                    'Connected gyms and announcements',
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
                 ],
               ),
             ),

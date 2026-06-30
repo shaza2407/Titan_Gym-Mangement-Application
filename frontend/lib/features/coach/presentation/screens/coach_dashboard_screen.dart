@@ -47,16 +47,31 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
     _currentIndex = widget.initialIndex;
 
     _dashboardCtrl = CoachDashboardController()..loadAll(widget.token);
-    _scheduleCtrl  = CoachScheduleController()..loadAll(widget.token);
-    _gymsCtrl      = CoachGymsController()..loadAll(widget.token);
-    _profileCtrl   = CoachProfileController()..loadProfile(widget.token);
+    _dashboardCtrl.addListener(_onDashboardError);
+
+    _scheduleCtrl = CoachScheduleController()..loadAll(widget.token);
+    _gymsCtrl = CoachGymsController()..loadAll(widget.token);
+    _profileCtrl = CoachProfileController()..loadProfile(widget.token);
 
     _badgeCtrl = NotificationBadgeController()
       ..load(widget.token, getUserIdFromToken(widget.token));
   }
 
+  void _onDashboardError() {
+    if (_dashboardCtrl.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_dashboardCtrl.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      _dashboardCtrl.errorMessage = null;
+    }
+  }
+
   @override
   void dispose() {
+    _dashboardCtrl.removeListener(_onDashboardError);
     _dashboardCtrl.dispose();
     _scheduleCtrl.dispose();
     _gymsCtrl.dispose();
@@ -137,10 +152,22 @@ class _CoachDashboardScreenState extends State<CoachDashboardScreen> {
       selectedItemColor: CoachColors.primary,
       unselectedItemColor: Colors.grey,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'Dashboard'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: 'Schedule'),
-        BottomNavigationBarItem(icon: Icon(Icons.fitness_center_outlined), label: 'Gyms'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.grid_view),
+          label: 'Dashboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_month_outlined),
+          label: 'Schedule',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.fitness_center_outlined),
+          label: 'Gyms',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          label: 'Profile',
+        ),
       ],
     );
   }

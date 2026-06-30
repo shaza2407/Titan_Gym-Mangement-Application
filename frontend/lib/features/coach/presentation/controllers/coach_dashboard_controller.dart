@@ -7,22 +7,35 @@ class CoachDashboardController extends ChangeNotifier {
 
   CoachDashboardStatsModel? stats;
   List<CoachUpcomingClassModel> upcoming = [];
-  bool isLoading    = false;
+  bool isLoading = false;
   String? errorMessage;
 
   Future<void> loadAll(String token) async {
-    isLoading    = true;
+    isLoading = true;
     errorMessage = null;
     notifyListeners();
 
+    final results = await Future.wait([
+      _safe(() async => stats = await _repo.getStats(token)),
+      _safe(() async => upcoming = await _repo.getUpcoming(token)),
+    ]);
+
+    final allFailed = results.every((ok) => ok == false);
+    if (allFailed && stats == null && upcoming.isEmpty) {
+      errorMessage =
+          'Unable to load your dashboard. Check your connection and try again.';
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> _safe(Future<void> Function() action) async {
     try {
-      stats    = await _repo.getStats(token);
-      upcoming = await _repo.getUpcoming(token);
-    } catch (e) {
-      errorMessage = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
+      await action();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }
