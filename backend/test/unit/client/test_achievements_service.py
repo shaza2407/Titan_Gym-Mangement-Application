@@ -1,0 +1,210 @@
+"""
+Test suite for app/services/client/achievements.py
+
+Testing technique used: Equivalence Partitioning (EP) + Boundary Value
+Analysis (BVA).
+
+Functions under test
+---------------------
+1. get_client_achievements_service(user_id, db)
+2. recalculate_client_achievements_service(user_id, db)
+
+Equivalence classes identified
+-------------------------------
+A) Caller identity
+   A1 - valid client                       -> success path
+   A2 - not a client (get_client_by_user_id raises 403)  -> error path
+
+B) Size of the achievements collection returned by the engine
+   B1 - empty list   (0 items)   <-- boundary: lower limit
+   B2 - single item  (1 item)    <-- boundary: just above lower limit
+   B3 - many items   (N items)   <-- typical / upper range
+
+C) user_id value range (pass-through identifier, not validated by the
+   service itself, but exercised at its boundaries to guarantee no
+   accidental int-casting / off-by-one bugs are introduced upstream)
+   C1 - 0 (smallest non-negative boundary)
+   C2 - 1 (smallest "real" id)
+   C3 - very large id (2**31 - 1)
+
+D) Downstream failures
+   D1 - an achievement_engine event handler raises during recalculation
+"""
+
+import pytest
+from unittest.mock import AsyncMock, patch
+from fastapi import HTTPException
+
+from app.services.client.achievements import (
+    get_client_achievements_service,
+    recalculate_client_achievements_service,
+)
+from app.models.client import Client
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _make_client(client_id: int = 1, user_id: int = 1) -> Client:
+    c = Client()
+    c.clientID = client_id
+    c.userID = user_id
+    return c
+
+
+def _make_achievements(n: int) -> list:
+    return [{"key": f"achv_{i}"} for i in range(n)]
+
+
+PATCH_GET_CLIENT = "app.services.client.achievements.get_client_by_user_id"
+PATCH_GET_ACHIEVEMENTS = "app.services.client.achievements.achievement_engine.get_client_achievements"
+PATCH_ON_CHECKIN = "app.services.client.achievements.achievement_engine.on_checkin"
+PATCH_ON_CLASS = "app.services.client.achievements.achievement_engine.on_class_attended"
+PATCH_ON_PLAN = "app.services.client.achievements.achievement_engine.on_plan_completed"
+
+
+
+# ── A2) caller is not a client -> propagated 403 ───────────────────────────────
+
+@pytest.mark.asyncio
+async def test_get_client_achievements_service_not_found():
+    db = AsyncMock()
+
+    with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client:
+        mock_get_client.side_effect = HTTPException(status_code=403, detail="Only clients can view achievements.")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await get_client_achievements_service(user_id=10, db=db)
+
+        assert exc_info.value.status_code == 403
+        assert exc_info.value.detail == "Only clients can view achievements."
+
+
+# ── B) Boundary Value Analysis on collection size ──────────────────────────────
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "count",
+    [0, 1, 50],
+    ids=["B1_empty_zero_items", "B2_single_item", "B3_many_items"],
+)
+async def test_get_client_achievements_service_collection_size_boundaries(count):
+    db = AsyncMock()
+    mock_client = _make_client(client_id=3, user_id=30)
+    mock_achievements = _make_achievements(count)
+
+    with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
+         patch(PATCH_GET_ACHIEVEMENTS, new_callable=AsyncMock) as mock_get_achievements:
+
+        mock_get_client.return_value = mock_client
+        mock_get_achievements.return_value = mock_achievements
+
+        result = await get_client_achievements_service(user_id=30, db=db)
+
+        mock_get_client.assert_awaited_once_with(30, db, detail="Only clients can view achievements.")
+        mock_get_achievements.assert_awaited_once_with(3, db)
+        assert len(result) == count
+        assert result == mock_achievements
+
+
+# ── C) Boundary Value Analysis on user_id ──────────────────────────────────────
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "user_id",
+    [0, 1, 2**31 - 1],
+    ids=["C1_min_zero", "C2_smallest_real_id", "C3_max_int32"],
+)
+async def test_get_client_achievements_service_user_id_boundaries(user_id):
+    db = AsyncMock()
+    mock_client = _make_client(client_id=99, user_id=user_id)
+
+    with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
+         patch(PATCH_GET_ACHIEVEMENTS, new_callable=AsyncMock) as mock_get_achievements:
+
+        mock_get_client.return_value = mock_client
+        mock_get_achievements.return_value = []
+
+        await get_client_achievements_service(user_id=user_id, db=db)
+
+        mock_get_client.assert_awaited_once_with(user_id, db, detail="Only clients can view achievements.")
+
+
+
+# ── recalculate: caller is not a client -> propagated, no engine calls fired ──
+
+@pytest.mark.asyncio
+async def test_recalculate_client_achievements_service_not_a_client():
+    db = AsyncMock()
+
+    with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
+         patch(PATCH_ON_CHECKIN, new_callable=AsyncMock) as mock_on_checkin, \
+         patch(PATCH_ON_CLASS, new_callable=AsyncMock) as mock_on_class, \
+         patch(PATCH_ON_PLAN, new_callable=AsyncMock) as mock_on_plan:
+
+        mock_get_client.side_effect = HTTPException(status_code=403, detail="Only clients can view achievements.")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await recalculate_client_achievements_service(user_id=20, db=db)
+
+        assert exc_info.value.status_code == 403
+        mock_on_checkin.assert_not_called()
+        mock_on_class.assert_not_called()
+        mock_on_plan.assert_not_called()
+
+
+# ── B) Boundary Value Analysis on recalculated collection size ────────────────
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "count",
+    [0, 1, 50],
+    ids=["B1_empty_zero_items", "B2_single_item", "B3_many_items"],
+)
+async def test_recalculate_client_achievements_service_collection_size_boundaries(count):
+    db = AsyncMock()
+    mock_client = _make_client(client_id=5, user_id=50)
+    mock_achievements = _make_achievements(count)
+
+    with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
+         patch(PATCH_ON_CHECKIN, new_callable=AsyncMock) as mock_on_checkin, \
+         patch(PATCH_ON_CLASS, new_callable=AsyncMock) as mock_on_class, \
+         patch(PATCH_ON_PLAN, new_callable=AsyncMock) as mock_on_plan, \
+         patch(PATCH_GET_ACHIEVEMENTS, new_callable=AsyncMock) as mock_get_achievements:
+
+        mock_get_client.return_value = mock_client
+        mock_get_achievements.return_value = mock_achievements
+
+        result = await recalculate_client_achievements_service(user_id=50, db=db)
+
+        mock_get_client.assert_awaited_once_with(50, db, detail="Only clients can view achievements.")
+        mock_on_checkin.assert_awaited_once_with(5, db)
+        mock_on_class.assert_awaited_once_with(5, db)
+        mock_on_plan.assert_awaited_once_with(5, db)
+        mock_get_achievements.assert_awaited_once_with(5, db)
+
+        assert len(result) == count
+        assert result == mock_achievements
+
+
+# ── D1) Downstream engine failure propagates and short-circuits the chain ─────
+
+@pytest.mark.asyncio
+async def test_recalculate_client_achievements_service_engine_failure_propagates():
+    db = AsyncMock()
+    mock_client = _make_client(client_id=6, user_id=60)
+
+    with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
+         patch(PATCH_ON_CHECKIN, new_callable=AsyncMock) as mock_on_checkin, \
+         patch(PATCH_ON_CLASS, new_callable=AsyncMock) as mock_on_class, \
+         patch(PATCH_ON_PLAN, new_callable=AsyncMock) as mock_on_plan:
+
+        mock_get_client.return_value = mock_client
+        mock_on_checkin.side_effect = RuntimeError("engine boom")
+
+        with pytest.raises(RuntimeError, match="engine boom"):
+            await recalculate_client_achievements_service(user_id=60, db=db)
+
+        mock_on_checkin.assert_awaited_once_with(6, db)
+        # on_checkin failed first, so the later handlers in the chain never fire
+        mock_on_class.assert_not_called()
+        mock_on_plan.assert_not_called()
