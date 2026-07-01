@@ -270,7 +270,6 @@ async def create_class_request(
                 ClassSession.start_time == payload.requested_time,
             )
         )
-
     else:
 
         existing_class = await db.scalar(
@@ -397,55 +396,6 @@ async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
     
     await db.commit()
     return True
-
-
-# ── remove class ────────────────────────────────────────────────────────────
-
-# async def remove_class(
-#     coachID: int,
-#     class_id: int,
-#     db: AsyncSession,
-# ):
-#     result = await db.execute(
-#         select(ClassSession).where(
-#             ClassSession.id == class_id,
-#             ClassSession.coach_id == coachID,
-#         )
-#     )
-
-#     session = result.scalar_one_or_none()
-
-#     if not session:
-#         raise HTTPException(status_code=404, detail="Class not found")
-
-#     gym_id = session.gymID
-#     class_title = session.title
-
-#     # delete enrollments first
-#     await db.execute(
-#         delete(ClassEnrollment).where(
-#             ClassEnrollment.session_id == class_id
-#         )
-#     )
-
-#     await db.delete(session)
-#     await db.commit()
-
-#     # NOTIFICATIONS
-#     await notify_gym_clients(
-#         db=db,
-#         gym_id=gym_id,
-#         title="Class Cancelled",
-#         body=f"The {class_title} class has been cancelled.",
-#         type="class_cancelled",
-#         data={
-#             "class_id": str(class_id),
-#             "gym_id": str(gym_id),
-#             "class_title": class_title,
-#         }
-#     )
-
-#     return True
 
 
 # Gyms lookup
