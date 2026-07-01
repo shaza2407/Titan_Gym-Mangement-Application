@@ -15,9 +15,6 @@ from app.services.client.training_plan import (
     generate_training_plan_service,
     list_training_plans_service,
     get_training_plan_service,
-    get_plan_versions_service,
-    edit_training_plan_service,
-    duplicate_plan_service,
     complete_day_service,
     complete_week_service,
     complete_training_plan_service,
@@ -42,19 +39,6 @@ async def get_training_plan(plan_id: int, current_user = Depends(require_client)
     return await get_training_plan_service(plan_id, int(current_user.userID), db)
 
 
-@router.get( "/{plan_id}/versions", response_model=list[TrainingPlanSummary], summary="Get all versions of a plan (edit history)",)
-async def get_plan_versions( plan_id: int, current_user = Depends(require_client), db: AsyncSession = Depends(get_session),):
-    return await get_plan_versions_service(plan_id, int(current_user.userID), db)
-
-
-@router.patch("/{plan_id}", response_model=TrainingPlanResponse, summary="Edit a plan — creates a new version, never overwrites",)
-async def edit_training_plan( plan_id: int,req: TrainingPlanRequest,current_user = Depends(require_client), db: AsyncSession = Depends(get_session),):
-    return await edit_training_plan_service(plan_id, req, int(current_user.userID), db)
-
-
-@router.post("/{plan_id}/duplicate", response_model=TrainingPlanSummary, status_code=status.HTTP_201_CREATED, summary="Clone an existing plan",)
-async def duplicate_plan( plan_id: int, current_user = Depends(require_client), db: AsyncSession = Depends(get_session),):
-    return await duplicate_plan_service(plan_id, int(current_user.userID), db)
 
 
 @router.post("/{plan_id}/complete-day",summary="Mark a day's workout as completed",)
