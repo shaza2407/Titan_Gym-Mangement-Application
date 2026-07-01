@@ -151,7 +151,7 @@ async def resend_verification(request: ResendVerificationRequest, db: AsyncSessi
 
     code = str(random.randint(100000, 999999))
     user.reset_token = code
-    user.reset_token_exp = datetime.now(timezone.utc) + timedelta(hours=24)
+    user.reset_token_exp = datetime.now(timezone.utc) + timedelta(hours=3)
     await db.commit()
 
     await send_verification_email(user.email, code)
