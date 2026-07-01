@@ -1,5 +1,7 @@
 
 
+from datetime import date
+
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -27,6 +29,13 @@ async def get_client_or_404(userID: int, db: AsyncSession) -> Client:
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     return client
+
+async def get_gym_or_404(gymID: int, db: AsyncSession) -> Gym:
+    result = await db.execute(select(Gym).where(Gym.gymID == gymID))
+    gym = result.scalar_one_or_none()
+    if not gym:
+        raise HTTPException(status_code=404, detail="Gym not found")
+    return gym
 
 
 async def get_membership(clientID: int, db: AsyncSession) -> GymClientMembership | None:
@@ -57,3 +66,12 @@ async def get_client_gym_or_404(clientID: int, db: AsyncSession) -> Gym:
     if not gym:
         raise HTTPException(status_code=404, detail="Gym not found.")
     return gym
+
+def get_membership_block_reason(membership: GymClientMembership | None) -> str | None:
+    if not membership:
+        return "not_connected"
+    if membership.status == "suspended":
+        return "suspended"
+    if membership.subscription_end < date.today():
+        return "expired"
+    return None

@@ -2,19 +2,17 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
 import asyncio
 from datetime import date, datetime, timedelta
 from app.database import get_session
 from app.dependencies.auth import require_client
-from app.models.notification import Notification
 from app.schemas.shared.schedule_schema import ClientScheduleStatsResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.services.notifications.class_notifications import notify_class_reminder
-from app.services.client.client_utils import get_client_or_404         
+from app.services.client.client_utils import get_client_or_404
 from app.services.client.client_schedule import (
     get_client_schedule_stats, get_my_classes, browse_classes,
-    get_weekly_schedule, enroll, unenroll,
+    get_weekly_schedule, enroll, unenroll, delete_class_reminder_notifications,
 )
 from app.services.coach.achievement_engine import achievement_engine
 
@@ -38,7 +36,7 @@ async def my_classes(current_user=Depends(require_client), db: AsyncSession = De
 
 
 @router.get("/browse")
-async def browse( day: str | None = None,current_user=Depends(require_client), db: AsyncSession = Depends(get_session) ):
+async def browse(day: str | None = None, current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     return await browse_classes(client.clientID, db, day_filter=day)
 
@@ -50,7 +48,7 @@ async def weekly_schedule(current_user=Depends(require_client), db: AsyncSession
 
 
 @router.post("/enroll/{session_id}")
-async def enroll_class( session_id: int, class_date: date = Query(...), current_user=Depends(require_client), db: AsyncSession = Depends(get_session) ):
+async def enroll_class(session_id: int, class_date: date = Query(...), current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     result = await enroll(session_id, client.clientID, class_date, db)
     if "error" in result:
@@ -77,7 +75,7 @@ async def enroll_class( session_id: int, class_date: date = Query(...), current_
 
 
 @router.delete("/unenroll/{session_id}")
-async def unenroll_class( session_id: int, class_date: date = Query(...), current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
+async def unenroll_class(session_id: int, class_date: date = Query(...), current_user=Depends(require_client), db: AsyncSession = Depends(get_session)):
     client = await get_client_or_404(current_user.userID, db)
     result = await unenroll(session_id, client.clientID, class_date, db)
     if "error" in result:
@@ -87,12 +85,5 @@ async def unenroll_class( session_id: int, class_date: date = Query(...), curren
     if scheduler.get_job(job_id):
         scheduler.remove_job(job_id)
 
-    await db.execute(
-        delete(Notification).where(
-            Notification.user_id == current_user.userID,
-            Notification.type == "class-reminder",
-            Notification.data["session_id"].as_string() == str(session_id),
-        )
-    )
-    await db.commit()
+    await delete_class_reminder_notifications(current_user.userID, session_id, db)
     return result
