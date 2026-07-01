@@ -7,9 +7,9 @@ from app.database import get_session
 from app.models import User
 from app.models.Admin import Admin
 from app.models.coach import Coach
+import os
 
-
-SECRET_KEY = "your-secret-key"
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM  = "HS256"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
@@ -28,6 +28,8 @@ async def get_current_user(
     user = result.scalars().first()
     if not user:
         raise HTTPException(401, "User not found")
+    if not user.is_verified:
+        raise HTTPException(403, "Email is not verified")
     return user
 
 
