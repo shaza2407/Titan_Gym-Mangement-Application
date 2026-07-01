@@ -57,7 +57,6 @@ async def require_coach(
     coach = result.scalars().first()
     if not coach:
         raise HTTPException(404, "Coach record not found")
-
     return user
 
 async def require_client(current_user: User = Depends(get_current_user)):

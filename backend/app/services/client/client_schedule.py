@@ -1,14 +1,15 @@
 # app/services/client/client_schedule.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import delete, select, func
 from datetime import date, timedelta
 from app.models.class_session import ClassSession
 from app.models.class_enrollment import ClassEnrollment
 from app.models.coach import Coach
 from app.models import User
-from app.services.client.client_utils import get_membership, get_client_gymID  
-
+from app.services.client.client_utils import get_membership, get_client_gymID, get_membership_block_reason
+from app.models.notification import Notification
+ 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -244,16 +245,18 @@ async def get_weekly_schedule(clientID: int, db: AsyncSession) -> list:
 
 
 # ── Enroll ────────────────────────────────────────────────────────────────────
-
+_ENROLL_ERROR_MESSAGES = {
+    "not_connected": "You are not connected to a gym",
+    "suspended": "Your membership is suspended. Contact your gym to restore access.",
+    "expired": "Your subscription has expired. Please renew to enroll in classes.",
+}
 async def enroll(session_id: int, clientID: int,
                  class_date: date, db: AsyncSession) -> dict:
     membership = await get_membership(clientID, db)
-    if not membership:
-        return {"error": "You are not connected to a gym"}
-    if membership.status == "suspended":
-        return {"error": "Your membership is suspended. Contact your gym to restore access."}
-    if membership.subscription_end < date.today():
-        return {"error": "Your subscription has expired. Please renew to enroll in classes."}
+
+    reason = get_membership_block_reason(membership)
+    if reason:
+        return {"error": _ENROLL_ERROR_MESSAGES[reason]}
 
     result = await db.execute(
         select(ClassSession).where(ClassSession.id == session_id)
@@ -261,6 +264,8 @@ async def enroll(session_id: int, clientID: int,
     session = result.scalar_one_or_none()
     if not session:
         return {"error": "Class not found"}
+    if session.gymID != membership.gymID:
+        return {"error": "This class does not belong to your gym"}
 
     if await _get_enrollment(session_id, clientID, class_date, db):
         return {"error": "Already enrolled for this date"}
@@ -286,6 +291,7 @@ async def enroll(session_id: int, clientID: int,
     }
 
 
+
 # ── Unenroll ──────────────────────────────────────────────────────────────────
 
 async def unenroll(session_id: int, clientID: int,
@@ -304,3 +310,16 @@ async def unenroll(session_id: int, clientID: int,
     await db.delete(enrollment)
     await db.commit()
     return {"message": "Unenrolled successfully"}
+
+
+async def delete_class_reminder_notifications(
+    user_id: int, session_id: int, db: AsyncSession
+) -> None:
+    await db.execute(
+        delete(Notification).where(
+            Notification.user_id == user_id,
+            Notification.type == "class-reminder",
+            Notification.data["session_id"].as_string() == str(session_id),
+        )
+    )
+    await db.commit()
