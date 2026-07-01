@@ -108,24 +108,7 @@ class _CompactClassCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
-              GestureDetector(
-                onTap: () async {
-                  final confirm = await showConfirmDialog(
-                    context,
-                    title: 'Delete Class',
-                    content: 'Remove this class from the schedule?',
-                  );
-                  if (confirm == true) {
-                    final success = await ctrl.deleteClass(token, classModel.id);
-                    if (success && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Class deleted'), backgroundColor: Colors.green),
-                      );
-                    }
-                  }
-                },
-                child: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
-              ),
+
               const SizedBox(width: 8),
             ],
           ),

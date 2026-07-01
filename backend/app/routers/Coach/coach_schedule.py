@@ -15,7 +15,6 @@ from app.services.coach.coach_schedule import (
     get_my_classes,
     get_class_requests,
     create_class_request,
-    remove_class,
     remove_class_request,
     get_coach_gyms_lookup,
     get_coach_or_404
@@ -75,20 +74,6 @@ async def create_request(
 ):
     coach = await get_coach_or_404(current_user.userID, db)
     return await create_class_request(coach.coachID, payload.gym_id, payload, db)    
-
-
-
-# DELETE /coach/schedule/my-classes/{class_id}
-@router.delete("/my-classes/{class_id}")
-async def delete_class(
-    class_id: int,
-    current_user=Depends(require_coach),
-    db: AsyncSession = Depends(get_session)
-):
-    coach = await get_coach_or_404(current_user.userID, db)
-    await remove_class(coach.coachID, class_id, db)
-    return {"message": "Class removed successfully"}
-
 
 
 # DELETE /coach/schedule/requests/{request_id}
