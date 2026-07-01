@@ -10,17 +10,16 @@ from app.schemas.auth.VerifyEmailRequest import VerifyEmailRequest
 from passlib.context import CryptContext
 from jose import jwt
 import datetime
-import bcrypt
+import bcrypt , os
 import random
 from app.dependencies.email_utils import send_verification_email, send_reset_email
 from datetime import datetime, timedelta ,timezone
 from app.schemas.auth.SignInResponse import SignInResponse
 from app.schemas.auth.SignInRequest import SignInRequest
 from app.schemas.auth.SignUpRequest import SignUpRequest
-from app.schemas.auth.SignUpResponse import SignUpResponse
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "your-secret-key"      #will be used in production, should be env var
+SECRET_KEY = os.getenv("SECRET_KEY")   #will be used in production, should be env var
 ALGORITHM  = "HS256"                #JWT signing algorithm, usually HS256 or RS256
 
 #Helper function to detect user role based on their ID
@@ -68,7 +67,7 @@ async def signup_user(payload: SignUpRequest, db: AsyncSession) -> User:
 
         verify_token = str(random.randint(100000, 999999))
         user.reset_token = verify_token
-        user.reset_token_exp = datetime.now(timezone.utc) + timedelta(hours=24)
+        user.reset_token_exp = datetime.now(timezone.utc) + timedelta(hours=3)
 
         await db.commit()
         await db.refresh(user)
