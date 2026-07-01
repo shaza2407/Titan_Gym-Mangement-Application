@@ -64,15 +64,15 @@ class _RequestCard extends StatelessWidget {
                   onTap: () async {
                     final confirm = await showConfirmDialog(
                       context,
-                      title: 'Cancel Request',
+                      title: 'Delete Request',
                       content: 'Are you sure you want to delete this class request?',
-                      confirmLabel: 'Cancel Request',
+                      confirmLabel: 'Delete Request',
                     );
                     if (confirm == true) {
                       final success = await ctrl.deleteRequest(token, request.id);
                       if (success && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Request cancelled'), backgroundColor: Colors.green),
+                          const SnackBar(content: Text('Request deleted'), backgroundColor: Colors.green),
                         );
                       }
                     }
