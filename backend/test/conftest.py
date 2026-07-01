@@ -1,7 +1,7 @@
 # tests/conftest.py
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from test.helpers import make_user, mock_execute_returning  # ← from helpers, not conftest
+# from test.helpers import make_user, mock_execute_returning 
 
 @pytest.fixture
 def mock_db():

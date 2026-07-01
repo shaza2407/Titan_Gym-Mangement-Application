@@ -16,7 +16,6 @@ from app.services.coach.coach_schedule import (
     get_class_requests,
     create_class_request,
     remove_class_request,
-    remove_class,
     get_coach_gyms_lookup,
 )
 
@@ -51,10 +50,11 @@ class TestGetCoachOr404:
 # 
 class TestGetCoachGymID:
     async def test_returns_gym_id_(self,mock_db):
-        result_mock = MagicMock()
-        result_mock.scalar_one_or_none.return_value = 100
-        mock_db.execute.return_value = result_mock
-
+        # result_mock = MagicMock()
+        # result_mock.scalar_one_or_none.return_value = 100
+        # mock_db.execute.return_value = result_mock
+        # 
+        mock_execute_returning(mock_db, 100)
         gym_id = await get_coach_gymID(6, mock_db)
         assert gym_id == 100
 
@@ -414,44 +414,6 @@ class TestRemoveClassRequest:
         mock_db.delete.assert_called_once_with(pending_request)
         mock_db.commit.assert_called_once()
         assert result is True
- 
- 
-# ── remove_class ──────────────────────────────────────────────────────────────
- 
-class TestRemoveClass:
- 
-    async def test_raises_404_if_class_not_found(self, mock_db):
-        mock_execute_returning(mock_db, None)
- 
-        with pytest.raises(HTTPException) as exc:
-            await remove_class(10, 999, mock_db)
-        assert exc.value.status_code == 404
- 
-    async def test_deletes_class_and_enrollments(
-        self, mock_db, recurring_session, mock_notifications
-    ):
-        first_result = MagicMock()
-        first_result.scalar_one_or_none.return_value = recurring_session
-        enrollment_delete = MagicMock()
-        mock_db.execute.side_effect = [first_result, enrollment_delete]
- 
-        result = await remove_class(10, 1, mock_db)
- 
-        mock_db.delete.assert_called_once_with(recurring_session)
-        mock_db.commit.assert_called_once()
-        assert result is True
- 
-    async def test_notifies_clients_after_removal(
-        self, mock_db, recurring_session, mock_notifications
-    ):
-        first_result = MagicMock()
-        first_result.scalar_one_or_none.return_value = recurring_session
-        mock_db.execute.side_effect = [first_result, MagicMock()]
- 
-        await remove_class(10, 1, mock_db)
- 
-        mock_notifications["clients"].assert_called_once()
- 
  
 # ── get_coach_gyms_lookup ─────────────────────────────────────────────────────
  

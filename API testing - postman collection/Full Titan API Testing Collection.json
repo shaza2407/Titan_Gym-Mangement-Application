@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "a7d60440-64f0-4d20-bc30-77eb899a34d4",
+    "_postman_id": "ccd0b54c-ce76-4924-adb1-9545ae2a78ca",
     "name": "Titan Test Space",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "40474443",
-    "_collection_link": "https://go.postman.co/collection/40474443-a7d60440-64f0-4d20-bc30-77eb899a34d4?source=collection_link"
+    "_exporter_id": "40499505",
+    "_collection_link": "https://go.postman.co/collection/40499505-ccd0b54c-ce76-4924-adb1-9545ae2a78ca?source=collection_link"
   },
   "item": [
     {
@@ -909,7 +909,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"shaza@coach.com\",\n  \"password\": \"12345678\"\n}",
+                  "raw": "{\n  \"email\": \"coach@gym.com\",\n  \"password\": \"12345678\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -8463,62 +8463,6 @@
                     "schedule",
                     "requests",
                     "{{coach_request_id}}"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete My Class",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "pm.test('Status 200 or 204 (Successfully Deleted)', () => {\r",
-                      "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
-                      "});"
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                },
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "exec": [
-                      ""
-                    ],
-                    "type": "text/javascript",
-                    "packages": {},
-                    "requests": {}
-                  }
-                }
-              ],
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{coach_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/coach/schedule/my-classes/{{class_id}}",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "coach",
-                    "schedule",
-                    "my-classes",
-                    "{{class_id}}"
                   ]
                 }
               },
