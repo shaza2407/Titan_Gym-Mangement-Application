@@ -3,7 +3,7 @@
 from datetime import date
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, select, or_
+from sqlalchemy import and_, func, select, or_
 from app.models.Gym import Gym
 from app.models.coach import Coach
 from app.models.announcement import Announcement
@@ -51,7 +51,8 @@ async def get_coach_active_gyms(user_id: int, db: AsyncSession) -> list:
         .where(Coach.userID == user_id) 
         .where(
             or_(GymCoachMembership.status == CoachMembershipStatus.active,
-                GymCoachMembership.status.is_(None))
+                # GymCoachMembership.status.is_(None)
+            )
         )
     )
     gyms_result = await db.execute(gyms_query)
@@ -71,7 +72,18 @@ async def get_coach_active_gyms(user_id: int, db: AsyncSession) -> list:
         clients_count = clients_result.scalar() or 0
 
         # fetch all classes for this coach at this gym
-        sessions_query = select(ClassSession).where(ClassSession.coach_id == row.coachID, ClassSession.gymID == gym_id)
+        sessions_query = (
+            select(ClassSession)
+            .join(GymCoachMembership, and_(
+                GymCoachMembership.gymID == ClassSession.gymID,
+                GymCoachMembership.coachID == row.coachID,
+                GymCoachMembership.status == CoachMembershipStatus.active,
+            ))
+            .where(
+                ClassSession.coach_id == row.coachID,
+                ClassSession.gymID == gym_id,
+            )
+        )
         sessions_result = await db.execute(sessions_query)
         sessions = sessions_result.scalars().all()
 
@@ -131,7 +143,12 @@ async def get_coach_announcements(user_id: int, db: AsyncSession, gym_id: int | 
         .join(GymCoachMembership, Gym.gymID == GymCoachMembership.gymID)
         .join(Coach, Coach.coachID == GymCoachMembership.coachID)
         .where(Coach.userID == user_id)
-        .where(or_(GymCoachMembership.status == CoachMembershipStatus.active, GymCoachMembership.status.is_(None)))
+        .where(
+            or_(
+                GymCoachMembership.status == CoachMembershipStatus.active,
+                # GymCoachMembership.status.is_(None)
+            )
+        )
     )
 
     # 2. Apply the gym_id filter if the app asks for a specific gym!

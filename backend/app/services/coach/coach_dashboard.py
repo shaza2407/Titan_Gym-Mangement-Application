@@ -1,12 +1,13 @@
 # app/services/coach/coach_dashboard.py
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import and_, select, func
 from datetime import date, timedelta
 from app.models.class_session import ClassSession
-from app.models.gym_coachs_membership import GymCoachMembership
+from app.models.gym_coachs_membership import CoachMembershipStatus, GymCoachMembership
 from app.services.coach.coach_schedule import ( 
     _count_enrolled,
     get_gym_name,
+    _active_gym_join
 )
 from app.models.gym_clients_membership import GymClientMembership
 from app.models.gym_coachs_membership import GymCoachMembership
@@ -22,7 +23,9 @@ async def get_coach_dashboard_stats(coachID: int, db: AsyncSession) -> dict:
 
     # Get all coach classes
     sessions_result = await db.execute(
-        select(ClassSession).where(ClassSession.coach_id == coachID)
+        select(ClassSession)
+        .join(GymCoachMembership, _active_gym_join(coachID, ClassSession))
+        .where(ClassSession.coach_id == coachID)
     )
     sessions = sessions_result.scalars().all()
 
@@ -43,15 +46,20 @@ async def get_coach_dashboard_stats(coachID: int, db: AsyncSession) -> dict:
     clients_query = (
         select(func.count(func.distinct(GymClientMembership.clientID)))
         .join(GymCoachMembership, GymClientMembership.gymID == GymCoachMembership.gymID)
-        .where(GymCoachMembership.coachID == coachID)
+        .where(
+            GymCoachMembership.coachID == coachID,
+            GymCoachMembership.status == CoachMembershipStatus.active,
+        )
     )
     total_clients = await db.execute(clients_query)
     total_clients = total_clients.scalar() or 0
 
     # Active gyms
     gyms_result = await db.execute(
-        select(func.count(GymCoachMembership.gymID)).where(
-            GymCoachMembership.coachID == coachID
+        select(func.count(GymCoachMembership.gymID))
+        .where(
+            GymCoachMembership.coachID == coachID,
+            GymCoachMembership.status == CoachMembershipStatus.active
         )
     )
     active_gyms = gyms_result.scalar() or 0
@@ -72,7 +80,9 @@ async def get_upcoming_classes(coachID: int, db: AsyncSession, limit: int = 3) -
     today_name = day_names[today.weekday()]
 
     sessions_result = await db.execute(
-        select(ClassSession).where(ClassSession.coach_id == coachID)
+        select(ClassSession)
+        .join(GymCoachMembership, _active_gym_join(coachID, ClassSession))
+        .where(ClassSession.coach_id == coachID)
     )
 
     sessions = sessions_result.scalars().all()

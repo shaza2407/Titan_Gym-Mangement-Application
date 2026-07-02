@@ -159,6 +159,7 @@ class CoachListResponse(BaseModel):
 class CoachGymLookUpResponse(BaseModel):
     id: int
     name: str
+    status: str
 
     class Config:
         from_attributes = True
