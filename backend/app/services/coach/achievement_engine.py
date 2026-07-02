@@ -9,7 +9,7 @@ Event-driven achievement engine with:
 """
 
 import logging
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, timedelta
 from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -437,7 +437,7 @@ class AchievementEngine:
             if raw_value >= lvl.target:
 
                 ca.is_unlocked = True
-                ca.unlocked_at = datetime.now(timezone.utc)
+                ca.unlocked_at = datetime.now()
 
                 logger.info(
                     f"🎉 Client {client_id} unlocked [{lvl.key}] "

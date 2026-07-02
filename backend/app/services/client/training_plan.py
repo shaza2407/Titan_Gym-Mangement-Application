@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from typing import Optional, List
 from io import BytesIO
 
@@ -193,7 +193,7 @@ async def complete_day_service(plan_id: int, request: CompleteDayRequest, user_i
         tracking = TrainingPlanTracking(
             clientID              = client_id,
             planID                = plan_id,
-            tracking_date         = datetime.now(timezone.utc).date(),
+            tracking_date         = datetime.now().date(),
             week_number           = week_number,
             day_number            = day_number,
             planned_exercises     = total_exercises,
@@ -202,17 +202,17 @@ async def complete_day_service(plan_id: int, request: CompleteDayRequest, user_i
             completed_exercises_list = completed_exercise_indices,
             status                = WorkoutStatus.COMPLETED if completion >= 80 else WorkoutStatus.PARTIAL,
             duration_minutes      = duration_minutes,
-            completed_at          = datetime.now(timezone.utc),
+            completed_at          = datetime.now(),
         )
         db.add(tracking)
     else:
-        tracking.tracking_date         = datetime.now(timezone.utc).date()
+        tracking.tracking_date         = datetime.now().date()
         tracking.completed_exercises   = completed_exercises
         tracking.completion_percentage = completion
         tracking.completed_exercises_list = completed_exercise_indices
         tracking.status                = WorkoutStatus.COMPLETED if completion >= 80 else WorkoutStatus.PARTIAL
         tracking.duration_minutes      = duration_minutes
-        tracking.completed_at          = datetime.now(timezone.utc)
+        tracking.completed_at          = datetime.now()
 
     await db.commit()
 
@@ -245,12 +245,12 @@ async def complete_week_service(plan_id: int, request: CompleteWeekRequest, user
             clientID        = client_id,
             planID          = plan_id,
             week_number     = week_number,
-            week_end_date   = datetime.now(timezone.utc).date(),
+            week_end_date   = datetime.now().date(),
             week_status     = DayStatus.COMPLETED,
         )
         db.add(week_progress)
     else:
-        week_progress.week_end_date = datetime.now(timezone.utc).date()
+        week_progress.week_end_date = datetime.now().date()
         week_progress.week_status   = DayStatus.COMPLETED
 
     await db.commit()
@@ -266,7 +266,7 @@ async def complete_training_plan_service(plan_id: int, user_id: int, db: AsyncSe
         raise HTTPException(status_code=400, detail="Plan is already completed.")
 
     plan.status       = PlanStatus.COMPLETED
-    plan.completed_at = datetime.now(timezone.utc)
+    plan.completed_at = datetime.now()
     await db.commit()
     await db.refresh(plan)
 
@@ -314,7 +314,7 @@ async def _check_auto_complete(client_id: int, plan: TrainingPlan, db: AsyncSess
 
     if completed >= total_workouts and plan.status != PlanStatus.COMPLETED:
         plan.status       = PlanStatus.COMPLETED
-        plan.completed_at = datetime.now(timezone.utc)
+        plan.completed_at = datetime.now()
         await db.commit()
         await achievement_engine.on_plan_completed(client_id, db)
 

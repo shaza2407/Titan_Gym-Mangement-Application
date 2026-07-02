@@ -1,5 +1,5 @@
 import numpy as np
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.attendance import Attendance
@@ -17,7 +17,7 @@ def encode_days(days: int) -> int:
         return 2   # high : 5-7 days
 
 async def get_weekly_attendance(client_id: int, gym_id: int, db: AsyncSession) -> list:
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now = datetime.now().replace(tzinfo=None)
     since_90 = now - timedelta(days=90)
 
     result = await db.execute(
@@ -52,12 +52,12 @@ async def get_days_since_last_visit(client_id: int, gym_id: int, db: AsyncSessio
 
     if not last:
         return 365
-    delta = datetime.now(timezone.utc).replace(tzinfo=None) - last.checked_in
+    delta = datetime.now().replace(tzinfo=None) - last.checked_in
     return delta.days
 
 
 def get_days_until_expiry(membership: GymClientMembership) -> int:
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now().date()
     delta = membership.subscription_end - today
     return max(delta.days, 0)
 

@@ -15,7 +15,7 @@ class Notification(Base):
     type = Column(String, nullable=False)  # 'gym_invite_client' | 'gym_invite_coach'
     data = Column(JSON, default={})
     is_read = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(), server_default=func.now())
 
 
 class FcmToken(Base):
@@ -24,4 +24,4 @@ class FcmToken(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(Integer, ForeignKey("users.userID" ,ondelete="CASCADE"), nullable=False, unique=True)
     token = Column(String, nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(DateTime(), server_default=func.now(), onupdate=func.now())

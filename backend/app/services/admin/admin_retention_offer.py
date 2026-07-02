@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +19,7 @@ model = joblib.load("app/ml/churn_model.pkl")
 RISK_ORDER = {"High": 0, "Mid": 1, "Low": 2}
 
 async def get_active_members(db: AsyncSession, gym_id: int):
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now().date()
     result = await db.execute(
         select(GymClientMembership).where(
             GymClientMembership.gymID == gym_id,

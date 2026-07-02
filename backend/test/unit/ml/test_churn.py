@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock, patch
-from datetime import datetime, timezone, timedelta, date
+from datetime import datetime, timedelta, date
 from app.routers.Admin.churn import (
     encode_days,
     get_weekly_attendance,
@@ -61,7 +61,7 @@ class TestGetWeeklyAttendance:
         assert all(v == 0 for v in result)
 
     async def test_encodes_checkins_correctly(self, mock_db):
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now().replace(tzinfo=None)
         # Put 5 checkins in the most recent week (i=0 → week_start = now-7d, week_end = now)
         checkins = [(now - timedelta(days=1),)] * 5
         mock_db.execute.return_value = MagicMock(all=MagicMock(return_value=checkins))
@@ -84,7 +84,7 @@ class TestGetDaysSinceLastVisit:
         assert result == 365
 
     async def test_returns_correct_days(self, mock_db):
-        last_checkin = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=7)
+        last_checkin = datetime.now().replace(tzinfo=None) - timedelta(days=7)
         row = MagicMock()
         row.checked_in = last_checkin
         mock_db.execute.return_value = MagicMock(first=MagicMock(return_value=row))

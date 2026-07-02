@@ -2,7 +2,6 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select , func
 import secrets
-from datetime import timezone
 from datetime import datetime, timedelta, date ,date as date_type
 from app.services.notifications.notification_Utils import notify_invite
 from dateutil.relativedelta import relativedelta
@@ -168,7 +167,7 @@ async def invite_client(db: AsyncSession, gym: Gym, body: InviteClientRequest) -
         )
     )).scalar_one_or_none()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     if body.subscription_type == "yearly":
         subscription_label = "yearly"
         subscription_end = (now + relativedelta(years=body.subscription_months)).date()
@@ -187,8 +186,8 @@ async def invite_client(db: AsyncSession, gym: Gym, body: InviteClientRequest) -
     #if it's already there just extend invitation expiration
     if existing_inv:
         existing_inv.token = secrets.token_urlsafe(32)
-        existing_inv.sent_at = datetime.now(timezone.utc)
-        existing_inv.expires_at = datetime.now(timezone.utc) + timedelta(days=3)
+        existing_inv.sent_at = datetime.now()
+        existing_inv.expires_at = datetime.now() + timedelta(days=3)
         existing_inv.subscription = subscription_label
         existing_inv.subscription_end = subscription_end
         existing_inv.subscription_price = body.subscription_price
@@ -202,7 +201,7 @@ async def invite_client(db: AsyncSession, gym: Gym, body: InviteClientRequest) -
             invited_as="client",
             token=secrets.token_urlsafe(32),
             status=InvitationStatus.pending,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=3),
+            expires_at=datetime.now() + timedelta(days=3),
             subscription=subscription_label,
             subscription_end=subscription_end,
             subscription_price=body.subscription_price,
@@ -324,7 +323,7 @@ async def accept_client_invitation(db: AsyncSession, gym_id: int, token: str, cu
     if not inv:
         raise HTTPException(404, "Invitation not found or already used.")
 
-    if inv.expires_at < datetime.now(timezone.utc):
+    if inv.expires_at < datetime.now():
         raise HTTPException(400, "Invitation has expired.")
 
     if inv.email.lower() != current_user.email.lower():

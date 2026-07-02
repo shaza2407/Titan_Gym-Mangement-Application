@@ -2,7 +2,7 @@
 
 from sqlalchemy import Boolean, Column, Integer, String, Date, Time, ForeignKey, Enum as SQLEnum, DateTime
 from app.database import Base
-from datetime import datetime, timezone
+from datetime import datetime
 import enum
 
 
@@ -31,4 +31,4 @@ class ClassRequest(Base):
     reason_for_request  = Column(String, nullable=True)
 
     status     = Column(SQLEnum(RequestStatus), default=RequestStatus.PENDING)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(), default=lambda: datetime.now())

@@ -1,6 +1,6 @@
 # tests/unit/auth/conftest.py
 import pytest
-from datetime import datetime, timedelta , timezone
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 from test.helpers import make_user 
 from app.schemas.auth.SignInRequest import SignInRequest

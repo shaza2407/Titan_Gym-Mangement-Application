@@ -1,7 +1,7 @@
 import pytest
 from fastapi import HTTPException
 from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import date, timedelta, timezone, datetime
+from datetime import date, timedelta, datetime
 from app.services.admin.admin_client_management_service import (
     invite_client,
     suspend_a_client,
@@ -171,7 +171,7 @@ class TestAcceptClientInvitation:
 
     async def test_raises_400_if_expired(self, mock_db):
         inv = MagicMock()
-        inv.expires_at = datetime.now(timezone.utc) - timedelta(days=1)
+        inv.expires_at = datetime.now() - timedelta(days=1)
         mock_db.execute.return_value = scalar_one_or_none_result(inv)
         with pytest.raises(HTTPException) as exc:
             await accept_client_invitation(mock_db, GYM_ID, "token", make_user(email="client@example.com"))
@@ -179,7 +179,7 @@ class TestAcceptClientInvitation:
 
     async def test_raises_403_if_email_mismatch(self, mock_db):
         inv = MagicMock()
-        inv.expires_at = datetime.now(timezone.utc) + timedelta(days=1)
+        inv.expires_at = datetime.now() + timedelta(days=1)
         inv.email = "client@example.com"
         mock_db.execute.return_value = scalar_one_or_none_result(inv)
         with pytest.raises(HTTPException) as exc:
@@ -189,7 +189,7 @@ class TestAcceptClientInvitation:
     async def test_creates_membership_on_success(self, mock_db):
         user = make_user(email="client@example.com")
         inv = MagicMock()
-        inv.expires_at = datetime.now(timezone.utc) + timedelta(days=1)
+        inv.expires_at = datetime.now() + timedelta(days=1)
         inv.email = "client@example.com"
         inv.subscription = "monthly"
         inv.subscription_end = date.today() + timedelta(days=30)
