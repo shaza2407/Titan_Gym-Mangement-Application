@@ -1,5 +1,6 @@
-import pytest
+# tests/unit/coach/test_coach_schedule.py
 
+import pytest
 from datetime import date, time, timedelta
 from unittest.mock import MagicMock, AsyncMock
 from fastapi import HTTPException
@@ -27,18 +28,16 @@ from test.unit.coach.helpers import (
     mock_execute_scalars,
 )
 
-
-# ── get_coach_or_404 tests
+# ── get_coach_or_404 tests ────────────────────────────────────────────────────
 class TestGetCoachOr404:
-    async def test_returns_coach_if_found(self,mock_db):
+    async def test_returns_coach_if_found(self, mock_db):
         coach = make_coach()
-        mock_execute_returning(mock_db,coach)
+        mock_execute_returning(mock_db, coach)
 
         result = await get_coach_or_404(1, mock_db)
         assert result is coach
 
-
-    async def test_raises_http_exception_if_not_found(self,mock_db):
+    async def test_raises_http_exception_if_not_found(self, mock_db):
         mock_execute_returning(mock_db, None)
 
         with pytest.raises(HTTPException) as exc_info:
@@ -46,31 +45,21 @@ class TestGetCoachOr404:
         
         assert exc_info.value.status_code == 404
 
-
-# 
+# ── get_coach_gymID tests ─────────────────────────────────────────────────────
 class TestGetCoachGymID:
-    async def test_returns_gym_id_(self,mock_db):
-        # result_mock = MagicMock()
-        # result_mock.scalar_one_or_none.return_value = 100
-        # mock_db.execute.return_value = result_mock
-        # 
+    async def test_returns_gym_id_(self, mock_db):
         mock_execute_returning(mock_db, 100)
         gym_id = await get_coach_gymID(6, mock_db)
         assert gym_id == 100
 
-
-    async def test_returns_none_if_not_found(self,mock_db):
+    async def test_returns_none_if_not_found(self, mock_db):
         mock_execute_returning(mock_db, None)
-
         gym_id = await get_coach_gymID(6, mock_db)
-
         assert gym_id is None
 
-
-
-# ── get_gym_name tests
+# ── get_gym_name tests ────────────────────────────────────────────────────────
 class TestGetGymName:
-    async def test_returns_gym_name_if_found(self,mock_db):
+    async def test_returns_gym_name_if_found(self, mock_db):
         result_mock = MagicMock()
         result_mock.scalar_one_or_none.return_value = "Test Gym"
         mock_db.execute.return_value = result_mock
@@ -78,22 +67,17 @@ class TestGetGymName:
         name = await get_gym_name(1, mock_db)
         assert name == "Test Gym"
 
-
-    async def test_returns_none_if_not_found(self,mock_db):
+    async def test_returns_none_if_not_found(self, mock_db):
         mock_execute_returning(mock_db, None)
-
         name = await get_gym_name(1, mock_db)
-
         assert name is None
 
-
-# ── _next_occurrence tests 
+# ── _next_occurrence tests ────────────────────────────────────────────────────
 class TestNextOccurrence:
     days = ["monday", "tuesday", "wednesday", "thursday",
             "friday", "saturday", "sunday"]
 
     def test_returns_a_future_date(self):
-
         for day in self.days:
             result = _next_occurrence(day)
             assert result > date.today()
@@ -109,27 +93,21 @@ class TestNextOccurrence:
         mixed = _next_occurrence("MonDay")
         assert lower == upper == mixed
 
-
-# 
+# ── _count_enrolled tests ─────────────────────────────────────────────────────
 class TestCountEnrolled:
-    async def test_returns_count(self,mock_db):
+    async def test_returns_count(self, mock_db):
         mock_db.scalar.return_value = 5
-
-        count = await _count_enrolled(1,date.today(), mock_db)
+        count = await _count_enrolled(1, date.today(), mock_db)
         assert count == 5
 
-    async def test_returns_zero_when_none(self,mock_db):
+    async def test_returns_zero_when_none(self, mock_db):
         mock_db.scalar.return_value = None
-
-        count = await _count_enrolled(1,date.today(), mock_db)
+        count = await _count_enrolled(1, date.today(), mock_db)
         assert count == 0
 
-
-# 
+# ── get_schedule_stats tests ──────────────────────────────────────────────────
 class TestGetScheduleStats:
-    
-    async def test_counts_recurring_sessions_in_window(self,mock_db, recurring_session):
-        # session falls within the next 7 days
+    async def test_counts_recurring_sessions_in_window(self, mock_db, recurring_session):
         days = ["monday", "tuesday", "wednesday", "thursday",
                 "friday", "saturday", "sunday"]
         today_name = days[date.today().weekday()]
@@ -138,13 +116,10 @@ class TestGetScheduleStats:
         mock_execute_scalars(mock_db, [recurring_session])
         mock_db.scalar.return_value = 0  
 
-        # 
         stats = await get_schedule_stats(10, mock_db)
         assert stats["weekly_classes"] == 1   
 
-
     async def test_counts_one_time_session_from_today(self, mock_db, one_time_session):
-        # session falls within the next 7 days
         mock_execute_scalars(mock_db, [one_time_session])
         mock_db.scalar.return_value = 0  
 
@@ -152,7 +127,6 @@ class TestGetScheduleStats:
         assert stats["weekly_classes"] == 1
 
     async def test_excludes_past_one_time_sessions(self, mock_db, past_one_time_session):
-        # session is in the past
         mock_execute_scalars(mock_db, [past_one_time_session])
         mock_db.scalar.return_value = 0  
 
@@ -177,19 +151,16 @@ class TestGetScheduleStats:
             "pending_requests": 0
         }
 
-# 
+# ── get_weekly_schedule tests ─────────────────────────────────────────────────
 class TestGetWeeklyClasses:
     async def test_returns_7_days(self, mock_db):
         mock_execute_scalars(mock_db, [])
         mock_db.scalar.return_value = 0
 
         stats = await get_weekly_schedule(10, mock_db)
-
         assert len(stats) == 7
 
-
     async def test_recurring_session_placed_on_correct_day(self, mock_db, recurring_session):
-        # session falls within the next 7 days
         days = ["monday", "tuesday", "wednesday", "thursday",
                 "friday", "saturday", "sunday"]
         today_name = days[date.today().weekday()]
@@ -208,10 +179,9 @@ class TestGetWeeklyClasses:
 
         schedule = await get_weekly_schedule(10, mock_db)
 
-        today_entry = schedule[0]  # Assuming today is the first entry
+        today_entry = schedule[0]
         assert len(today_entry["classes"]) == 1
         assert today_entry["classes"][0]["title"] == "Morning Yoga"
-
 
     async def test_empty_days_have_empty_classes_list(self, mock_db):
         mock_execute_scalars(mock_db, [])
@@ -223,7 +193,6 @@ class TestGetWeeklyClasses:
             assert day_entry["classes"] == []
 
     async def test_classes_sorted_by_start_time(self, mock_db, recurring_session, one_time_session):
-        # Set up two sessions for the same day with different start times
         days = ["monday", "tuesday", "wednesday", "thursday",
                 "friday", "saturday", "sunday"]
         today_name = days[date.today().weekday()]
@@ -245,12 +214,11 @@ class TestGetWeeklyClasses:
 
         schedule = await get_weekly_schedule(10, mock_db)
 
-        today_classes = schedule[0]["classes"]  # Assuming today is the first entry
+        today_classes = schedule[0]["classes"]
         assert len(today_classes) == 2
-        assert today_classes[0]["start_time"] <= today_classes[1]["start_time"]  # Ensure sorted by start time
+        assert today_classes[0]["start_time"] <= today_classes[1]["start_time"]
 
-
-
+# ── get_my_classes tests ──────────────────────────────────────────────────────
 class TestGetMyClasses:
     async def test_filters_out_past_sessions(self, mock_db, past_one_time_session):
         scalars_result = MagicMock()
@@ -260,14 +228,11 @@ class TestGetMyClasses:
         mock_db.scalar.return_value = 0
 
         classes = await get_my_classes(10, mock_db)
-
         assert classes == []
     
     async def test_returns_empty_list_when_no_sessions(self, mock_db):
         mock_execute_scalars(mock_db, [])
- 
         classes = await get_my_classes(10, mock_db)
- 
         assert classes == []
 
     async def test_each_entry_contains_required_fields(self, mock_db, recurring_session):
@@ -288,11 +253,10 @@ class TestGetMyClasses:
         }
         assert required_keys.issubset(classes[0].keys())
 
-
+# ── get_class_requests tests ──────────────────────────────────────────────────
 class TestGetClassRequests:
     async def test_returns_list_of_requests(self, mock_db, pending_request):
         mock_execute_scalars(mock_db, [pending_request])
-
         requests = await get_class_requests(10, mock_db)
 
         assert len(requests) == 1
@@ -301,14 +265,11 @@ class TestGetClassRequests:
     
     async def test_returns_empty_list_when_none(self, mock_db):
         mock_execute_scalars(mock_db, [])
- 
         requests = await get_class_requests(10, mock_db)
- 
         assert requests == []
 
     async def test_each_entry_has_required_keys(self, mock_db, pending_request):
         mock_execute_scalars(mock_db, [pending_request])
- 
         requests = await get_class_requests(10, mock_db)
  
         required_keys = {
@@ -318,13 +279,14 @@ class TestGetClassRequests:
         }
         assert required_keys.issubset(requests[0].keys())
     
-
-# 
+# ── create_class_request tests ────────────────────────────────────────────────
 class TestCreateClassRequest:
-    
     async def test_raises_if_class_already_exists_at_time(
         self, mock_db, create_class_payload
     ):
+        membership_result = MagicMock()
+        mock_db.execute.return_value = membership_result
+
         # db.scalar returns an existing class → conflict
         mock_db.scalar.side_effect = [MagicMock(), None]
  
@@ -336,6 +298,9 @@ class TestCreateClassRequest:
     async def test_raises_if_pending_request_exists(
         self, mock_db, create_class_payload
     ):
+        membership_result = MagicMock()
+        mock_db.execute.return_value = membership_result
+
         # A pending request exists
         mock_db.scalar.side_effect = [None, MagicMock()]
  
@@ -344,13 +309,10 @@ class TestCreateClassRequest:
         assert exc.value.status_code == 400
         assert "pending request" in exc.value.detail
 
-
     async def test_creates_request_successfully(
         self, mock_db, create_class_payload, mock_notifications
     ):
-        # No conflicts
-        mock_db.scalar.side_effect = [None, None, None]  # no class, no request, gym name
-        new_req = make_class_request()
+        mock_db.scalar.side_effect = [None, None, None]
         mock_db.refresh = AsyncMock()
  
         gym_name_result = MagicMock()
@@ -375,9 +337,8 @@ class TestCreateClassRequest:
  
         mock_notifications["admin"].assert_called_once()
     
-
+# ── remove_class_request tests ────────────────────────────────────────────────
 class TestRemoveClassRequest:
- 
     async def test_raises_404_if_not_found(self, mock_db):
         mock_execute_returning(mock_db, None)
  
@@ -385,7 +346,6 @@ class TestRemoveClassRequest:
             await remove_class_request(10, 999, mock_db)
         assert exc.value.status_code == 404
  
-
     async def test_raises_400_if_not_pending(self, mock_db, approved_request):
         mock_execute_returning(mock_db, approved_request)
  
@@ -394,20 +354,20 @@ class TestRemoveClassRequest:
         assert exc.value.status_code == 400
         assert "pending" in exc.value.detail
  
-
     async def test_deletes_pending_request(self, mock_db, pending_request):
-        mock_execute_returning(mock_db, pending_request)
-        # Second execute call is the Notification delete
-        mock_db.execute.side_effect = [
-            mock_db.execute.return_value,  # first call result already set
-            MagicMock(),                   # notification delete
-        ]
-        mock_execute_returning(mock_db, pending_request)  # reset for first call
-        # Manually control side_effect
+        # 1. Class request lookup
         first_result = MagicMock()
         first_result.scalar_one_or_none.return_value = pending_request
+        
+        # 2. Gym membership check
+        membership_result = MagicMock()
+        membership_result.scalar_one_or_none.return_value = MagicMock() 
+
+        # 3. Notification deletion
         notif_result = MagicMock()
-        mock_db.execute.side_effect = [first_result, notif_result]
+
+        # Wire up all three expected queries sequentially
+        mock_db.execute.side_effect = [first_result, membership_result, notif_result]
  
         result = await remove_class_request(10, 1, mock_db)
  
@@ -415,17 +375,18 @@ class TestRemoveClassRequest:
         mock_db.commit.assert_called_once()
         assert result is True
  
-# ── get_coach_gyms_lookup ─────────────────────────────────────────────────────
- 
+# ── get_coach_gyms_lookup tests ───────────────────────────────────────────────
 class TestGetCoachGymsLookup:
- 
     async def test_returns_gym_id_and_name_pairs(self, mock_db):
         row1 = MagicMock()
         row1.gymID = 100
         row1.gymName = "FitZone"
+        row1.status.value = "active"
+
         row2 = MagicMock()
         row2.gymID = 200
         row2.gymName = "Test Gym"
+        row2.status.value = "suspended"
  
         result_mock = MagicMock()
         result_mock.all.return_value = [row1, row2]
@@ -434,8 +395,8 @@ class TestGetCoachGymsLookup:
         gyms = await get_coach_gyms_lookup(10, mock_db)
  
         assert len(gyms) == 2
-        assert gyms[0] == {"id": 100, "name": "FitZone"}
-        assert gyms[1] == {"id": 200, "name": "Test Gym"}
+        assert gyms[0] == {"id": 100, "name": "FitZone", "status": "active"}
+        assert gyms[1] == {"id": 200, "name": "Test Gym", "status": "suspended"}
  
     async def test_returns_empty_list_when_no_gyms(self, mock_db):
         result_mock = MagicMock()
