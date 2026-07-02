@@ -121,6 +121,7 @@ async def preview_members_service(db: AsyncSession, gym_id: int, request: Previe
     return previews
 
 async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: CreateOfferRequest):
+    print("DEBUG: ", request)
     if not request.selected_member_ids:
         raise HTTPException(status_code=400, detail="No members selected")
 
@@ -136,6 +137,8 @@ async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: 
     )
     db.add(offer) 
     await db.flush()
+
+    print("DEBUG: ", offer)
 
     for membership_id in request.selected_member_ids:
         result = await db.execute(select(GymClientMembership).where(
