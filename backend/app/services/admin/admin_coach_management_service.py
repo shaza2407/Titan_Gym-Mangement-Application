@@ -53,7 +53,7 @@ async def get_coaches_list(db: AsyncSession, gym: Gym, status_filter: str | None
         coaches.append(CoachListItem(
             id=inv.id,
             name="Pending Invitation",
-            email=inv.email,
+            email=inv.email.lower(),
             phone=None,
             status="pending",
             hire_date=None,
@@ -81,7 +81,7 @@ async def get_coaches_list(db: AsyncSession, gym: Gym, status_filter: str | None
 async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
     # 1. Check the email exists in the app
     existing_user = (await db.execute(
-        select(User).where(User.email == body.email)
+        select(User).where(User.email == body.email.lower)
     )).scalar_one_or_none()
 
     if not existing_user:
@@ -107,7 +107,7 @@ async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
     existing_inv = (await db.execute(
         select(MemberInvitation).where(
             MemberInvitation.gymID  == gym.gymID,
-            MemberInvitation.email  == body.email,
+            MemberInvitation.email  == body.email.lower(),
             MemberInvitation.status == InvitationStatus.pending,
             MemberInvitation.invited_as == "coach",
         )
@@ -121,7 +121,7 @@ async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
     else:
         inv = MemberInvitation(
             gymID      = gym.gymID,
-            email      = body.email,
+            email      = body.email.lower(),
             invited_as = "coach",
             token      = secrets.token_urlsafe(32),
             status     = InvitationStatus.pending,
@@ -129,10 +129,10 @@ async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
         )
         db.add(inv)
 
-    await db.commit()
     # await send_invitation_email(body.email, gym.gymName, inv.token)
     await notify_invite(db, body.email, gym.gymName, "coach", gym_id=gym.gymID, token=inv.token)
-    return InviteCoachResponse(message="Invitation sent successfully.", email=body.email)
+    await db.commit()
+    return InviteCoachResponse(message="Invitation sent successfully.", email=body.email.lower())
 
 
 async def suspend_a_coach(db: AsyncSession, gym: Gym, coach_id: int):

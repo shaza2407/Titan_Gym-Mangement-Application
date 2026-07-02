@@ -22,7 +22,6 @@ async def notify_class_reminder(session_id: int, client_id: int, class_title: st
             body=f"Your {class_title} class is today! Don't forget to show up.",
             type="class-reminder",
             data={"session_id": str(session_id)})
-        
         await send_push_notification(
             db=db,
             user_id=client.userID,
