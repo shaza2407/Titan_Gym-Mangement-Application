@@ -11,6 +11,10 @@ from app.services.client.client_utils import get_gym_or_404
 _DOW = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
+def _build_qr_data(gym_id: int, gym_name: str) -> str:
+    return f"TITAN-GYM-{gym_id}-{gym_name.upper().replace(' ', '-')}"
+
+
 async def already_checked_in_today(client_id: int, gym_id: int, db: AsyncSession) -> bool:
     today = date.today()
     result = await db.execute(
@@ -88,10 +92,10 @@ async def perform_checkin(
 
     gym = await get_gym_or_404(membership.gymID, db)
 
-    if not gym.QRCode:
-        raise HTTPException(500, "Gym QR code is not configured")
-    if qr_code.strip() != gym.QRCode.strip():
+    expected_qr_data = _build_qr_data(gym.gymID, gym.gymName)
+    if qr_code.strip().upper() != expected_qr_data.strip().upper():
         raise HTTPException(400, "This QR code doesn't belong to your gym")
+
     attendance = await record_checkin(client_id, membership.gymID, db)
     message = _build_checkin_message(gym.gymName)
 
