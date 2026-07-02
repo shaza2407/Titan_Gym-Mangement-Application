@@ -209,7 +209,7 @@ async def get_weekly_attendance_pattern(db: AsyncSession, gym: Gym):
     return WeeklyPatternResponse(data=data)
 
 
-async def get_offer_details(db: AsyncSession, gym: Gym, offer_id: int):
+async def get_offer_details_service(db: AsyncSession, gym: Gym, offer_id: int):
 
     result = await db.execute(select(RetentionOffer).where(
             RetentionOffer.id == offer_id,

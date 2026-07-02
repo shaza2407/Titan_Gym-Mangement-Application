@@ -19,7 +19,7 @@ from app.services.admin.admin_analytics_service import (
     get_active_members_this_month, get_avg_attendance_for_period,
     get_active_classes_for_period, get_revenue_for_last_6_months,
     get_members_for_last_6_months, get_membership_distribution,
-    get_weekly_attendance_pattern, get_offer_details
+    get_weekly_attendance_pattern, get_offer_details_service
 )
 
 router = APIRouter(prefix="/admin/analytics", tags=["Admin - Analytics"])
@@ -108,5 +108,5 @@ async def get_weekly_pattern(gym_id: int, db: AsyncSession = Depends(get_session
 @router.get("/{gym_id}/retention-offers/{offer_id}")
 async def get_offer_details(gym_id: int, offer_id: int, db: AsyncSession = Depends(get_session), current_admin = Depends(get_current_user)):
     gym = await _verify_gym_owner(gym_id, current_admin.userID, db)
-    data = await get_offer_details(db, gym, offer_id)
+    data = await get_offer_details_service(db, gym, offer_id)
     return data
