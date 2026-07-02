@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select ,func
 from app.database import get_session
 from app.models import User, Client, Coach, Admin
 from app.schemas.auth import SignUpResponse
@@ -39,7 +39,7 @@ async def detect_role(userID: int, db: AsyncSession) -> str:
 # app/services/auth_service.py
 async def signup_user(payload: SignUpRequest, db: AsyncSession) -> User:
     # Check if email exists
-    result = await db.execute(select(User).where(User.email == payload.email.lower()))
+    result = await db.execute(select(User).where(func.lower(User.email)== payload.email.lower()))
     existing_user = result.scalar_one_or_none()
 
     if existing_user:
@@ -83,7 +83,7 @@ async def signup_user(payload: SignUpRequest, db: AsyncSession) -> User:
 
 
 async def signin_user(payload: SignInRequest, db: AsyncSession) -> SignInResponse:
-    result = await db.execute(select(User).filter(User.email == payload.email.lower()))
+    result = await db.execute(select(User).filter(func.lower(User.email)  == payload.email.lower()))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -116,7 +116,7 @@ async def signin_user(payload: SignInRequest, db: AsyncSession) -> SignInRespons
 
 
 async def verify_email(request: VerifyEmailRequest, db: AsyncSession) -> dict:
-    result = await db.execute(select(User).where(User.email == request.email))
+    result = await db.execute(select(User).where(func.lower(User.email)  == request.email.lower()))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -140,7 +140,7 @@ async def verify_email(request: VerifyEmailRequest, db: AsyncSession) -> dict:
 
 
 async def resend_verification(request: ResendVerificationRequest, db: AsyncSession) -> dict:
-    result = await db.execute(select(User).where(User.email == request.email))
+    result = await db.execute(select(User).where(func.lower(User.email) == request.email.lower()))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -160,7 +160,7 @@ async def resend_verification(request: ResendVerificationRequest, db: AsyncSessi
 
 
 async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession) -> dict:
-    result = await db.execute(select(User).where(User.email == payload.email.lower()))
+    result = await db.execute(select(User).where(func.lower(User.email) == payload.email.lower()))
     user = result.scalar_one_or_none()
 
     if not user:
