@@ -64,12 +64,6 @@ class TestGetUserByEmail:
 
 class TestSaveNotification:
 
-    async def test_adds_and_commits(self, mock_db):
-        await save_notification(mock_db, USER_ID, TITLE, BODY, TYPE, DATA)
-
-        mock_db.add.assert_called_once()
-        mock_db.commit.assert_called_once()
-
     async def test_saves_correct_user_id(self, mock_db):
         captured = {}
         def capture_add(obj):

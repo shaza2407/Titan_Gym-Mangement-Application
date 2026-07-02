@@ -31,7 +31,7 @@ async def save_notification(db: AsyncSession, user_id: int, title: str, body: st
         is_read=False,
     )
     db.add(notification)
-    await db.commit()
+    await db.flush() 
 
 
 async def send_push_notification(db: AsyncSession, user_id: int, title: str, body: str, data: dict):
