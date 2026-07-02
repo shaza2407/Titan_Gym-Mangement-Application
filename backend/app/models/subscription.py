@@ -11,4 +11,4 @@ class Subscription(Base):
     gymID = Column(Integer, ForeignKey("gyms.gymID", ondelete="CASCADE") ,nullable=False)
     supscriptionPrice    = Column(Integer, nullable=False)
     duration_count     = Column(Integer, nullable=False)   #number of months or years
-    billingDate    = Column(DateTime(timezone= False),server_default=func.now(), nullable=False)  
+    billingDate    = Column(DateTime(timezone= True),server_default=func.now(), nullable=False)  
