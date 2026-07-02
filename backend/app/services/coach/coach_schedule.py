@@ -417,7 +417,7 @@ async def get_coach_gyms_lookup(coachID: int, db: AsyncSession)-> list:
             GymCoachMembership.coachID == coachID,
             or_(
                 GymCoachMembership.status == CoachMembershipStatus.active,
-                GymCoachMembership.status.is_(None)
+                # GymCoachMembership.status.is_(None)
             )
         
         )
