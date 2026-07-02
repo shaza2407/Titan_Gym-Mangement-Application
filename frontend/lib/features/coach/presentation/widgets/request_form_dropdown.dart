@@ -26,8 +26,30 @@ class RequestFormDropdown extends StatelessWidget {
                 hint: const Text('Select gym location'),
                 items: ctrl.gyms.map((CoachGymLookupModel gym) {
                   return DropdownMenuItem<int>(
-                    value: gym.id,
-                    child: Text(gym.name),
+                    value: gym.isActive? gym.id : null,
+                    enabled: gym.isActive, // Disable the item if the gym is suspended
+                    child:Row(
+                      children: [
+                        Text(
+                          gym.name,
+                          style: TextStyle(
+                            color: gym.isActive
+                                ? null                          // default theme color
+                                : Theme.of(context).disabledColor,
+                          ),
+                        ),
+                        if (!gym.isActive) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            '(suspended)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   );
                 }).toList(),
                 onChanged: (val) {

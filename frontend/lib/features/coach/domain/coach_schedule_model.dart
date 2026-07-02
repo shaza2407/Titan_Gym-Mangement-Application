@@ -166,13 +166,16 @@ class CoachClassRequestModel {
 class CoachGymLookupModel {
   final int id;
   final String name;
+  final String status;
 
-  CoachGymLookupModel({required this.id, required this.name});
+  CoachGymLookupModel({required this.id, required this.name, required this.status});
 
   factory CoachGymLookupModel.fromJson(Map<String, dynamic> json) {
     return CoachGymLookupModel(
       id: json['id'],
       name: json['name'] ?? 'Unknown Gym Branch',
+      status: json['status'] ?? 'suspended',
     );
   }
+  bool get isActive => status.toLowerCase() == 'active';
 }
