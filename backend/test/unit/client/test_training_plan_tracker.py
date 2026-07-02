@@ -1,35 +1,3 @@
-"""
-Test suite for app/services/client/training_plan_tracker.py (TrainingPlanTracker)
-
-Testing technique used: Equivalence Partitioning (EP) + Boundary Value
-Analysis (BVA).
-
-NOTE: the previous version of this test file referenced method names
-(`check_plan_completion`) and an enum member (`WorkoutStatus.MISSED`) that do
-not exist on the current source module (the real private methods are
-`_check_plan_completion` / `_update_weekly_progress`, and WorkoutStatus only
-has COMPLETED / PARTIAL / SKIPPED / PLANNED). Those mismatches are fixed here
-so the suite actually exercises the real code paths.
-
-Boundary #1 - completion percentage threshold (mark_workout_completed)
-    completion = completed_exercises / total_exercises * 100
-    status     = COMPLETED if completion >= 80 else PARTIAL
-    EP1 [0,80) -> PARTIAL, EP2 [80,100] -> COMPLETED, EP3 total==0 guard.
-    Boundaries tested: 0%, 79%, 80% (exact), 81%, 100%, total_exercises=0.
-
-Boundary #2 - plan completion threshold (_check_plan_completion)
-    completed_workouts >= total_expected_workouts
-    Boundaries tested: total-1 (just below), total (exact), total+1 (over).
-
-Boundary #3 - week rollover (_calculate_week_and_day)
-    days_since_start // 7 (week) and % 7 (day)
-    Boundaries tested: day 0 (week1/day1), day 6 (week1/day7, last day of
-    week 1), day 7 (week2/day1, first day of week 2 - rollover boundary).
-
-Boundary #4 - weekly aggregate completeness (_update_weekly_progress)
-    completed == total -> COMPLETED, completed < total -> IN_PROGRESS.
-"""
-
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from datetime import date, datetime
@@ -41,6 +9,12 @@ from app.models.training_plan import (
 )
 
 MODULE = "app.services.client.training_plan_tracker"
+
+
+def _mock_db() -> AsyncMock:
+    db = AsyncMock()
+    db.add = MagicMock()
+    return db
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -114,7 +88,7 @@ def _result_with_scalars_all(values):
 async def test_mark_workout_completed_existing_tracking_threshold_boundaries(
         completed, total, expected_pct, expected_status):
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
 
     mock_tracking = _make_tracking(1)
     db.execute.return_value = _result_with_scalar_one_or_none(mock_tracking)
@@ -145,7 +119,7 @@ async def test_mark_workout_completed_existing_tracking_threshold_boundaries(
 @pytest.mark.asyncio
 async def test_mark_workout_completed_new_tracking_record_created():
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
     mock_plan = _make_training_plan(plan_id=1, created_at=datetime(2023, 1, 1))
 
     # 1st execute -> no existing tracking row, 2nd execute -> the plan itself
@@ -195,7 +169,7 @@ async def test_mark_workout_completed_new_tracking_record_created():
 )
 async def test_check_plan_completion_boundaries(completed, total, should_complete):
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
 
     import json as _json
     days = [{} for _ in range(total)]
@@ -226,7 +200,7 @@ async def test_check_plan_completion_boundaries(completed, total, should_complet
 async def test_check_plan_completion_already_completed_is_idempotent():
     from app.models.training_plan import PlanStatus
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
 
     import json as _json
     plan_json = _json.dumps({"plan": [{"days": [{}, {}]}]})
@@ -249,7 +223,7 @@ async def test_check_plan_completion_already_completed_is_idempotent():
 @pytest.mark.asyncio
 async def test_update_weekly_progress_creates_new_week_row_when_all_completed():
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
 
     trackings = [
         _make_tracking(1, status=WorkoutStatus.COMPLETED, week_number=1, tracking_date=date(2023, 1, 1)),
@@ -276,7 +250,7 @@ async def test_update_weekly_progress_creates_new_week_row_when_all_completed():
 async def test_update_weekly_progress_partial_week_marked_in_progress():
     """EP: completed < total -> IN_PROGRESS (boundary just below "all done")."""
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
 
     trackings = [
         _make_tracking(1, status=WorkoutStatus.COMPLETED, week_number=1, tracking_date=date(2023, 1, 1)),
@@ -303,7 +277,7 @@ async def test_update_weekly_progress_partial_week_marked_in_progress():
 async def test_update_weekly_progress_no_trackings_is_a_noop():
     """EP: zero trackings -> no week groups -> commit still called, nothing added."""
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
     db.execute.return_value = _result_with_scalars_all([])
 
     await tracker._update_weekly_progress(client_id=1, plan_id=1, db=db)
@@ -362,7 +336,7 @@ async def test_count_total_workouts_boundaries(plan_data, expected_total):
 @pytest.mark.asyncio
 async def test_get_plan_progress_zero_trackings_avoids_division_by_zero():
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1)
     plan.title = "Empty Plan"
 
@@ -383,7 +357,7 @@ async def test_get_plan_progress_zero_trackings_avoids_division_by_zero():
 @pytest.mark.asyncio
 async def test_get_plan_progress_aggregates_mixed_statuses():
     tracker = TrainingPlanTracker()
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1)
     plan.title = "Mixed Plan"
 

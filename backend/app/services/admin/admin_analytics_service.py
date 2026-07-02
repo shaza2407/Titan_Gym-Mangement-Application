@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, cast, Date, extract, case, or_, and_
-from datetime import date, timedelta, datetime, timezone
+from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from app.models import Admin, Subscription, RetentionOffer
 from app.models.attendance import Attendance

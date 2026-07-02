@@ -6,10 +6,11 @@
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import date, time, datetime, timedelta
+from datetime import date, time, datetime, timedelta 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.shared.schedule_schema import CreateClassRequest, EditClassRequest
 from app.models.class_request import RequestStatus
+
 
 # ---------------------------------------------------------------------------
 # Module under test
@@ -71,6 +72,16 @@ def _scalars_result(items: list):
     result.all.return_value = items
     return result
 
+from unittest.mock import patch as mock_patch
+
+@pytest.fixture
+def frozen_now():
+    """Freeze datetime.now() used inside admin_schedule to a safe mid-day time."""
+    fixed = datetime(2026, 7, 2, 12, 0, 0)  # noon — plenty of room before/after
+    with mock_patch("app.services.admin.admin_schedule.datetime") as mock_dt:
+        mock_dt.now.return_value = fixed
+        mock_dt.combine = datetime.combine  # keep real combine()
+        yield fixed
 
 def make_session(**kwargs):
     """Factory for a ClassSession-like mock."""
@@ -149,8 +160,8 @@ class TestIsPastDatetime:
         t = time(0, 1)          # 00:01 — guaranteed past for any realistic test run
         assert _is_past_datetime(date.today(), t) is True
 
-    def test_today_future_time_returns_false(self):
-        future_time = (datetime.now() + timedelta(hours=2)).strftime("%H:%M")
+    def test_today_future_time_returns_false(self, frozen_now):
+        future_time = (frozen_now + timedelta(hours=2)).strftime("%H:%M")
         assert _is_past_datetime(date.today(), future_time) is False
 
     def test_accepts_time_object(self):
@@ -185,8 +196,9 @@ class TestIsPassedToday:
         s = make_session(is_recurring=True, day_of_week=self.TODAY_WEEKDAY, start_time="00:01")
         assert _is_passed_today(s, self.TODAY, self.TODAY_WEEKDAY) is True
 
-    def test_recurring_today_future_time_returns_false(self):
-        future = (datetime.now() + timedelta(hours=3)).strftime("%H:%M")
+    # TestIsPassedToday.test_recurring_today_future_time_returns_false  
+    def test_recurring_today_future_time_returns_false(self, frozen_now):
+        future = (frozen_now + timedelta(hours=3)).strftime("%H:%M")
         s = make_session(is_recurring=True, day_of_week=self.TODAY_WEEKDAY, start_time=future)
         assert _is_passed_today(s, self.TODAY, self.TODAY_WEEKDAY) is False
 
@@ -416,11 +428,11 @@ class TestCreateClass:
         assert "time slot" in err.lower()
 
     @pytest.mark.asyncio
-    async def test_one_time_today_future_time_succeeds(self, db):
-        future_time = (datetime.now() + timedelta(hours=2)).strftime("%H:%M")
+    async def test_one_time_today_future_time_succeeds(self, db, frozen_now):
+        future_time = (frozen_now + timedelta(hours=2)).strftime("%H:%M")
         with patch("app.services.admin.admin_schedule._coach_belongs_to_gym", return_value=True), \
-             patch("app.services.admin.admin_schedule._coach_has_conflict", return_value=False), \
-             patch("app.services.admin.admin_schedule._gym_slot_conflict", return_value=False):
+            patch("app.services.admin.admin_schedule._coach_has_conflict", return_value=False), \
+            patch("app.services.admin.admin_schedule._gym_slot_conflict", return_value=False):
             payload = make_create_payload(
                 is_recurring=False, date=date.today(), start_time=future_time
             )

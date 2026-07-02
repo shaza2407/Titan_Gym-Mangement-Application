@@ -11,4 +11,4 @@ class Announcement(Base):
     title       = Column(String(255), nullable=False)
     content     = Column(String(1000), nullable=False)
     reciever    = Column(String(50), nullable=False, server_default='Clients and Coaches')  
-    created_at  = Column(DateTime(timezone=False), server_default=func.now(), nullable=False)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
