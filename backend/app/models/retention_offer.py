@@ -23,7 +23,7 @@ class RetentionOffer(Base):
     title = Column(String, nullable=False)
     offer_type = Column(Enum(OfferType), nullable=False)
     description = Column(Text, nullable=True)
-    benefit = Column(String, nullable=False) ### I think I should change this
+    benefit = Column(String, nullable=False) 
     valid_until = Column(Date, nullable=True)
     target_type = Column(Enum(TargetType), nullable=False)
     number_of_members = Column(Integer, default=0)   # number of members offer was sent to
