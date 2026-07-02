@@ -15,6 +15,7 @@ from test.helpers import (
     scalars_all_result, make_membership_row,
     make_invitation
 )
+from datetime import datetime, timedelta
 
 
 GYM_ID = 5
@@ -201,10 +202,9 @@ class TestAcceptCoachInvitation:
         assert exc.value.status_code == 404
 
     async def test_raises_400_if_invitation_expired(self, mock_db):
-        from datetime import datetime, timezone, timedelta
         user = make_user(role="coach", email="coach@example.com")
         inv = MagicMock()
-        inv.expires_at = datetime.now(timezone.utc) - timedelta(days=1)
+        inv.expires_at = datetime.now() - timedelta(days=1)
         mock_db.execute.return_value = scalar_one_or_none_result(inv)
 
         with pytest.raises(HTTPException) as exc:
@@ -213,10 +213,9 @@ class TestAcceptCoachInvitation:
 
 
     async def test_raises_400_if_already_coach_in_gym(self, mock_db):
-        from datetime import datetime, timezone, timedelta
         user = make_user(role="coach", email="coach@example.com")
         inv = MagicMock()
-        inv.expires_at = datetime.now(timezone.utc) + timedelta(days=1)
+        inv.expires_at = datetime.now() + timedelta(days=1)
         inv.email = "coach@example.com"
         coach = MagicMock()
         already = MagicMock()
@@ -232,10 +231,9 @@ class TestAcceptCoachInvitation:
         assert exc.value.status_code == 400
 
     async def test_creates_membership_on_success(self, mock_db):
-        from datetime import datetime, timezone, timedelta
         user = make_user(role="coach", email="coach@example.com")
         inv = MagicMock()
-        inv.expires_at = datetime.now(timezone.utc) + timedelta(days=1)
+        inv.expires_at = datetime.now() + timedelta(days=1)
         inv.email = "coach@example.com"
         inv.gymID = GYM_ID
         coach = MagicMock()

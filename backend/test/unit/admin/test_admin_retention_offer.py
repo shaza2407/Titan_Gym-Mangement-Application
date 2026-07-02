@@ -2,7 +2,7 @@
 import pytest
 from fastapi import HTTPException
 from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import date, timedelta, datetime, timezone
+from datetime import date, timedelta, datetime
 from app.services.admin.admin_retention_offer import (
     get_active_members,
     get_retention_dashboard_service,

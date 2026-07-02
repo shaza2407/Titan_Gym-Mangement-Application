@@ -16,4 +16,4 @@ class GymClientMembership(Base):
     subscription = Column(String, nullable=False)   # "Monthly" | "Annual"
     subscription_end = Column(Date, nullable=False)     # for "Expired" filter
     status = Column(Enum(ClientMembershipStatus), default=ClientMembershipStatus.active)
-    joined_at = Column(DateTime(timezone=True), server_default=func.now())
+    joined_at = Column(DateTime(), server_default=func.now())

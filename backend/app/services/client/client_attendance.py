@@ -3,7 +3,7 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, cast, Date
-from datetime import datetime, date, timezone
+from datetime import datetime, date
 from app.models.attendance import Attendance
 from app.models.gym_clients_membership import GymClientMembership
 from app.services.client.client_utils import get_gym_or_404
@@ -33,7 +33,7 @@ def _assert_can_checkin(membership: GymClientMembership | None):
 
 
 def _build_checkin_message(gym_name: str) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     dow = _DOW[now.weekday()]
     if now.hour < 7:
         return f"Early bird! Checked in at {gym_name} 🌅"

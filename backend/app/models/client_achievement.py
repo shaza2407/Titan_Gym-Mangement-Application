@@ -35,11 +35,11 @@ class ClientAchievement(Base):
 
     # Unlock state
     is_unlocked = Column(Boolean, default=False, nullable=False)
-    unlocked_at = Column(DateTime(timezone=True), nullable=True)
+    unlocked_at = Column(DateTime(), nullable=True)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
 
     # Relationships
     achievement = relationship("Achievement", back_populates="client_achievements")

@@ -27,7 +27,7 @@ class RetentionOffer(Base):
     valid_until = Column(Date, nullable=True)
     target_type = Column(Enum(TargetType), nullable=False)
     number_of_members = Column(Integer, default=0)   # number of members offer was sent to
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(), server_default=func.now())
 
 
 class RetentionOfferRecipient(Base):

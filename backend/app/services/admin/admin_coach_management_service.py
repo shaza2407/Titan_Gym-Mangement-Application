@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from app.services.notifications.notification_Utils import notify_invite
 from app.models.User import User
 from app.models.coach import Coach
@@ -115,8 +115,8 @@ async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
 
     if existing_inv:
         existing_inv.token      = secrets.token_urlsafe(32)
-        existing_inv.sent_at    = datetime.now(timezone.utc)
-        existing_inv.expires_at = datetime.now(timezone.utc) + timedelta(days=3)
+        existing_inv.sent_at    = datetime.now()
+        existing_inv.expires_at = datetime.now() + timedelta(days=3)
         inv = existing_inv
     else:
         inv = MemberInvitation(
@@ -125,7 +125,7 @@ async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
             invited_as = "coach",
             token      = secrets.token_urlsafe(32),
             status     = InvitationStatus.pending,
-            expires_at = datetime.now(timezone.utc)+ timedelta(days=3),
+            expires_at = datetime.now()+ timedelta(days=3),
         )
         db.add(inv)
 
@@ -185,7 +185,7 @@ async def accept_coach_invitation_service(db:AsyncSession, token: str, current_u
         raise HTTPException(404, "Invitation not found or already used.")
 
     # 2. Check not expired
-    if inv.expires_at < datetime.now(timezone.utc):
+    if inv.expires_at < datetime.now():
         raise HTTPException(400, "Invitation has expired.")
 
     # 3. Check email matches
