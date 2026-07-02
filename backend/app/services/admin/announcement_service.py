@@ -25,8 +25,7 @@ async def create_announcement(
         reciever=payload.reciever,
     )
     db.add(announcement)
-    await db.commit()
-    await db.refresh(announcement)
+    
 
     notify_data = {
         "gym_id": str(gym_id),
@@ -49,5 +48,6 @@ async def create_announcement(
             body=payload.content.strip(),
             type="announcement", data=notify_data,
         )
-
+    await db.commit()
+    await db.refresh(announcement)
     return announcement

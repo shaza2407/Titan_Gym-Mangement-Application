@@ -367,9 +367,6 @@ async def create_class_request(
     )
 
     db.add(new_request)
-
-    await db.commit()
-    await db.refresh(new_request)
     
     gym_name = await get_gym_name(gymID, db)
 
@@ -388,6 +385,8 @@ async def create_class_request(
             "request_id": str(new_request.id),
         }
     )
+    await db.commit()
+    await db.refresh(new_request)
 
     return {
         "message": "Request submitted successfully",

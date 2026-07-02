@@ -9,7 +9,7 @@ from app.services.notifications.notification_Utils import (
     notify_gym_clients,
     notify_gym_coaches,
 )
-
+from sqlalchemy.ext.asyncio import AsyncSession
 GYM_ID = 5
 USER_ID = 1
 TITLE = "Test Title"

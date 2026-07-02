@@ -61,7 +61,7 @@ async def get_clients_list(db: AsyncSession, gym: Gym,status_filter: str | None 
         members.append(ClientListItem(
             id=user.userID,
             name=user.name,
-            email=user.email,
+            email=user.email.lower(),
             phone=user.phone,
             status=display_status,
             subscription=membership.subscription,
@@ -86,7 +86,7 @@ async def get_clients_list(db: AsyncSession, gym: Gym,status_filter: str | None 
         members.append(ClientListItem(
             id=inv.id,
             name="Pending Invitation",
-            email=inv.email,
+            email=inv.email.lower(),
             phone=None,
             status="pending",
             subscription=None,
@@ -161,7 +161,7 @@ async def invite_client(db: AsyncSession, gym: Gym, body: InviteClientRequest) -
     existing_inv = (await db.execute(
         select(MemberInvitation).where(
             MemberInvitation.gymID == gym.gymID,
-            MemberInvitation.email == body.email,
+            MemberInvitation.email == body.email.lower(),
             MemberInvitation.status == InvitationStatus.pending,
             MemberInvitation.invited_as == "client",
         )
@@ -197,7 +197,7 @@ async def invite_client(db: AsyncSession, gym: Gym, body: InviteClientRequest) -
     else:
         inv = MemberInvitation(
             gymID=gym.gymID,
-            email=body.email,
+            email=body.email.lower(),
             invited_as="client",
             token=secrets.token_urlsafe(32),
             status=InvitationStatus.pending,
@@ -212,9 +212,9 @@ async def invite_client(db: AsyncSession, gym: Gym, body: InviteClientRequest) -
     if existing_notification :
         await db.delete(existing_notification)
 
+    await notify_invite(db, body.email.lower(), gym.gymName, "client", gym_id=gym.gymID, token=inv.token)
     await db.commit()
-    await notify_invite(db, body.email, gym.gymName, "client", gym_id=gym.gymID, token=inv.token)
-    return InviteClientResponse(message="Invitation sent successfully.", email=body.email)
+    return InviteClientResponse(message="Invitation sent successfully.", email=body.email.lower())
 
 
 
@@ -223,7 +223,7 @@ async def cancel_client_invitation(db: AsyncSession, gym_id: int, email: str):
     invitation = (await db.execute(
         select(MemberInvitation).where(
             MemberInvitation.gymID == gym_id,
-            MemberInvitation.email == email,
+            MemberInvitation.email == email.lower(),
             MemberInvitation.status == InvitationStatus.pending,
             MemberInvitation.invited_as == "client",
         )
@@ -234,7 +234,7 @@ async def cancel_client_invitation(db: AsyncSession, gym_id: int, email: str):
 
     # find the user by email to get their user_id
     user = (await db.execute(
-        select(User).where(User.email == email)
+        select(User).where(User.email == email.lower())
     )).scalar_one_or_none()
 
     # delete the invite notification for that user
@@ -425,7 +425,7 @@ async def get_pending_invitations(db: AsyncSession, gym_id: int, current_user: U
     inv = (await db.execute(
         select(MemberInvitation).where(
             MemberInvitation.gymID == gym_id,
-            MemberInvitation.email == current_user.email,
+            MemberInvitation.email == current_user.email.lower(),
             MemberInvitation.status == InvitationStatus.pending,
         )
     )).scalar_one_or_none()

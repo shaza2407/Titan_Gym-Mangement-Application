@@ -69,7 +69,7 @@ async def enroll_class(session_id: int, class_date: date = Query(...), current_u
             id=f"class_reminder_{session_id}_{client.clientID}_{class_date}",
             replace_existing=True,
         )
-
+    await db.commit()
     await achievement_engine.on_class_attended(client.clientID, db)
     return result
 

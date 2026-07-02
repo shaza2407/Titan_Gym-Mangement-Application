@@ -133,6 +133,7 @@ async def remove_class(
             "class_title": class_session.title,
         },
     )
+    await db.commit()
     return {"message": "Class deleted successfully"}
 
 
@@ -188,6 +189,7 @@ async def approve_class_request(
             "request_id": str(request_id),
         },
     )
+    await db.commit()
     return {"message": "Request approved and class created"}
 
 
@@ -217,4 +219,5 @@ async def reject_class_request(
             "request_id": str(request_id),
         },
     )
+    await db.commit()
     return {"message": "Request rejected"}
