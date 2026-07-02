@@ -119,7 +119,7 @@ async def get_clients_list(db: AsyncSession, gym: Gym,status_filter: str | None 
 async def invite_client(db: AsyncSession, gym: Gym, body: InviteClientRequest) -> InviteClientResponse:
     #check if user found in the whole application
     existing_user = (await db.execute(
-        select(User).where(User.email == body.email)
+        select(User).where(User.email == body.email.lower())
     )).scalar_one_or_none()
 
     if not existing_user:
