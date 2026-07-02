@@ -1,12 +1,12 @@
 # app/services/coach_schedule.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import delete, select, func
+from sqlalchemy import delete, or_, select, func
 from datetime import date, timedelta
 from app.models.class_session import ClassSession
 from app.models.class_request import ClassRequest, RequestStatus
 from app.models.class_enrollment import ClassEnrollment
-from app.models.gym_coachs_membership import GymCoachMembership
+from app.models.gym_coachs_membership import CoachMembershipStatus, GymCoachMembership
 from app.models.Gym import Gym
 from app.models.coach import Coach
 from app.schemas.coach.coach_schemas import CreateClassRequestPayload
@@ -15,6 +15,7 @@ from sqlalchemy import select
 
 from app.models.notification import Notification
 from app.services.notifications.notification_Utils import notify_admin, notify_gym_clients
+from backend.app.services.coach.coach_gyms import verify_coach_gym
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -245,7 +246,10 @@ async def create_class_request(
     gymID: int,
     payload: CreateClassRequestPayload,
     db: AsyncSession
-) -> dict:
+) -> dict:  
+    # Verify active membership before doing anything else
+    await verify_coach_gym(coachID, gymID, db)
+
 
     day_names = [
         "monday", "tuesday", "wednesday",
@@ -365,6 +369,7 @@ async def create_class_request(
 
 # Remove class request
 async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
+    # 1. Fetch the req
     result = await db.execute(
         select(ClassRequest).where(
             ClassRequest.id == request_id,
@@ -383,6 +388,10 @@ async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
             detail="Only pending class requests can be deleted."
         )
     
+    # 2. Ensure the coach is still an active member of the gym
+    await verify_coach_gym(coachID, request_obj.gymID, db)
+
+    # 3. Proceed with deletion
     await db.delete(request_obj)
 
     # delete notifications of class request after cancelling it
@@ -397,12 +406,19 @@ async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
     await db.commit()
     return True
 
-
+# Edited (return active gyms only)
 # Gyms lookup
 async def get_coach_gyms_lookup(coachID: int, db: AsyncSession)-> list:
     result = await db.execute(
         select(Gym.gymID, Gym.gymName)
         .join(GymCoachMembership, GymCoachMembership.gymID == Gym.gymID)
-        .where(GymCoachMembership.coachID == coachID)
+        .where(
+            GymCoachMembership.coachID == coachID,
+            or_(
+                GymCoachMembership.status == CoachMembershipStatus.active,
+                # GymCoachMembership.status.is_(None)
+            )
+        
+        )
     )
     return [{"id": row.gymID, "name": row.gymName} for row in result.all()]

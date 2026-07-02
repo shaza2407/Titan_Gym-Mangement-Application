@@ -1,3 +1,5 @@
+# app/services/coach/coach_gyms.py
+
 from datetime import date
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,19 +12,28 @@ from app.models.gym_coachs_membership import GymCoachMembership, CoachMembership
 from app.services.coach.coach_schedule import _count_enrolled, _next_occurrence
 from app.models.gym_clients_membership import GymClientMembership
 
+
 async def verify_coach_gym(coachID: int, gymID: int, db: AsyncSession) -> int:
     """Verifies that the coach is a member of the specified gym."""
     result = await db.execute(
         select(GymCoachMembership).where(
             GymCoachMembership.coachID == coachID,
-            GymCoachMembership.gymID == gymID
+            GymCoachMembership.gymID == gymID,
+            # Ensure they are active members
+            or_(
+                GymCoachMembership.status == CoachMembershipStatus.active,
+                # GymCoachMembership.status.is__(None)  # Treat None as active,
+            )
         )
     )
     membership = result.scalar_one_or_none()
-    if not membership:
-        raise HTTPException(status_code=403, detail="You are not a member of this gym")
-    return gymID
 
+    if not membership:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not an active member of this gym. You cannot make requests or edits here."
+        )
+    return gymID
 
 async def get_coach_active_gyms(user_id: int, db: AsyncSession) -> list:
     # Find the Coach ID

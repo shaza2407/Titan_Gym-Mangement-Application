@@ -1,16 +1,11 @@
-# app/services/coach_dashboard.py
-
-from http.client import HTTPException
-
+# app/services/coach/coach_dashboard.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import date, timedelta
 from app.models.class_session import ClassSession
 from app.models.gym_coachs_membership import GymCoachMembership
-from app.models.coach import Coach
 from app.services.coach.coach_schedule import ( 
     _count_enrolled,
-    _next_occurrence,
     get_gym_name,
 )
 from app.models.gym_clients_membership import GymClientMembership
