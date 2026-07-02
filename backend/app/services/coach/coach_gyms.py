@@ -22,7 +22,7 @@ async def verify_coach_gym(coachID: int, gymID: int, db: AsyncSession) -> int:
             # Ensure they are active members
             or_(
                 GymCoachMembership.status == CoachMembershipStatus.active,
-                # GymCoachMembership.status.is__(None)  # Treat None as active,
+                GymCoachMembership.status.is_(None)  # Treat None as active,
             )
         )
     )

@@ -14,8 +14,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from app.models.notification import Notification
-from app.services.notifications.notification_Utils import notify_admin, notify_gym_clients
-from backend.app.services.coach.coach_gyms import verify_coach_gym
+from app.services.notifications.notification_Utils import notify_admin
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -247,6 +246,7 @@ async def create_class_request(
     payload: CreateClassRequestPayload,
     db: AsyncSession
 ) -> dict:  
+    from app.services.coach.coach_gyms import verify_coach_gym
     # Verify active membership before doing anything else
     await verify_coach_gym(coachID, gymID, db)
 
@@ -388,6 +388,7 @@ async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
             detail="Only pending class requests can be deleted."
         )
     
+    from app.services.coach.coach_gyms import verify_coach_gym
     # 2. Ensure the coach is still an active member of the gym
     await verify_coach_gym(coachID, request_obj.gymID, db)
 
@@ -416,7 +417,7 @@ async def get_coach_gyms_lookup(coachID: int, db: AsyncSession)-> list:
             GymCoachMembership.coachID == coachID,
             or_(
                 GymCoachMembership.status == CoachMembershipStatus.active,
-                # GymCoachMembership.status.is_(None)
+                GymCoachMembership.status.is_(None)
             )
         
         )
