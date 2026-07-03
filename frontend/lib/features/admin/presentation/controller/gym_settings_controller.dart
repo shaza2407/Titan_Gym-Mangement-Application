@@ -9,20 +9,20 @@ class GymSettingsController extends ChangeNotifier {
   final GymModel gym;
   final String token;
 
-  // ── Form controllers ──────────────────────────────────────────────────────
+  // Form controllers
   late final TextEditingController gymNameCtrl;
   late final TextEditingController gymTypeCtrl;
   late final TextEditingController locationCtrl;
   late final TextEditingController openingCtrl;
   late final TextEditingController closingCtrl;
 
-  // ── Machines ──────────────────────────────────────────────────────────────
+  // Machines
   List<MachineInput> machines = [];
   final List<String> machineTypeOptions = [
     'Cardio', 'Strength', 'Flexibility', 'Balance', 'Other'
   ];
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // State
   bool isLoading    = false;
   bool isSaved      = false;
   String? errorMessage;
@@ -43,14 +43,14 @@ class GymSettingsController extends ChangeNotifier {
     )).toList();
   }
 
-  // ── Gym type ──────────────────────────────────────────────────────────────
+  // Gym type
   void setGymType(String value) {
     selectedGymType  = value;
     gymTypeCtrl.text = value;
     notifyListeners();
   }
 
-  // ── Machine helpers ───────────────────────────────────────────────────────
+  // Machine helpers
   void addMachine() {
     machines.add(MachineInput());
     notifyListeners();
@@ -86,7 +86,7 @@ class GymSettingsController extends ChangeNotifier {
         .toList();
   }
 
-  // ── Validation ────────────────────────────────────────────────────────────
+  // Validation
   String? validate() {
     if (gymNameCtrl.text.trim().isEmpty)  return 'Gym name is required.';
     if (locationCtrl.text.trim().isEmpty) return 'Location is required.';
@@ -104,7 +104,7 @@ Future<void> deleteGym() async {
   
   await _repo.deleteGym(gymId: gym.gymID, token: token);
 }
-  // ── Save ──────────────────────────────────────────────────────────────────
+  // Save
   Future<bool> save() async {
     final online = await ConnectivityHelper.isOnline();
     if(!online){

@@ -28,7 +28,7 @@ class AnalyticsScreen extends StatelessWidget {
   }
 }
 
-// ─── Private stateless view ───────────────────────────────────────────────────
+// Private stateless view
 
 class _AnalyticsView extends StatelessWidget {
   static const _primary = Color(0xFF4F46E5);
@@ -90,7 +90,7 @@ class _AnalyticsView extends StatelessWidget {
   }
 }
 
-// ─── Summary cards ────────────────────────────────────────────────────────────
+// Summary cards
 
 class _SummaryCards extends StatelessWidget {
   static const _green   = Color(0xFF22C55E);
@@ -222,7 +222,7 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-// ─── Revenue trend ────────────────────────────────────────────────────────────
+// Revenue trend
 
 class _RevenueTrendChart extends StatelessWidget {
   static const _primary = Color(0xFF4F46E5);
@@ -289,7 +289,7 @@ class _RevenueTrendChart extends StatelessWidget {
   }
 }
 
-// ─── Member trend ─────────────────────────────────────────────────────────────
+// Member trend
 
 class _MemberTrendChart extends StatelessWidget {
   static const _primary = Color(0xFF4F46E5);
@@ -350,7 +350,7 @@ class _MemberTrendChart extends StatelessWidget {
   }
 }
 
-// ─── Membership distribution ──────────────────────────────────────────────────
+// Membership distribution
 
 class _MembershipDistribution extends StatelessWidget {
   static const _colors = [
@@ -416,7 +416,7 @@ class _MembershipDistribution extends StatelessWidget {
   }
 }
 
-// ─── Weekly pattern ───────────────────────────────────────────────────────────
+// Weekly pattern
 
 class _WeeklyPatternChart extends StatelessWidget {
   static const _morning = Color(0xFFFBBF24);
@@ -482,7 +482,7 @@ class _WeeklyPatternChart extends StatelessWidget {
   }
 }
 
-// ─── Shared chart helpers ─────────────────────────────────────────────────────
+// Shared chart helpers
 
 FlGridData _gridData() => FlGridData(
       drawHorizontalLine: true,
@@ -517,7 +517,7 @@ FlTitlesData _titlesData({
       topTitles:   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
     );
 
-// ─── Reusable card wrapper ────────────────────────────────────────────────────
+// Reusable card wrapper
 
 class _ChartCard extends StatelessWidget {
   final String  title, subtitle;
@@ -558,7 +558,7 @@ class _ChartCard extends StatelessWidget {
   }
 }
 
-// ─── Legend dot ───────────────────────────────────────────────────────────────
+// Legend dot
 
 class _LegendDot extends StatelessWidget {
   final Color  color;
@@ -583,7 +583,7 @@ class _LegendDot extends StatelessWidget {
   }
 }
 
-// ─── Error view ───────────────────────────────────────────────────────────────
+// Error view
 
 class _ErrorView extends StatelessWidget {
   final String       error;

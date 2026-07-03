@@ -1,4 +1,3 @@
-// frontend/lib/features/admin/data/admin_repository.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:frontend/features/shared/api_constants.dart';
@@ -19,7 +18,7 @@ class AdminRepository {
     'Authorization': 'Bearer $token',
   };
 
-  // ── Clients ───────────────────────────────────────────────────────────────
+  // Clients
 
   Future<ClientListResponse> fetchClients(int gymId, String token) async {
     final cacheKey = _clientsKey(gymId);
@@ -41,7 +40,7 @@ class AdminRepository {
       return ClientListResponse.fromJson(jsonDecode(res.body));
     }
 
-    // Server error — fall back to cache
+    // Server error - fall back to cache
     final cached = await CacheService.load(cacheKey);
     if (cached != null) return ClientListResponse.fromJson(jsonDecode(cached));
     throw Exception('Failed to load clients: ${res.statusCode}');
@@ -104,7 +103,7 @@ class AdminRepository {
     await CacheService.clear(_clientsKey(gymId));
   }
 
-  // ── Coaches ───────────────────────────────────────────────────────────────
+  // Coaches
 
   Future<CoachListResponse> fetchCoaches(int gymId, String token) async {
     final cacheKey = _coachesKey(gymId);
@@ -126,7 +125,7 @@ class AdminRepository {
       return CoachListResponse.fromJson(jsonDecode(res.body));
     }
 
-    // Server error — fall back to cache
+    // Server error - fall back to cache
     final cached = await CacheService.load(cacheKey);
     if (cached != null) return CoachListResponse.fromJson(jsonDecode(cached));
     throw Exception('Failed to load coaches: ${res.statusCode}');
@@ -166,8 +165,8 @@ class AdminRepository {
     await CacheService.clear(_coachesKey(gymId));
   }
 
-  // ── Retention Offers ──────────────────────────────────────────────────────
-  // No caching — offer eligibility changes server-side
+  // Retention Offers
+  // No caching - offer eligibility changes server-side
 
   Future<Map<String, dynamic>> getOfferDetails(
       int gymId, int offerId, String token) async {
@@ -181,7 +180,7 @@ class AdminRepository {
     return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
-  // ── Admin Profile ─────────────────────────────────────────────────────────
+  // Admin Profile
 
   Future<AdminProfile> fetchAdminProfile(String token) async {
     final isOnline = await ConnectivityHelper.isOnline();
@@ -202,7 +201,7 @@ class AdminRepository {
       return AdminProfile.fromJson(jsonDecode(res.body));
     }
 
-    // Server error — fall back to cache
+    // Server error - fall back to cache
     final cached = await CacheService.load(_profileKey);
     if (cached != null) return AdminProfile.fromJson(jsonDecode(cached));
     throw Exception('Failed to load profile: ${res.statusCode}');
@@ -244,8 +243,8 @@ class AdminRepository {
     await CacheService.clear(_profileKey); // invalidate so next fetch is fresh
   }
 
-  // ── Gym Operations ────────────────────────────────────────────────────────
-  // No caching — write operations only
+  // Gym Operations
+  // No caching - write operations only
 
   Future<void> updateGym({
     required int gymId,

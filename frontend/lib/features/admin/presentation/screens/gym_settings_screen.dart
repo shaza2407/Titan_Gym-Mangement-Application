@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/gym_model.dart';
@@ -108,7 +107,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
   if (!mounted) return;
 
   try {
-    await controller.deleteGym(); // ← use controller instead
+    await controller.deleteGym();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -163,7 +162,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
           padding: const EdgeInsets.all(16),
           children: [
 
-            // ── Basic Information ─────────────────────────────────
+            // Basic Information
             _buildSection(
               icon: Icons.business_outlined,
               title: 'Basic Information',
@@ -187,7 +186,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
             ),
             const SizedBox(height: 16),
 
-            // ── Location ──────────────────────────────────────────
+            // Location
             _buildSection(
               icon: Icons.location_on_outlined,
               title: 'Location',
@@ -204,7 +203,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
             ),
             const SizedBox(height: 16),
 
-            // ── Operating Hours ───────────────────────────────────
+            // Operating Hours
             _buildSection(
               icon: Icons.access_time_outlined,
               title: 'Operating Hours',
@@ -233,7 +232,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
             ),
             const SizedBox(height: 16),
 
-            // ── Machines ──────────────────────────────────────────
+            // Machines
             _buildSection(
               icon: Icons.fitness_center,
               title: 'Gym Machines',
@@ -345,7 +344,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
             ),
             const SizedBox(height: 16),
 
-            // ── Error ─────────────────────────────────────────────
+            // Error
             if (controller.errorMessage != null)
               Container(
                 width: double.infinity,
@@ -369,7 +368,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
                 ),
               ),
 
-            // ── Save Button ───────────────────────────────────────
+            // Save Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -411,7 +410,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
             ),
             const SizedBox(height: 12),
 
-            // ── Delete Gym Button ─────────────────────────────────
+            // Delete Gym Button
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
@@ -437,7 +436,7 @@ class _GymSettingsViewState extends State<_GymSettingsView> {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // Helpers
 
   Widget _buildSection({
     required IconData icon,

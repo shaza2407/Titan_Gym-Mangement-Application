@@ -91,7 +91,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
     );
   }
 
-  // ── Stat Cards ──────────────────────────────────────────────────────────────
+  // Stat Cards
 
   Widget _buildStatCards(AttendanceStats stats) {
     return Row(
@@ -143,7 +143,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
     );
   }
 
-  // ── QR Section ──────────────────────────────────────────────────────────────
+  // QR Section
 
   Widget _buildQRSection(QRCodeInfo qr) {
     return Container(
@@ -267,7 +267,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
     }
   }
 
-  // ── Weekly Overview ─────────────────────────────────────────────────────────
+  // Weekly Overview
 
   Widget _buildWeeklyOverview(WeeklyAttendance weekly) {
     final days = weekly.days;
@@ -338,7 +338,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
     );
   }
 
-  // ── Error ───────────────────────────────────────────────────────────────────
+  // Error
 
   Widget _buildError(AttendanceController ctrl) {
     return Center(
