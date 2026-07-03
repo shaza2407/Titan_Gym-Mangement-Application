@@ -83,9 +83,9 @@ class TrainingPlan(Base):
 
     # Relationships
     tracking       = relationship("TrainingPlanTracking", back_populates="plan",
-                                  cascade="all, delete-orphan")
+                                  cascade="all, delete-orphan", passive_deletes=True)
     week_progress  = relationship("TrainingPlanWeekProgress", back_populates="plan",
-                                  cascade="all, delete-orphan")
+                                  cascade="all, delete-orphan", passive_deletes=True)
     parent = relationship(
         "TrainingPlan",
         remote_side=[planID],
