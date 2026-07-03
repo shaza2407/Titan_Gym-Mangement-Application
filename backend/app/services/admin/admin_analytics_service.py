@@ -119,8 +119,16 @@ async def get_active_classes_for_period(db: AsyncSession, gym: Gym, start_date: 
     active_classes_result = await db.execute(
         select(func.count(ClassSession.id)).where(
             ClassSession.gymID == gym.gymID,
-            ClassSession.date >= start_date,
-            ClassSession.date <= end_date,
+            or_(
+                # One-time classes: date falls within the period
+                and_(
+                    ClassSession.date.isnot(None),
+                    ClassSession.date >= start_date,
+                    ClassSession.date <= end_date,
+                ),
+                # Recurring classes: always active regardless of period
+                ClassSession.day_of_week.isnot(None),
+            ),
         )
     )
     return active_classes_result.scalar_one_or_none() or 0

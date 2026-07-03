@@ -267,12 +267,12 @@ async def complete_training_plan_service(plan_id: int, user_id: int, db: AsyncSe
 
     plan.status       = PlanStatus.COMPLETED
     plan.completed_at = datetime.now()
-    await db.commit()
-    await db.refresh(plan)
+    
 
     await achievement_engine.on_plan_completed(client_id, db)
     await achievement_engine.on_workout_logged(client_id, db)
-
+    await db.commit()
+    await db.refresh(plan)
     return plan
 
 

@@ -154,7 +154,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -199,8 +199,6 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen> {
                 const SizedBox(height: 10),
                 const Text('Display this QR code at the gym entrance',
                     style: TextStyle(color: Colors.grey, fontSize: 12)),
-                Text('Gym ID: ${qr.gymId}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 11)),
               ],
             ),
           ),

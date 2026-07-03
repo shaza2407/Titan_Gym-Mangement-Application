@@ -16,7 +16,7 @@ class ClassRequest(Base):
     __tablename__ = "class_requests"
 
     id       = Column(Integer, primary_key=True, index=True)
-    gymID    = Column(Integer, ForeignKey("gyms.gymID"), nullable=False)  # ← not nullable
+    gymID    = Column(Integer, ForeignKey("gyms.gymID" ,ondelete="CASCADE"), nullable=False )  
     coach_id = Column(Integer, ForeignKey("coaches.coachID"), nullable=False)
 
     class_name = Column(String, nullable=False)
