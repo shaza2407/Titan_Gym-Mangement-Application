@@ -237,7 +237,7 @@ class _RevenueTrendChart extends StatelessWidget {
 
     return _ChartCard(
       title: 'Revenue Trend',
-      subtitle: 'Monthly revenue (Last 7 months)',
+      subtitle: 'Monthly revenue (Last 6 months)',
       child: SizedBox(
         height: 200,
         child: LineChart(LineChartData(

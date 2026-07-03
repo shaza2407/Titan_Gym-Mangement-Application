@@ -122,6 +122,7 @@ async def preview_members_service(db: AsyncSession, gym_id: int, request: Previe
 
 async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: CreateOfferRequest):
     print("DEBUG: ", request)
+    print("number of members: ", len(request.selected_member_ids))
     if not request.selected_member_ids:
         raise HTTPException(status_code=400, detail="No members selected")
 
