@@ -189,6 +189,7 @@ async def complete_day_service(plan_id: int, request: CompleteDayRequest, user_i
     )
     tracking = res.scalar_one_or_none()
 
+    is_new_completed = False
     if not tracking:
         tracking = TrainingPlanTracking(
             clientID              = client_id,
@@ -205,7 +206,10 @@ async def complete_day_service(plan_id: int, request: CompleteDayRequest, user_i
             completed_at          = datetime.now(timezone.utc),
         )
         db.add(tracking)
+        if tracking.status == WorkoutStatus.COMPLETED:
+            is_new_completed = True
     else:
+        was_completed = (tracking.status == WorkoutStatus.COMPLETED)
         tracking.tracking_date         = datetime.now(timezone.utc).date()
         tracking.completed_exercises   = completed_exercises
         tracking.completion_percentage = completion
@@ -213,8 +217,13 @@ async def complete_day_service(plan_id: int, request: CompleteDayRequest, user_i
         tracking.status                = WorkoutStatus.COMPLETED if completion >= 80 else WorkoutStatus.PARTIAL
         tracking.duration_minutes      = duration_minutes
         tracking.completed_at          = datetime.now(timezone.utc)
+        if not was_completed and tracking.status == WorkoutStatus.COMPLETED:
+            is_new_completed = True
 
     await db.commit()
+
+    if is_new_completed:
+        await achievement_engine.on_workout_logged(client_id, db)
 
     await training_plan_tracker._update_weekly_progress(client_id, plan_id, db)
 
@@ -271,7 +280,6 @@ async def complete_training_plan_service(plan_id: int, user_id: int, db: AsyncSe
     await db.refresh(plan)
 
     await achievement_engine.on_plan_completed(client_id, db)
-    await achievement_engine.on_workout_logged(client_id, db)
 
     return plan
 
@@ -279,7 +287,7 @@ async def complete_training_plan_service(plan_id: int, user_id: int, db: AsyncSe
 async def delete_training_plan_service(plan_id: int, user_id: int, db: AsyncSession) -> None:
     client_id = await _get_client_id(user_id, db)
     plan      = await _get_owned_plan(plan_id, client_id, db)
-    plan.is_active = False
+    await db.delete(plan)
     await db.commit()
 
 
