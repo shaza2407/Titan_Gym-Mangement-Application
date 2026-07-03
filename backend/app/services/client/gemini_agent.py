@@ -241,17 +241,13 @@ class GeminiTrainingAgent:
             logger.error("Primary model failed: %s", exc)
             raw_text = await self._try_fallback_models(prompt)
             if not raw_text:
-                logger.error("All models failed, returning fallback plan")
-                return await self._create_fallback_response(
-                    client_id, req, client_obj, user_obj, db
-                )
+                logger.error("All models failed")
+                raise RuntimeError("Server is busy. Please try again later.")
 
         plan_dict = _safe_parse_json(raw_text)
         if not plan_dict.get("plan"):
-            logger.warning("Gemini JSON had no usable plan data, using fallback")
-            return await self._create_fallback_response(
-                client_id, req, client_obj, user_obj, db
-            )
+            logger.warning("Gemini JSON had no usable plan data")
+            raise RuntimeError("Server is busy. Please try again later.")
 
         training_plan = TrainingPlan(
             clientID=client_id,
