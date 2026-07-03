@@ -177,12 +177,15 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
             ],
           ),
           onPressed: () async {
+            bool dataChanged = false;
+
             await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => NotificationsScreen(
                   userId: getUserIdFromToken(widget.token),
                   token: widget.token,
+                  onDataChanged: () => dataChanged = true,
                 ),
               ),
             );
@@ -190,6 +193,10 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
             if (!mounted) return;
 
             _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
+
+            if (dataChanged) {
+              _ctrl.loadStats(widget.token);
+            }
           },
         );
       },
