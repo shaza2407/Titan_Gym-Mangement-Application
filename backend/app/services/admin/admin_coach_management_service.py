@@ -81,7 +81,7 @@ async def get_coaches_list(db: AsyncSession, gym: Gym, status_filter: str | None
 async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
     # 1. Check the email exists in the app
     existing_user = (await db.execute(
-        select(User).where(User.email == body.email.lower)
+        select(User).where(User.email == body.email.lower())
     )).scalar_one_or_none()
 
     if not existing_user:

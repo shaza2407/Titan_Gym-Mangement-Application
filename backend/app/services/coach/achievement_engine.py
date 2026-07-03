@@ -1,13 +1,3 @@
-"""
-app/services/achievement_engine.py
-────────────────────────────────────
-Event-driven achievement engine with:
-  • Sequential level unlocking (Bronze → Silver → Gold → Platinum → Diamond)
-  • Progress carry-forward across levels
-  • Badge Collector auto-recalculation
-  • Only updates achievements relevant to the current event
-"""
-
 import logging
 from datetime import date, datetime, timedelta
 from typing import List, Optional
@@ -19,7 +9,9 @@ from app.models.achievement import Achievement, AchievementCategory
 from app.models.attendance import Attendance
 from app.models.client_achievement import ClientAchievement
 from app.models.training_plan import TrainingPlan, PlanStatus, TrainingPlanTracking, WorkoutStatus
-
+from app.services.notifications.notification_Utils import save_notification, send_push_notification
+from app.models.client import Client
+from app.models.User import User
 
 # from app.models.client_class_enrollment import ClientClassEnrollment // not do yet
 
@@ -356,6 +348,35 @@ class AchievementEngine:
             db,
         )
 
+    
+# notification system __________________________________
+    async def _notify_badge_unlocked(
+        self,
+        client_id: int,
+        achievement: Achievement,
+        db: AsyncSession,
+    ) -> None:
+        """Notify the client after unlocking a new achievement level."""
+
+        result = await db.execute(
+            select(User.userID).join(Client, Client.userID == User.userID)
+            .where(Client.clientID == client_id)
+        )
+        user_id = result.scalar_one_or_none()
+        if not user_id:
+            return
+
+        title = "New badge unlocked! 🏅"
+        body = f"You unlocked '{achievement.name}'!"
+        data = {
+            "achievement_id": str(achievement.achievementID),
+            "chain_key": achievement.chain_key,
+            "type": "badge_unlocked",
+        }
+
+        await save_notification(db, user_id, title, body, "badge_unlocked", data)
+        await send_push_notification(db, user_id, title, body, data)
+
     # ── Core level progression engine ─────────────────────────────────────────
 
     async def _apply_progress(
@@ -443,6 +464,8 @@ class AchievementEngine:
                     f"🎉 Client {client_id} unlocked [{lvl.key}] "
                     f"(value={raw_value}, target={lvl.target})"
                 )
+
+                await self._notify_badge_unlocked(client_id, lvl, db)
 
                 if i + 1 < len(levels):
 
