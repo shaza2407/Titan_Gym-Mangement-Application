@@ -2,7 +2,7 @@
 import pytest
 from fastapi import HTTPException
 from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import date, timedelta, datetime, timezone
+from datetime import date, timedelta, datetime
 from app.services.admin.admin_retention_offer import (
     get_active_members,
     get_retention_dashboard_service,
@@ -260,7 +260,13 @@ class TestCreateAndSendOfferService:
         mock_db.flush = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        execute_results = [scalar_one_or_none_result(m) for m in memberships]
+        users = [MagicMock(userID=100 + i) for i in range(3)]
+
+    # interleave: membership result, then user result, per iteration
+        execute_results = []
+        for m, u in zip(memberships, users):
+            execute_results.append(scalar_one_or_none_result(m))
+            execute_results.append(scalar_one_or_none_result(u))
         mock_db.execute.side_effect = execute_results
 
         request = MagicMock()
@@ -272,7 +278,9 @@ class TestCreateAndSendOfferService:
         request.valid_until = None
         request.target_type = "highest_risk"
 
-        with patch("app.services.admin.admin_retention_offer.predict_churn_risk", new_callable=AsyncMock) as mock_predict:
+        with patch("app.services.admin.admin_retention_offer.predict_churn_risk", new_callable=AsyncMock) as mock_predict, \
+            patch("app.services.admin.admin_retention_offer.save_notification", new_callable=AsyncMock), \
+            patch("app.services.admin.admin_retention_offer.send_push_notification", new_callable=AsyncMock):
             mock_predict.return_value = "High"
             result = await create_and_send_offer_service(mock_db, GYM_ID, request)
 

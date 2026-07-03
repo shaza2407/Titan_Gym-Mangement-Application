@@ -24,7 +24,7 @@ class CoachGymModel {
       gymId: json['gym_id'] ?? 0,
       gymName: json['name'] ?? 'Unknown Gym',
       address: json['address'] ?? '',
-      status: json['status'] ?? 'Active',
+      status: json['status'] ?? 'Suspended',
       clientsCount: json['clients_count'] ?? 0,
       classesCount: json['classes_count'] ?? 0,
       nextClass: json['next_class'] != null

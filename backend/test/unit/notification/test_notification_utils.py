@@ -9,7 +9,7 @@ from app.services.notifications.notification_Utils import (
     notify_gym_clients,
     notify_gym_coaches,
 )
-
+from sqlalchemy.ext.asyncio import AsyncSession
 GYM_ID = 5
 USER_ID = 1
 TITLE = "Test Title"
@@ -63,12 +63,6 @@ class TestGetUserByEmail:
 # save_notification
 
 class TestSaveNotification:
-
-    async def test_adds_and_commits(self, mock_db):
-        await save_notification(mock_db, USER_ID, TITLE, BODY, TYPE, DATA)
-
-        mock_db.add.assert_called_once()
-        mock_db.commit.assert_called_once()
 
     async def test_saves_correct_user_id(self, mock_db):
         captured = {}

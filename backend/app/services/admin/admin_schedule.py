@@ -1,5 +1,4 @@
 # app/services/admin_schedule.py
-
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete, and_, or_

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,13 +11,15 @@ from app.routers.Admin.churn import predict_churn_risk
 from app.schemas.admin.retention_offer import (
     PreviewRequest, MemberPreview, CreateOfferRequest, RetentionDashboardResponse, OfferHistoryItem
 )
+from app.services.notifications.notification_Utils import send_push_notification ,save_notification
+
 import joblib
 
 model = joblib.load("app/ml/churn_model.pkl")
 RISK_ORDER = {"High": 0, "Mid": 1, "Low": 2}
 
 async def get_active_members(db: AsyncSession, gym_id: int):
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now().date()
     result = await db.execute(
         select(GymClientMembership).where(
             GymClientMembership.gymID == gym_id,
@@ -119,6 +121,7 @@ async def preview_members_service(db: AsyncSession, gym_id: int, request: Previe
     return previews
 
 async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: CreateOfferRequest):
+    print("DEBUG: ", request)
     if not request.selected_member_ids:
         raise HTTPException(status_code=400, detail="No members selected")
 
@@ -132,8 +135,10 @@ async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: 
         target_type = request.target_type,
         number_of_members = len(request.selected_member_ids),
     )
-    db.add(offer) ## We need to send notification here
+    db.add(offer) 
     await db.flush()
+
+    print("DEBUG: ", offer)
 
     for membership_id in request.selected_member_ids:
         result = await db.execute(select(GymClientMembership).where(
@@ -146,6 +151,20 @@ async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: 
             membership_id=membership_id,
             risk_level=risk,
         ))
+        result = await db.execute(
+        select(User).join(Client, Client.userID == User.userID)
+        .where(Client.clientID == membership.clientID)
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            continue  # or handle missing user
+        title = f"You've an offer from your gym!"
+        body = f"the offer: '{request.title}' is available for you.Go to gym management to redeem."
+        data = {
+            "gym_id": str(gym_id) if gym_id else "",
+        }
+        await save_notification(db, user.userID, title, body, "gym_offer", data)
+        await send_push_notification(db, user.userID, title, body, data)
 
     # print("Debug from send offer: ", request.selected_member_ids)
     await db.commit()

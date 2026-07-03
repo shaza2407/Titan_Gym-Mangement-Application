@@ -78,21 +78,35 @@ class AttendanceRepository {
   }
 
   Future<String> doCheckin(String token, String qrCode) async {
+    http.Response res;
     try {
-      final res = await http
+      res = await http
           .post(
             Uri.parse('${ApiConstants.baseUrl}/client/checkin'),
             headers: _headers(token),
             body: jsonEncode({'qr_code': qrCode}),
           )
           .timeout(const Duration(seconds: 10));
-      if (res.statusCode == 200) return jsonDecode(res.body)['checked_in'];
-      throw Exception(jsonDecode(res.body)['detail'] ?? 'Check-in failed');
     } catch (e) {
-      if (e is Exception && e.toString().contains('detail')) rethrow;
       throw Exception(
         'Could not check in — check your connection and try again.',
       );
     }
+
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body)['checked_in'];
+    }
+
+    // Got a real response from the server — surface its actual message.
+    String message = 'Check-in failed';
+    try {
+      final body = jsonDecode(res.body);
+      if (body is Map && body['detail'] != null) {
+        message = body['detail'].toString();
+      }
+    } catch (_) {
+      // response wasn't valid JSON — keep default message
+    }
+    throw Exception(message);
   }
 }

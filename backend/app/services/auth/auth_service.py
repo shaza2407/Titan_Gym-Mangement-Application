@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select ,func
 from app.database import get_session
 from app.models import User, Client, Coach, Admin
 from app.schemas.auth import SignUpResponse
@@ -10,17 +10,16 @@ from app.schemas.auth.VerifyEmailRequest import VerifyEmailRequest
 from passlib.context import CryptContext
 from jose import jwt
 import datetime
-import bcrypt
+import bcrypt , os
 import random
 from app.dependencies.email_utils import send_verification_email, send_reset_email
-from datetime import datetime, timedelta ,timezone
+from datetime import datetime, timedelta 
 from app.schemas.auth.SignInResponse import SignInResponse
 from app.schemas.auth.SignInRequest import SignInRequest
 from app.schemas.auth.SignUpRequest import SignUpRequest
-from app.schemas.auth.SignUpResponse import SignUpResponse
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "your-secret-key"      #will be used in production, should be env var
+SECRET_KEY = os.getenv("SECRET_KEY")   #will be used in production, should be env var
 ALGORITHM  = "HS256"                #JWT signing algorithm, usually HS256 or RS256
 
 #Helper function to detect user role based on their ID
@@ -40,7 +39,7 @@ async def detect_role(userID: int, db: AsyncSession) -> str:
 # app/services/auth_service.py
 async def signup_user(payload: SignUpRequest, db: AsyncSession) -> User:
     # Check if email exists
-    result = await db.execute(select(User).where(User.email == payload.email.lower()))
+    result = await db.execute(select(User).where(func.lower(User.email)== payload.email.lower()))
     existing_user = result.scalar_one_or_none()
 
     if existing_user:
@@ -68,7 +67,7 @@ async def signup_user(payload: SignUpRequest, db: AsyncSession) -> User:
 
         verify_token = str(random.randint(100000, 999999))
         user.reset_token = verify_token
-        user.reset_token_exp = datetime.now(timezone.utc) + timedelta(hours=24)
+        user.reset_token_exp = datetime.now() + timedelta(hours= 3)
 
         await db.commit()
         await db.refresh(user)
@@ -84,7 +83,7 @@ async def signup_user(payload: SignUpRequest, db: AsyncSession) -> User:
 
 
 async def signin_user(payload: SignInRequest, db: AsyncSession) -> SignInResponse:
-    result = await db.execute(select(User).filter(User.email == payload.email.lower()))
+    result = await db.execute(select(User).filter(func.lower(User.email)  == payload.email.lower()))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -102,7 +101,7 @@ async def signin_user(payload: SignInRequest, db: AsyncSession) -> SignInRespons
         {
             "sub": str(user.userID),
             "role": role,
-            "exp": datetime.now(timezone.utc) + timedelta(hours=24),
+            "exp":datetime.now()+ timedelta(hours=24),
         },
         SECRET_KEY,
         algorithm=ALGORITHM,
@@ -117,7 +116,7 @@ async def signin_user(payload: SignInRequest, db: AsyncSession) -> SignInRespons
 
 
 async def verify_email(request: VerifyEmailRequest, db: AsyncSession) -> dict:
-    result = await db.execute(select(User).where(User.email == request.email))
+    result = await db.execute(select(User).where(func.lower(User.email)  == request.email.lower()))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -129,7 +128,7 @@ async def verify_email(request: VerifyEmailRequest, db: AsyncSession) -> dict:
     if user.reset_token != request.code:
         raise HTTPException(400, "Invalid verification code")
 
-    if user.reset_token_exp < datetime.now(timezone.utc):
+    if user.reset_token_exp < datetime.now():
         raise HTTPException(400, "Verification code has expired")
 
     user.is_verified = True
@@ -141,7 +140,7 @@ async def verify_email(request: VerifyEmailRequest, db: AsyncSession) -> dict:
 
 
 async def resend_verification(request: ResendVerificationRequest, db: AsyncSession) -> dict:
-    result = await db.execute(select(User).where(User.email == request.email))
+    result = await db.execute(select(User).where(func.lower(User.email) == request.email.lower()))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -152,7 +151,7 @@ async def resend_verification(request: ResendVerificationRequest, db: AsyncSessi
 
     code = str(random.randint(100000, 999999))
     user.reset_token = code
-    user.reset_token_exp = datetime.now(timezone.utc) + timedelta(hours=24)
+    user.reset_token_exp = datetime.now() + timedelta(hours=3)
     await db.commit()
 
     await send_verification_email(user.email, code)
@@ -161,7 +160,7 @@ async def resend_verification(request: ResendVerificationRequest, db: AsyncSessi
 
 
 async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession) -> dict:
-    result = await db.execute(select(User).where(User.email == payload.email.lower()))
+    result = await db.execute(select(User).where(func.lower(User.email) == payload.email.lower()))
     user = result.scalar_one_or_none()
 
     if not user:
@@ -169,7 +168,7 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession) -> d
 
     code = str(random.randint(100000, 999999))
     user.reset_token = code
-    user.reset_token_exp = datetime.now(timezone.utc) + timedelta(minutes=30)
+    user.reset_token_exp = datetime.now() + timedelta(hours=1)
     await db.commit()
 
     await send_reset_email(user.email, code)

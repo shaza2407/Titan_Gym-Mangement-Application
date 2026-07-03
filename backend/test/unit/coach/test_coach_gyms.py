@@ -36,7 +36,7 @@ class TestVerifyCoachGym:
         with pytest.raises(HTTPException) as exc:
             await verify_coach_gym(10, 999, mock_db)
         assert exc.value.status_code == 403
-        assert "not a member" in exc.value.detail
+        assert "not an active member" in exc.value.detail
 
 
 # ── get_coach_active_gyms ─────────────────────────────────────────────────────

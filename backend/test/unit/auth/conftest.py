@@ -1,6 +1,6 @@
 # tests/unit/auth/conftest.py
 import pytest
-from datetime import datetime, timedelta , timezone
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 from test.helpers import make_user 
 from app.schemas.auth.SignInRequest import SignInRequest
@@ -21,7 +21,7 @@ def unverified_user():
     return make_user(
         is_verified=False,
         reset_token="123456",
-        reset_token_exp= datetime.now(timezone.utc) + timedelta(hours=24),
+        reset_token_exp= datetime.now() + timedelta(hours=24),
     )
 
 
@@ -31,7 +31,7 @@ def expired_token_user():
     return make_user(
         is_verified=False,
         reset_token="123456",
-        reset_token_exp= datetime.now(timezone.utc) - timedelta(hours=1),  #one hour ago
+        reset_token_exp= datetime.now() - timedelta(hours=1),  #one hour ago
     )
 
 

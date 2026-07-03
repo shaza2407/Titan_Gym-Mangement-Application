@@ -10,5 +10,5 @@ class Attendance(Base):
     id         = Column(Integer, primary_key=True, index=True)
     gymID      = Column(Integer, ForeignKey("gyms.gymID", ondelete="CASCADE"), nullable=False)
     clientID   = Column(Integer, ForeignKey("clients.clientID", ondelete="CASCADE"), nullable=False)
-    checked_in = Column(DateTime(timezone=False), nullable=True)
+    checked_in = Column(DateTime(), nullable=True)
     day_of_week = Column(String(10), nullable=True)

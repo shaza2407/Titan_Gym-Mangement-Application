@@ -12,7 +12,7 @@ from app.services.admin.admin_analytics_service import (
     get_revenue_for_last_6_months,
     get_members_for_last_6_months,
     get_membership_distribution,
-    get_offer_details,
+    get_offer_details_service,
 )
 from datetime import date, timedelta
 
@@ -238,7 +238,7 @@ class TestGetOfferDetails:
         mock_db.execute.return_value = scalar_one_or_none_result(None)
 
         with pytest.raises(HTTPException) as exc:
-            await get_offer_details(mock_db, mock_gym, offer_id=1)
+            await get_offer_details_service(mock_db, mock_gym, offer_id=1)
         assert exc.value.status_code == 404
 
     async def test_recipients_is_empty_when_none(self, mock_db, mock_gym):
@@ -258,6 +258,6 @@ class TestGetOfferDetails:
             all_result([]),
         ]
 
-        result = await get_offer_details(mock_db, mock_gym, offer_id=1)
+        result = await get_offer_details_service(mock_db, mock_gym, offer_id=1)
 
         assert result["recipients"] == []

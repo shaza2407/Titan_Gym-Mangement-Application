@@ -75,11 +75,11 @@ class TrainingPlan(Base):
 
     # Status tracking
     status         = Column(SAEnum(PlanStatus), default=PlanStatus.IN_PROGRESS, nullable=False)
-    completed_at   = Column(DateTime(timezone=True), nullable=True)
+    completed_at   = Column(DateTime(), nullable=True)
 
     # Timestamps
-    created_at     = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at     = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at     = Column(DateTime(), server_default=func.now())
+    updated_at     = Column(DateTime(), onupdate=func.now())
 
     # Relationships
     tracking       = relationship("TrainingPlanTracking", back_populates="plan",
@@ -121,7 +121,7 @@ class TrainingPlanTracking(Base):
     status                = Column(SAEnum(WorkoutStatus), default=WorkoutStatus.PLANNED)
     duration_minutes      = Column(Integer, nullable=True)
     notes                 = Column(Text,    nullable=True)
-    completed_at          = Column(DateTime(timezone=True), nullable=True)
+    completed_at          = Column(DateTime(), nullable=True)
 
     plan = relationship("TrainingPlan", back_populates="tracking")
 

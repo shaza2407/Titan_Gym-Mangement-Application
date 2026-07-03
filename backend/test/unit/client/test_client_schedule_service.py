@@ -1,7 +1,7 @@
-# tests/services/client/test_client_schedule_service.py
+# test/unit/client/test_client_schedule_service.py
 #
 # Run with:
-#   pytest test/services/client/test_client_schedule_service.py -v
+#   pytest test/unit/client/test_client_schedule_service.py -v
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -71,10 +71,17 @@ def _make_enrollment(
 def _make_membership(
     status: str = "active",
     subscription_end: date = today + timedelta(days=30),
+    gym_id: int = 1,
 ) -> MagicMock:
+    """
+    gym_id defaults to 1 to match _make_session()'s default gym_id=1 —
+    enroll() now cross-checks session.gymID == membership.gymID, so any
+    test exercising a *successful* enroll needs these to line up.
+    """
     m = MagicMock(spec=GymClientMembership)
     m.status = status
     m.subscription_end = subscription_end
+    m.gymID = gym_id
     return m
 
 
@@ -208,6 +215,44 @@ class TestEnroll:
         result = await enroll(99, 1, tomorrow, db)
 
         assert result["error"] == "Class not found"
+
+    async def test_error_when_session_belongs_to_different_gym(self):
+        """
+        The core new behavior: a client with a valid, active membership at
+        gym A must not be able to enroll in a session that belongs to gym B,
+        even though get_membership() and the session lookup individually
+        succeed — only the cross-check catches this.
+        """
+        membership = _make_membership(gym_id=1)
+        session = _make_session(gym_id=2)
+        db = AsyncMock()
+        db.execute = AsyncMock(side_effect=[
+            _scalar_result(membership),
+            _scalar_result(session),
+        ])
+
+        result = await enroll(1, 1, tomorrow, db)
+
+        assert "error" in result
+        assert "does not belong to your gym" in result["error"]
+
+    async def test_does_not_check_enrollment_or_commit_on_gym_mismatch(self):
+        """Gym mismatch must short-circuit before any enrollment/count/commit calls."""
+        membership = _make_membership(gym_id=1)
+        session = _make_session(gym_id=2)
+        db = AsyncMock()
+        db.execute = AsyncMock(side_effect=[
+            _scalar_result(membership),
+            _scalar_result(session),
+        ])
+        db.scalar = AsyncMock(return_value=0)
+        db.add = MagicMock()
+        db.commit = AsyncMock()
+
+        await enroll(1, 1, tomorrow, db)
+
+        db.add.assert_not_called()
+        db.commit.assert_not_awaited()
 
     async def test_error_when_already_enrolled(self):
         membership = _make_membership()

@@ -17,9 +17,9 @@ class MemberInvitation(Base):           #for both clients and coaches
     email = Column(String, nullable=False)
     token = Column(String, nullable=False, unique=True)
     status = Column(Enum(InvitationStatus), default=InvitationStatus.pending)
-    sent_at = Column(DateTime(timezone=True), server_default=func.now())
+    sent_at = Column(DateTime(), server_default=func.now())
     invited_as = Column(String, nullable=False, default="client")  # "client" | "coach"
-    expires_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at = Column(DateTime(), nullable=True)
     subscription = Column(String, nullable=True)        # "monthly" | "yearly"
     subscription_end = Column(Date, nullable=True)
     subscription_price = Column(Integer, nullable=True)   #holding spot until accept(for subscription table)

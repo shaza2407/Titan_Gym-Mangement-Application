@@ -1,36 +1,3 @@
-"""
-Test suite for app/services/client/achievements.py
-
-Testing technique used: Equivalence Partitioning (EP) + Boundary Value
-Analysis (BVA).
-
-Functions under test
----------------------
-1. get_client_achievements_service(user_id, db)
-2. recalculate_client_achievements_service(user_id, db)
-
-Equivalence classes identified
--------------------------------
-A) Caller identity
-   A1 - valid client                       -> success path
-   A2 - not a client (get_client_by_user_id raises 403)  -> error path
-
-B) Size of the achievements collection returned by the engine
-   B1 - empty list   (0 items)   <-- boundary: lower limit
-   B2 - single item  (1 item)    <-- boundary: just above lower limit
-   B3 - many items   (N items)   <-- typical / upper range
-
-C) user_id value range (pass-through identifier, not validated by the
-   service itself, but exercised at its boundaries to guarantee no
-   accidental int-casting / off-by-one bugs are introduced upstream)
-   C1 - 0 (smallest non-negative boundary)
-   C2 - 1 (smallest "real" id)
-   C3 - very large id (2**31 - 1)
-
-D) Downstream failures
-   D1 - an achievement_engine event handler raises during recalculation
-"""
-
 import pytest
 from unittest.mock import AsyncMock, patch
 from fastapi import HTTPException

@@ -1,13 +1,13 @@
 import os
 import firebase_admin
+from fastapi import HTTPException
 from firebase_admin import credentials, messaging
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.User import User
 from app.models.notification import Notification, FcmToken
 from app.models.Gym import Gym
-from app.models import Admin ,Coach , ClassRequest , GymClientMembership , Client ,GymCoachMembership
-import os
+from app.models import Admin, Coach, ClassRequest, GymClientMembership, Client, GymCoachMembership
 
 if not firebase_admin._apps:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +31,7 @@ async def save_notification(db: AsyncSession, user_id: int, title: str, body: st
         is_read=False,
     )
     db.add(notification)
-    await db.commit()
+    await db.flush()  # Ensure the notification has an ID / is visible in-transaction. Caller commits.
 
 
 async def send_push_notification(db: AsyncSession, user_id: int, title: str, body: str, data: dict):
@@ -42,7 +42,7 @@ async def send_push_notification(db: AsyncSession, user_id: int, title: str, bod
 
     message = messaging.Message(
         notification=messaging.Notification(title=title, body=body),
-        data={k: str(v) for k, v in data.items()}, 
+        data={k: str(v) for k, v in data.items()},
         token=fcm.token,
     )
 
@@ -53,7 +53,7 @@ async def send_push_notification(db: AsyncSession, user_id: int, title: str, bod
 
 
 async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, gym_id: int = None, token: str = None):
-    user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    user = (await db.execute(select(User).where(User.email == email.lower()))).scalar_one_or_none()
     if not user:
         return
 
@@ -68,6 +68,7 @@ async def notify_invite(db: AsyncSession, email: str, gym_name: str, role: str, 
     }
     await save_notification(db, user.userID, title, body, f"gym_invite_{role}", data)
     await send_push_notification(db, user.userID, title, body, data)
+
 
 async def notify_admin(db: AsyncSession, gym_id: int, title: str, body: str, type: str, data: dict):
     # Get gym to find adminID
@@ -112,6 +113,7 @@ async def notify_Coach_on_class_approval(
     await save_notification(db, coach.userID, title, body, type, data)
     await send_push_notification(db, coach.userID, title, body, data)
 
+
 async def notify_gym_clients(db: AsyncSession, gym_id: int, title: str, body: str, type: str, data: dict):
     # Step 1 — get all active client IDs
     result = await db.execute(
@@ -135,13 +137,12 @@ async def notify_gym_clients(db: AsyncSession, gym_id: int, title: str, body: st
         await send_push_notification(db, user_id, title, body, data)
 
 
-
 async def notify_gym_coaches(db: AsyncSession, gym_id: int, title: str, body: str, type: str, data: dict):
     # Step 1 — get all active coach IDs
     result = await db.execute(
         select(GymCoachMembership.coachID).where(
             GymCoachMembership.gymID == gym_id,
-            GymCoachMembership.status == "active",  # ← fixed: was GymClientMembership
+            GymCoachMembership.status == "active",
         )
     )
     coach_ids = result.scalars().all()

@@ -1,12 +1,12 @@
 # app/services/coach_schedule.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import delete, select, func
+from sqlalchemy import and_, delete, or_, select, func
 from datetime import date, timedelta
 from app.models.class_session import ClassSession
 from app.models.class_request import ClassRequest, RequestStatus
 from app.models.class_enrollment import ClassEnrollment
-from app.models.gym_coachs_membership import GymCoachMembership
+from app.models.gym_coachs_membership import CoachMembershipStatus, GymCoachMembership
 from app.models.Gym import Gym
 from app.models.coach import Coach
 from app.schemas.coach.coach_schemas import CreateClassRequestPayload
@@ -14,11 +14,11 @@ from fastapi import HTTPException
 from sqlalchemy import select
 
 from app.models.notification import Notification
-from app.services.notifications.notification_Utils import notify_admin, notify_gym_clients
+from app.services.notifications.notification_Utils import notify_admin
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-
+# Does the user have a coach profile?
 async def get_coach_or_404(userID: int, db: AsyncSession) -> Coach:
     result = await db.execute(select(Coach).where(Coach.userID == userID))
     coach = result.scalar_one_or_none()
@@ -26,23 +26,23 @@ async def get_coach_or_404(userID: int, db: AsyncSession) -> Coach:
         raise HTTPException(404, "Coach not found")
     return coach
 
-
+# Given coach ID, get the gymID of the first gym they are a member of
 async def get_coach_gymID(coachID: int, db: AsyncSession) -> int | None:
     result = await db.execute(
         select(GymCoachMembership.gymID).where(
-            GymCoachMembership.coachID == coachID
+            GymCoachMembership.coachID == coachID,
         )
     )
     return result.scalar_one_or_none()
 
-
+# Give gym ID, get the gym name
 async def get_gym_name(gymID: int, db: AsyncSession) -> str | None:
     result = await db.execute(
         select(Gym.gymName).where(Gym.gymID == gymID)  
     )
     return result.scalar_one_or_none()
 
-
+# Given a dayname, calculate the date of the next occurrence
 def _next_occurrence(day_name: str) -> date:
     days = ["monday", "tuesday", "wednesday", "thursday",
             "friday", "saturday", "sunday"]
@@ -54,6 +54,7 @@ def _next_occurrence(day_name: str) -> date:
     return today + timedelta(days=days_ahead)
 
 
+# Count how many clients are enrolled in a class
 async def _count_enrolled(session_id: int, class_date: date, db: AsyncSession) -> int:
     result = await db.scalar(
         select(func.count(ClassEnrollment.id)).where(
@@ -63,20 +64,36 @@ async def _count_enrolled(session_id: int, class_date: date, db: AsyncSession) -
     )
     return result or 0
 
+def _active_gym_join(coachID: int, TargetModel):
+    """
+    SQLAlchemy join clause — items at gyms where this coach is active.
+    Dynamically accepts TargetModel (ClassSession or ClassRequest) to prevent SQL errors.
+    """
+    return and_(
+        GymCoachMembership.gymID == TargetModel.gymID,
+        GymCoachMembership.coachID == coachID,
+        or_(
+            GymCoachMembership.status == CoachMembershipStatus.active,
+            GymCoachMembership.status.is_(None)  # Handle legacy active rows where status might be NULL
+        )
+    )
 
 
 # ── Schedule Stats ────────────────────────────────────────────────────────────
-
+# Get statistics for a coach's schedule
 async def get_schedule_stats(coachID: int, db: AsyncSession) -> dict:
     today = date.today()
     day_names = ["monday", "tuesday", "wednesday",
                  "thursday", "friday", "saturday", "sunday"]
 
+    # Classes that belong to the coach
     sessions_result = await db.execute(
-        select(ClassSession).where(ClassSession.coach_id == coachID)
+        select(ClassSession)
+        .join(GymCoachMembership, _active_gym_join(coachID, ClassSession))
+        .where(ClassSession.coach_id == coachID)
     )
     sessions = sessions_result.scalars().all()
-
+    
     days_in_window = set()
     for i in range(7):
         d = today + timedelta(days=i)
@@ -86,16 +103,20 @@ async def get_schedule_stats(coachID: int, db: AsyncSession) -> dict:
     total_clients  = 0
 
     for s in sessions:
+        # if class is recurring and falls within the next 7 days
         if s.is_recurring and s.day_of_week and s.day_of_week in days_in_window:
             weekly_classes += 1
             next_d = _next_occurrence(s.day_of_week)
             total_clients += await _count_enrolled(s.id, next_d, db)
+        # if class is one-time and falls within the next 7 days
         elif not s.is_recurring and s.date and today <= s.date:
             weekly_classes += 1
             total_clients += await _count_enrolled(s.id, s.date, db)
 
     pending_requests = await db.scalar(
-        select(func.count(ClassRequest.id)).where(
+        select(func.count(ClassRequest.id))
+        .join(GymCoachMembership, _active_gym_join(coachID, ClassRequest))
+        .where(
             ClassRequest.coach_id == coachID,
             ClassRequest.status == RequestStatus.PENDING,
         )
@@ -125,7 +146,9 @@ async def get_weekly_schedule(coachID: int, db: AsyncSession) -> list:
         })
 
     sessions_result = await db.execute(
-        select(ClassSession).where(ClassSession.coach_id == coachID)
+        select(ClassSession)
+        .join(GymCoachMembership, _active_gym_join(coachID, ClassSession))
+        .where(ClassSession.coach_id == coachID)
     )
     sessions = sessions_result.scalars().all()
 
@@ -135,6 +158,7 @@ async def get_weekly_schedule(coachID: int, db: AsyncSession) -> list:
         gym_name = await get_gym_name(s.gymID, db) if s.gymID else None
 
         if s.is_recurring and s.day_of_week:
+            # Find which date in the next 7 days corresponds to this day_of_week
             for d in days_order:
                 if d["day_name"] == s.day_of_week.lower():
                     count = await _count_enrolled(s.id, d["date"], db)
@@ -178,7 +202,8 @@ async def get_my_classes(coachID: int, db: AsyncSession) -> list:
     today = date.today()
 
     sessions_result = await db.execute(
-        select(ClassSession).where(ClassSession.coach_id == coachID)
+        select(ClassSession)
+        .join(GymCoachMembership, _active_gym_join(coachID, ClassSession))
         .order_by(ClassSession.day_of_week, ClassSession.start_time)
     )
     sessions = sessions_result.scalars().all()
@@ -213,9 +238,12 @@ async def get_my_classes(coachID: int, db: AsyncSession) -> list:
 
 async def get_class_requests(coachID: int, db: AsyncSession) -> list:
     result = await db.execute(
-        select(ClassRequest).where(
+        select(ClassRequest)
+        .join(GymCoachMembership, _active_gym_join(coachID, ClassRequest))
+        .where(
             ClassRequest.coach_id == coachID
-        ).order_by(ClassRequest.created_at.desc())
+        )
+        .order_by(ClassRequest.created_at.desc())
     )
     requests = result.scalars().all()
 
@@ -245,7 +273,11 @@ async def create_class_request(
     gymID: int,
     payload: CreateClassRequestPayload,
     db: AsyncSession
-) -> dict:
+) -> dict:  
+    from app.services.coach.coach_gyms import verify_coach_gym
+    # Verify active membership before doing anything else
+    await verify_coach_gym(coachID, gymID, db)
+
 
     day_names = [
         "monday", "tuesday", "wednesday",
@@ -270,7 +302,6 @@ async def create_class_request(
                 ClassSession.start_time == payload.requested_time,
             )
         )
-
     else:
 
         existing_class = await db.scalar(
@@ -336,9 +367,6 @@ async def create_class_request(
     )
 
     db.add(new_request)
-
-    await db.commit()
-    await db.refresh(new_request)
     
     gym_name = await get_gym_name(gymID, db)
 
@@ -357,6 +385,8 @@ async def create_class_request(
             "request_id": str(new_request.id),
         }
     )
+    await db.commit()
+    await db.refresh(new_request)
 
     return {
         "message": "Request submitted successfully",
@@ -366,6 +396,7 @@ async def create_class_request(
 
 # Remove class request
 async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
+    # 1. Fetch the req
     result = await db.execute(
         select(ClassRequest).where(
             ClassRequest.id == request_id,
@@ -384,6 +415,11 @@ async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
             detail="Only pending class requests can be deleted."
         )
     
+    from app.services.coach.coach_gyms import verify_coach_gym
+    # 2. Ensure the coach is still an active member of the gym
+    await verify_coach_gym(coachID, request_obj.gymID, db)
+
+    # 3. Proceed with deletion
     await db.delete(request_obj)
 
     # delete notifications of class request after cancelling it
@@ -398,61 +434,19 @@ async def remove_class_request(coachID: int, request_id: int, db: AsyncSession):
     await db.commit()
     return True
 
-
-# ── remove class ────────────────────────────────────────────────────────────
-
-# async def remove_class(
-#     coachID: int,
-#     class_id: int,
-#     db: AsyncSession,
-# ):
-#     result = await db.execute(
-#         select(ClassSession).where(
-#             ClassSession.id == class_id,
-#             ClassSession.coach_id == coachID,
-#         )
-#     )
-
-#     session = result.scalar_one_or_none()
-
-#     if not session:
-#         raise HTTPException(status_code=404, detail="Class not found")
-
-#     gym_id = session.gymID
-#     class_title = session.title
-
-#     # delete enrollments first
-#     await db.execute(
-#         delete(ClassEnrollment).where(
-#             ClassEnrollment.session_id == class_id
-#         )
-#     )
-
-#     await db.delete(session)
-#     await db.commit()
-
-#     # NOTIFICATIONS
-#     await notify_gym_clients(
-#         db=db,
-#         gym_id=gym_id,
-#         title="Class Cancelled",
-#         body=f"The {class_title} class has been cancelled.",
-#         type="class_cancelled",
-#         data={
-#             "class_id": str(class_id),
-#             "gym_id": str(gym_id),
-#             "class_title": class_title,
-#         }
-#     )
-
-#     return True
-
-
-# Gyms lookup
+# Edited (return active gyms only)
+# all gyms that a coach is a member of
 async def get_coach_gyms_lookup(coachID: int, db: AsyncSession)-> list:
     result = await db.execute(
-        select(Gym.gymID, Gym.gymName)
+        select(Gym.gymID, Gym.gymName, GymCoachMembership.status)
         .join(GymCoachMembership, GymCoachMembership.gymID == Gym.gymID)
-        .where(GymCoachMembership.coachID == coachID)
+        .where(
+            GymCoachMembership.coachID == coachID,
+        )
     )
-    return [{"id": row.gymID, "name": row.gymName} for row in result.all()]
+    return [
+        {
+            "id": row.gymID,
+            "name": row.gymName,
+            "status": row.status.value if row.status else "suspended"
+        } for row in result.all()]

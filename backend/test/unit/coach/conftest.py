@@ -154,8 +154,5 @@ def mock_notifications():
     with patch(
         "app.services.coach.coach_schedule.notify_admin",
         new_callable=AsyncMock,
-    ) as mock_admin, patch(
-        "app.services.coach.coach_schedule.notify_gym_clients",
-        new_callable=AsyncMock,
-    ) as mock_clients:
-        yield {"admin": mock_admin, "clients": mock_clients}
+    ) as mock_admin:
+        yield {"admin": mock_admin}

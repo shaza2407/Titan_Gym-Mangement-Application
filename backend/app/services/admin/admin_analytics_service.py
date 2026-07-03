@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select, cast, Date, extract, case, or_, and_
-from datetime import date, timedelta, datetime, timezone
+from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from app.models import Admin, Subscription, RetentionOffer
 from app.models.attendance import Attendance
@@ -119,8 +119,16 @@ async def get_active_classes_for_period(db: AsyncSession, gym: Gym, start_date: 
     active_classes_result = await db.execute(
         select(func.count(ClassSession.id)).where(
             ClassSession.gymID == gym.gymID,
-            ClassSession.date >= start_date,
-            ClassSession.date <= end_date,
+            or_(
+                # One-time classes: date falls within the period
+                and_(
+                    ClassSession.date.isnot(None),
+                    ClassSession.date >= start_date,
+                    ClassSession.date <= end_date,
+                ),
+                # Recurring classes: always active regardless of period
+                ClassSession.day_of_week.isnot(None),
+            ),
         )
     )
     return active_classes_result.scalar_one_or_none() or 0
@@ -209,7 +217,7 @@ async def get_weekly_attendance_pattern(db: AsyncSession, gym: Gym):
     return WeeklyPatternResponse(data=data)
 
 
-async def get_offer_details(db: AsyncSession, gym: Gym, offer_id: int):
+async def get_offer_details_service(db: AsyncSession, gym: Gym, offer_id: int):
 
     result = await db.execute(select(RetentionOffer).where(
             RetentionOffer.id == offer_id,

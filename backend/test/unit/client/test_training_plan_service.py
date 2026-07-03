@@ -61,6 +61,13 @@ from app.schemas.client.CompleteDayRequest import CompleteDayRequest
 MODULE = "app.services.client.training_plan"
 
 
+def _mock_db() -> AsyncMock:
+    """AsyncMock db with add() correctly mocked as sync (matches real AsyncSession)."""
+    db = AsyncMock()
+    db.add = MagicMock()
+    return db
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _make_request(**overrides) -> TrainingPlanRequest:
@@ -130,7 +137,7 @@ def _make_complete_day_request(week_number=1, day_number=1, completed_exercises=
 
 def _db_with_owned_plan(plan):
     """An AsyncMock db whose execute().scalar_one_or_none() returns `plan`."""
-    db = AsyncMock()
+    db = _mock_db()
     mock_result = MagicMock()
     mock_result.scalar_one_or_none.return_value = plan
     db.execute.return_value = mock_result
@@ -203,7 +210,7 @@ def test_parse_plan_json_no_tracking_defaults_not_completed():
 
 @pytest.mark.asyncio
 async def test_generate_training_plan_service_success():
-    db = AsyncMock()
+    db = _mock_db()
     req = _make_request()
     mock_plan_resp = _make_training_plan_response(1)
 
@@ -225,7 +232,7 @@ async def test_generate_training_plan_service_success():
 
 @pytest.mark.asyncio
 async def test_generate_training_plan_service_gemini_value_error():
-    db = AsyncMock()
+    db = _mock_db()
     req = _make_request()
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
@@ -243,7 +250,7 @@ async def test_generate_training_plan_service_gemini_value_error():
 
 @pytest.mark.asyncio
 async def test_generate_training_plan_service_gemini_runtime_error():
-    db = AsyncMock()
+    db = _mock_db()
     req = _make_request()
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
@@ -268,7 +275,7 @@ async def test_generate_training_plan_service_gemini_runtime_error():
     ids=["B1_no_plans", "B2_single_plan", "B3_many_plans"],
 )
 async def test_list_training_plans_service_size_boundaries(count):
-    db = AsyncMock()
+    db = _mock_db()
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id:
         mock_get_client_id.return_value = 10
@@ -286,7 +293,7 @@ async def test_list_training_plans_service_size_boundaries(count):
 
 @pytest.mark.asyncio
 async def test_get_training_plan_service():
-    db = AsyncMock()
+    db = _mock_db()
     mock_plan = _make_training_plan(1)
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
@@ -327,7 +334,7 @@ async def test_get_training_plan_service():
 )
 async def test_complete_day_service_completion_threshold_boundaries(
         completed, total, expected_pct, expected_status):
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1, client_id=10, status=PlanStatus.IN_PROGRESS)
     request = _make_complete_day_request(completed_exercises=completed, total_exercises=total)
 
@@ -354,7 +361,7 @@ async def test_complete_day_service_completion_threshold_boundaries(
 
 @pytest.mark.asyncio
 async def test_complete_day_service_updates_existing_tracking_row():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1, client_id=10, status=PlanStatus.IN_PROGRESS)
     request = _make_complete_day_request(completed_exercises=5, total_exercises=5)
 
@@ -380,7 +387,7 @@ async def test_complete_day_service_updates_existing_tracking_row():
 
 @pytest.mark.asyncio
 async def test_complete_day_service_already_completed_plan_raises_400():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1, status=PlanStatus.COMPLETED)
     request = _make_complete_day_request()
 
@@ -401,7 +408,7 @@ async def test_complete_day_service_already_completed_plan_raises_400():
 
 @pytest.mark.asyncio
 async def test_complete_week_service_creates_new_progress_row():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1, status=PlanStatus.IN_PROGRESS)
 
     mock_result = MagicMock()
@@ -427,7 +434,7 @@ async def test_complete_week_service_creates_new_progress_row():
 
 @pytest.mark.asyncio
 async def test_complete_week_service_updates_existing_progress_row():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1, status=PlanStatus.IN_PROGRESS)
     existing = MagicMock(spec=TrainingPlanWeekProgress)
 
@@ -452,7 +459,7 @@ async def test_complete_week_service_updates_existing_progress_row():
 
 @pytest.mark.asyncio
 async def test_complete_week_service_already_completed_plan_raises_400():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1, status=PlanStatus.COMPLETED)
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
@@ -474,7 +481,7 @@ async def test_complete_week_service_already_completed_plan_raises_400():
 
 @pytest.mark.asyncio
 async def test_complete_training_plan_service_success():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1, status=PlanStatus.IN_PROGRESS)
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
@@ -496,7 +503,7 @@ async def test_complete_training_plan_service_success():
 
 @pytest.mark.asyncio
 async def test_complete_training_plan_service_already_completed_raises_400():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1, status=PlanStatus.COMPLETED)
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
@@ -515,7 +522,7 @@ async def test_complete_training_plan_service_already_completed_raises_400():
 
 @pytest.mark.asyncio
 async def test_delete_training_plan_service_soft_deletes():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1)
     plan.is_active = True
 
@@ -536,7 +543,7 @@ async def test_delete_training_plan_service_soft_deletes():
 
 @pytest.mark.asyncio
 async def test_export_plan_pdf_service_success():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1)
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
@@ -554,7 +561,7 @@ async def test_export_plan_pdf_service_success():
 
 @pytest.mark.asyncio
 async def test_export_plan_pdf_service_generation_failure_raises_500():
-    db = AsyncMock()
+    db = _mock_db()
     plan = _make_training_plan(plan_id=1)
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
@@ -590,7 +597,7 @@ async def test_check_auto_complete_boundaries(completed, total, should_complete)
     plan_json = json.dumps({"plan": days})
     plan = _make_training_plan(plan_id=1, status=PlanStatus.IN_PROGRESS, plan_json=plan_json)
 
-    db = AsyncMock()
+    db = _mock_db()
     mock_result = MagicMock()
     mock_result.scalar.return_value = completed
     db.execute.return_value = mock_result
@@ -613,7 +620,7 @@ async def test_check_auto_complete_already_completed_plan_is_idempotent():
     plan_json = json.dumps({"plan": [{"days": [{}, {}]}]})
     plan = _make_training_plan(plan_id=1, status=PlanStatus.COMPLETED, plan_json=plan_json)
 
-    db = AsyncMock()
+    db = _mock_db()
     mock_result = MagicMock()
     mock_result.scalar.return_value = 2
     db.execute.return_value = mock_result

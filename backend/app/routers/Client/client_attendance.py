@@ -1,25 +1,23 @@
-#app/routers/Client/client_attendance.py
+# app/routers/Client/client_attendance.py
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from datetime import datetime, date, timezone
 from app.database import get_session
 from app.dependencies.auth import require_client
-from app.models.Gym import Gym
 from app.schemas.client.attendance_schema import (
     CheckinStatusResponse, CheckinResponse,
     CheckinRecord, CheckinHistoryResponse, CheckinRequest,
 )
 from app.services.client.client_utils import get_client_or_404, get_membership
 from app.services.client.client_attendance import (
-    already_checked_in_today, record_checkin, get_recent_checkins
+    already_checked_in_today, get_checkin_block_reason,
+    perform_checkin, get_recent_checkins,
 )
 from app.services.coach.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/client", tags=["Client Attendance"])
 
-# Get client/checkin-status
+
 @router.get("/checkin-status", response_model=CheckinStatusResponse)
 async def checkin_status(
     current_user=Depends(require_client),
@@ -28,12 +26,10 @@ async def checkin_status(
     client = await get_client_or_404(current_user.userID, db)
     membership = await get_membership(client.clientID, db)
 
-    if not membership:
-        return CheckinStatusResponse(can_checkin=False, reason="not_connected")
-    if membership.status == "suspended":
-        return CheckinStatusResponse(can_checkin=False, reason="suspended")
-    if membership.subscription_end < date.today():
-        return CheckinStatusResponse(can_checkin=False, reason="expired")
+    reason = get_checkin_block_reason(membership)
+    if reason:
+        return CheckinStatusResponse(can_checkin=False, reason=reason)
+
     if await already_checked_in_today(client.clientID, membership.gymID, db):
         return CheckinStatusResponse(can_checkin=False, reason="already_checked_in")
 
@@ -46,6 +42,7 @@ async def checkin_status(
         status=membership.status,
     )
 
+
 @router.post("/checkin", response_model=CheckinResponse)
 async def checkin(
     payload: CheckinRequest,
@@ -55,44 +52,18 @@ async def checkin(
     client = await get_client_or_404(current_user.userID, db)
     membership = await get_membership(client.clientID, db)
 
-    if not membership:
-        raise HTTPException(400, "Not connected to any gym")
-    if membership.status == "suspended":
-        raise HTTPException(403, "Your membership is suspended")
-    if membership.subscription_end < date.today():
-        raise HTTPException(403, "Your subscription has expired")
-    if await already_checked_in_today(client.clientID, membership.gymID, db):
-        raise HTTPException(400, "Already checked in today")
+    attendance, message = await perform_checkin(
+        client.clientID, membership, payload.qr_code, db
+    )
 
-    gym_result = await db.execute(select(Gym).where(Gym.gymID == membership.gymID))
-    gym = gym_result.scalar_one_or_none()
-    if not gym:
-        raise HTTPException(404, "Gym not found")
-
-    if not gym.QRCode:
-        raise HTTPException(500, "Gym QR code is not configured")
-    if payload.qr_code.strip() != gym.QRCode.strip():
-        raise HTTPException(400, "This QR code doesn't belong to your gym")
-
-    attendance = await record_checkin(client.clientID, membership.gymID, db)
-    
     await achievement_engine.on_checkin(client.clientID, db)
-
-    now = datetime.now(timezone.utc)
-    dow = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"][now.weekday()]
-    message = f"Checked in successfully at {gym.gymName}"
-    if now.hour < 7:
-        message = f"Early bird! Checked in at {gym.gymName} 🌅"
-    elif now.hour >= 20:
-        message = f"Night owl mode! Checked in at {gym.gymName} 🦉"
-    elif dow in ("friday", "saturday"):
-        message = f"Weekend warrior! Checked in at {gym.gymName} ⚔️"
 
     return CheckinResponse(
         message=message,
         checked_in=str(attendance.checked_in),
         day_of_week=attendance.day_of_week,
     )
+
 
 @router.get("/checkins", response_model=CheckinHistoryResponse)
 async def get_checkins(

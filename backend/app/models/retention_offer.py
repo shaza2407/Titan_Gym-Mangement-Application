@@ -19,15 +19,15 @@ class RetentionOffer(Base):
     __tablename__ = "retention_offers"
 
     id = Column(Integer, primary_key=True, index=True)
-    gymId = Column(Integer, ForeignKey("gyms.gymID"), nullable=False)
+    gymId = Column(Integer, ForeignKey("gyms.gymID" ,ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     offer_type = Column(Enum(OfferType), nullable=False)
     description = Column(Text, nullable=True)
-    benefit = Column(String, nullable=False) ### I think I should change this
+    benefit = Column(String, nullable=False) 
     valid_until = Column(Date, nullable=True)
     target_type = Column(Enum(TargetType), nullable=False)
     number_of_members = Column(Integer, default=0)   # number of members offer was sent to
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(), server_default=func.now())
 
 
 class RetentionOfferRecipient(Base):

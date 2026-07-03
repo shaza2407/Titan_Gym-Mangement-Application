@@ -17,6 +17,7 @@ async def get_announcements(gym_id: int, db: AsyncSession) -> list[Announcement]
 async def create_announcement(
     gym_id: int, payload: CreateAnnouncementRequest, db: AsyncSession
 ) -> Announcement:
+    
     announcement = Announcement(
         gymID=gym_id,
         title=payload.title.strip(),
@@ -24,8 +25,7 @@ async def create_announcement(
         reciever=payload.reciever,
     )
     db.add(announcement)
-    await db.commit()
-    await db.refresh(announcement)
+    
 
     notify_data = {
         "gym_id": str(gym_id),
@@ -33,7 +33,7 @@ async def create_announcement(
     }
     print(payload.reciever)
 
-    if payload.reciever in ('Clients only', 'Clients and Coaches'):  # ← fixed
+    if payload.reciever in ('Clients only', 'Clients and Coaches'):  
         await notify_gym_clients(
             db=db, gym_id=gym_id,
             title=payload.title.strip(),
@@ -48,5 +48,6 @@ async def create_announcement(
             body=payload.content.strip(),
             type="announcement", data=notify_data,
         )
-
+    await db.commit()
+    await db.refresh(announcement)
     return announcement

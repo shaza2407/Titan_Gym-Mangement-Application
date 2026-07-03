@@ -12,7 +12,7 @@ class ClassEnrollment(Base):
     session_id  = Column(Integer, ForeignKey("class_sessions.id" ,ondelete="CASCADE"), nullable=False)
     clientID    = Column(Integer, ForeignKey("clients.clientID"  ,ondelete="CASCADE"), nullable=False)
     class_date  = Column(Date, nullable=False)  # specific occurrence date
-    enrolled_at = Column(DateTime(timezone=True), server_default=func.now())
+    enrolled_at = Column(DateTime(), server_default=func.now())
 
     __table_args__ = (
         UniqueConstraint('session_id', 'clientID', 'class_date',
