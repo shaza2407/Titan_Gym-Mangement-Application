@@ -102,7 +102,10 @@ class TrainingPlanRepository {
       final error = jsonDecode(res.body);
       throw Exception(error['detail'] ?? 'Failed to generate training plan');
     } catch (e) {
-      if (e is Exception && e.toString().contains('detail')) rethrow;
+      final errorStr = e.toString();
+      if (errorStr.contains('Server is busy') || errorStr.contains('Failed to generate')) {
+        rethrow;
+      }
       throw Exception(
         'Could not generate your plan — check your connection and try again.',
       );

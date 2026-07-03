@@ -49,6 +49,8 @@ class TrainingPlanTracker:
         )
         tracking = result.scalar_one_or_none()
 
+        is_new_completed = False
+
         if not tracking:
             # Need to determine week and day number
             plan = await db.execute(
@@ -74,12 +76,17 @@ class TrainingPlanTracker:
                 completed_at=datetime.now()
             )
             db.add(tracking)
+            if tracking.status == WorkoutStatus.COMPLETED:
+                is_new_completed = True
         else:
+            was_completed = (tracking.status == WorkoutStatus.COMPLETED)
             tracking.completed_exercises = completed_exercises
             tracking.completion_percentage = completion
             tracking.status = WorkoutStatus.COMPLETED if completion >= 80 else WorkoutStatus.PARTIAL
             tracking.duration_minutes = duration_minutes
             tracking.completed_at = datetime.now()
+            if not was_completed and tracking.status == WorkoutStatus.COMPLETED:
+                is_new_completed = True
 
         await db.commit()
 
@@ -87,7 +94,8 @@ class TrainingPlanTracker:
         await self._check_plan_completion(client_id, plan_id, db)
 
         # Update achievements
-        await achievement_engine.on_workout_logged(client_id, db)
+        if is_new_completed:
+            await achievement_engine.on_workout_logged(client_id, db)
 
         # Update weekly progress
         await self._update_weekly_progress(client_id, plan_id, db)
