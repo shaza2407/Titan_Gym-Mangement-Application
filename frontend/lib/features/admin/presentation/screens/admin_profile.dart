@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/logout_button.dart';
@@ -80,11 +79,11 @@ void initState() {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // ── Avatar ────────────────────────────────────────
+                  // Avatar
                   _buildAvatarCard(ctrl),
                   const SizedBox(height: 16),
 
-                  // ── Personal Information ──────────────────────────
+                  // Personal Information
                   _buildSection(
                     icon: Icons.person_outline,
                     iconColor: const Color(0xFF4F46E5),
@@ -106,11 +105,11 @@ void initState() {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Password Section ──────────────────────────────
+                  // Password Section
                   _buildPasswordSection(ctrl),
                   const SizedBox(height: 16),
 
-                  // ── Account Info ──────────────────────────────────
+                  // Account Info
                   _buildSection(
                     icon: Icons.badge_outlined,
                     iconColor: const Color(0xFF1D9E75),
@@ -126,7 +125,7 @@ void initState() {
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Error ─────────────────────────────────────────
+                  // Error
                   if (ctrl.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -157,7 +156,7 @@ void initState() {
                       ),
                     ),
 
-                  // ── Save Button ───────────────────────────────────
+                  // Save Button
                   SizedBox(
                     width: double.infinity,
                     height: 54,
@@ -214,7 +213,7 @@ void initState() {
     );
   }
 
-  // ── Password section with toggle ──────────────────────────────────────────
+  // Password section with toggle
   Widget _buildPasswordSection(AdminProfileController ctrl) {
     return Container(
       width: double.infinity,
@@ -268,7 +267,7 @@ void initState() {
     );
   }
 
-  // ── Avatar card ───────────────────────────────────────────────────────────
+  // Avatar card
   Widget _buildAvatarCard(AdminProfileController ctrl) {
     final name = ctrl.profile?.name ?? '';
     final initials = name.trim().isEmpty
@@ -326,7 +325,7 @@ void initState() {
     );
   }
 
-  // ── Section ───────────────────────────────────────────────────────────────
+  // Section
   Widget _buildSection({
     required IconData icon,
     required Color iconColor,
@@ -368,7 +367,7 @@ void initState() {
     );
   }
 
-  // ── Field ─────────────────────────────────────────────────────────────────
+  // Field
   Widget _buildField(
     String label,
     TextEditingController controller, {
@@ -406,7 +405,7 @@ void initState() {
     );
   }
 
-  // ── Read only ─────────────────────────────────────────────────────────────
+  // Read only
   Widget _buildReadOnly(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

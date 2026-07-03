@@ -12,7 +12,7 @@ class RetentionOfferRepository {
   RetentionOfferRepository({required this.token, required this.gymId});
 
   String get _dashboardKey => 'cache_retention_dashboard_$gymId';
-  // previewMembers and sendOffer are not cached — write/dynamic operations
+  // previewMembers and sendOffer are not cached - write/dynamic operations
 
   Map<String, String> get _headers => {
     'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ class RetentionOfferRepository {
     return RetentionDashboard.fromJson(jsonDecode(res.body));
   }
 
-  /// 2- Members Preview — no caching, result depends on request body
+  /// 2- Members Preview - no caching, result depends on request body
   Future<List<MemberPreview>> previewMembers({
     required String targetType,
     int? numberOfMembers,
@@ -62,7 +62,7 @@ class RetentionOfferRepository {
         .toList();
   }
 
-  /// 3- Create & Send Offer — no caching, invalidates dashboard
+  /// 3- Create & Send Offer - no caching, invalidates dashboard
   Future<void> sendOffer({
     required String title,
     required String offerType,

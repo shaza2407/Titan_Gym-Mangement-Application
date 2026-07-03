@@ -129,7 +129,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Tabs ──────────────────────────────────────────────────────────────────
+  // Tabs
   Widget _buildTabs(AdminScheduleController ctrl) {
     return Container(
       padding: const EdgeInsets.all(4),
@@ -207,7 +207,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Schedule Tab ──────────────────────────────────────────────────────────
+  // Schedule Tab
   Widget _buildScheduleTab(AdminScheduleController ctrl) {
     final weekly = ctrl.weeklySchedule;
     return Column(
@@ -417,7 +417,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── All Classes Tab ───────────────────────────────────────────────────────
+  // All Classes Tab
   Widget _buildAllClassesTab(AdminScheduleController ctrl) {
     final classes = ctrl.filteredClasses;
     final s = ctrl.stats;
@@ -686,7 +686,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Requests Tab ──────────────────────────────────────────────────────────
+  // Requests Tab
   Widget _buildRequestsTab(AdminScheduleController ctrl) {
     if (ctrl.requests.isEmpty) {
       return _buildEmpty(
@@ -879,7 +879,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Chip helpers ──────────────────────────────────────────────────────────
+  // Chip helpers
   Widget _buildInfoChip(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -927,7 +927,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Actions ───────────────────────────────────────────────────────────────
+  // Actions
   Future<void> _openClassForm(
     AdminScheduleController ctrl, {
     ClassSessionModel? existing,
@@ -1090,7 +1090,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // Helpers
   Widget _buildEmpty(String title, String subtitle) {
     return Container(
       width: double.infinity,

@@ -8,12 +8,12 @@ class InviteMemberController extends ChangeNotifier {
   final GymModel gym;
   final String token;
 
-  // ── Form controllers ──────────────────────────────────────────────────────
+  // Form controllers
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController monthsCtrl = TextEditingController(text: '1');
   final TextEditingController priceCtrl = TextEditingController();
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // State
   String inviteAs = 'client';
   String subscriptionType = 'monthly';
   bool isLoading = false;
@@ -32,7 +32,7 @@ class InviteMemberController extends ChangeNotifier {
     return '$months month${months > 1 ? 's' : ''} subscription';
   }
 
-  // ── Setters ───────────────────────────────────────────────────────────────
+  // Setters
   void setInviteAs(String value) {
     inviteAs = value;
     notifyListeners();
@@ -45,7 +45,7 @@ class InviteMemberController extends ChangeNotifier {
 
   void notifyMonthsChanged() => notifyListeners();
 
-  // ── Validation ────────────────────────────────────────────────────────────
+  // Validation
   bool _validate() {
     errorMessage = null;
     priceError = null;
@@ -68,7 +68,7 @@ class InviteMemberController extends ChangeNotifier {
     return true;
   }
 
-  // ── Send Invitation ───────────────────────────────────────────────────────
+  // Send Invitation
   Future<bool> send() async {
     if (!_validate()) return false;
 

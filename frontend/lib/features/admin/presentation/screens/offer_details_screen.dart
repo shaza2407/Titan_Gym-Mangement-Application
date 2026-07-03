@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/offer_details_model.dart';
@@ -70,7 +69,7 @@ class _OfferDetailsView extends StatelessWidget {
     );
   }
 
-  // ── Body ──────────────────────────────────────────────────────────────────
+  // Body
   Widget _buildBody(OfferDetailsController controller) {
     final offer = controller.offer!;
 
@@ -89,7 +88,7 @@ class _OfferDetailsView extends StatelessWidget {
     );
   }
 
-  // ── Summary Card ──────────────────────────────────────────────────────────
+  // Summary Card
   Widget _summaryCard(OfferDetailsModel offer) {
     return Container(
       width: double.infinity,
@@ -131,7 +130,7 @@ class _OfferDetailsView extends StatelessWidget {
     );
   }
 
-  // ── Info Card ─────────────────────────────────────────────────────────────
+  // Info Card
   Widget _infoCard(
       OfferDetailsModel offer, OfferDetailsController controller) {
     return Container(
@@ -214,7 +213,7 @@ class _OfferDetailsView extends StatelessWidget {
   Widget _divider() =>
       const Divider(height: 1, thickness: 1, color: Color(0xFFF0F0F0));
 
-  // ── Recipients Card ───────────────────────────────────────────────────────
+  // Recipients Card
   Widget _recipientsCard(List<OfferRecipientModel> recipients,
       OfferDetailsController controller) {
     return Container(

@@ -31,7 +31,7 @@ class AttendanceController extends ChangeNotifier {
     error = e.toString();
   }
 
-  // QR is independent — failure doesn't break the rest
+  // QR is independent - failure doesn't break the rest
   try {
     qrInfo = await _repo.fetchQRCode();
   } catch (_) {

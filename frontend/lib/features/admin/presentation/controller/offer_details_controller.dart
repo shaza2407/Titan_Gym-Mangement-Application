@@ -9,7 +9,7 @@ class OfferDetailsController extends ChangeNotifier {
   final int offerId;
   final String token;
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // State
   OfferDetailsModel? offer;
   bool isLoading = true;
   String? errorMessage;
@@ -22,7 +22,7 @@ class OfferDetailsController extends ChangeNotifier {
     load();
   }
 
-  // ── Load ──────────────────────────────────────────────────────────────────
+  // Load
   Future<void> load() async {
     isLoading    = true;
     errorMessage = null;
@@ -39,7 +39,7 @@ class OfferDetailsController extends ChangeNotifier {
     }
   }
 
-  // ── Formatters ────────────────────────────────────────────────────────────
+  // Formatters
   String formatDate(String? iso) {
     if (iso == null) return '-';
     final dt = DateTime.tryParse(iso);

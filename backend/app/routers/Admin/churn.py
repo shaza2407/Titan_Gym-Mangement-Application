@@ -80,8 +80,3 @@ async def predict_churn_risk(membership: GymClientMembership, db: AsyncSession):
         return predict(payload)
     except Exception as e:
         return f"Error  : {e}"
-        # if  > 30 or days_until_expiry < 7:
-        #     return "High"
-        # elif recent_score <= 10:
-        #     return "Mid"
-        # return "Low"
