@@ -1,5 +1,4 @@
 # tests/unit/coach/test_coach_dashboard.py
-import pytest
 from datetime import date, time, timedelta
 from unittest.mock import MagicMock
 
@@ -147,10 +146,7 @@ class TestGetUpcomingClasses:
         assert classes == []
 
     async def test_respects_limit(self, mock_db):
-        from datetime import date as dt
-        day_names = ["monday", "tuesday", "wednesday",
-                     "thursday", "friday", "saturday", "sunday"]
-        today_name = self.day_names[dt.today().weekday()]
+        today_name = self.day_names[date.today().weekday()]
 
         sessions = [
             make_session(id=i, is_recurring=True, day_of_week=today_name, start_time=time(8 + i, 0))
@@ -163,10 +159,7 @@ class TestGetUpcomingClasses:
         assert len(classes) == 3
 
     async def test_classes_sorted_by_start_time(self, mock_db):
-        from datetime import date as dt
-        day_names = ["monday", "tuesday", "wednesday",
-                     "thursday", "friday", "saturday", "sunday"]
-        today_name = self.day_names[dt.today().weekday()]
+        today_name = self.day_names[date.today().weekday()]
 
         s1 = make_session(id=1, is_recurring=True, day_of_week=today_name, start_time=time(15, 0))
         s2 = make_session(id=2, is_recurring=True, day_of_week=today_name, start_time=time(7, 0))
@@ -177,10 +170,7 @@ class TestGetUpcomingClasses:
         assert classes[0]["start_time"] <= classes[1]["start_time"]
 
     async def test_each_entry_has_required_keys(self, mock_db):
-        from datetime import date as dt
-        day_names = ["monday", "tuesday", "wednesday",
-                     "thursday", "friday", "saturday", "sunday"]
-        today_name = self.day_names[dt.today().weekday()]
+        today_name = self.day_names[date.today().weekday()]
 
         session = make_session(is_recurring=True, day_of_week=today_name)
         await self._make_db_for_upcoming(mock_db, [session])

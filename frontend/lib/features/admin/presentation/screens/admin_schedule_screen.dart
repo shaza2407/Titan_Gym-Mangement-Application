@@ -129,7 +129,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Tabs ──────────────────────────────────────────────────────────────────
+  // Tabs
   Widget _buildTabs(AdminScheduleController ctrl) {
     return Container(
       padding: const EdgeInsets.all(4),
@@ -139,7 +139,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
       ),
       child: Row(
         children: [
-          _buildTab(ctrl, 0, 'Schedule'),
+          _buildTab(ctrl, 0, 'This Week'),
           _buildTab(ctrl, 1, 'All Classes', icon: Icons.grid_view),
           _buildTab(ctrl, 2, 'Requests', badge: ctrl.requests.length),
         ],
@@ -207,7 +207,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Schedule Tab ──────────────────────────────────────────────────────────
+  // Schedule Tab
   Widget _buildScheduleTab(AdminScheduleController ctrl) {
     final weekly = ctrl.weeklySchedule;
     return Column(
@@ -332,10 +332,11 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                       color: Colors.grey,
                     ),
                     const SizedBox(width: 4),
-                    Text(
+                    Flexible(child: Text(
                       c.coachName ?? '',
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
+                    ),),
+                    
                     const SizedBox(width: 10),
                     const Icon(
                       Icons.timer_outlined,
@@ -347,6 +348,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                       '${c.duration} min',
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
+                    const SizedBox(width: 10),
                   ],
                 ),
               ],
@@ -417,7 +419,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── All Classes Tab ───────────────────────────────────────────────────────
+  // All Classes Tab
   Widget _buildAllClassesTab(AdminScheduleController ctrl) {
     final classes = ctrl.filteredClasses;
     final s = ctrl.stats;
@@ -686,7 +688,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Requests Tab ──────────────────────────────────────────────────────────
+  // Requests Tab
   Widget _buildRequestsTab(AdminScheduleController ctrl) {
     if (ctrl.requests.isEmpty) {
       return _buildEmpty(
@@ -879,7 +881,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Chip helpers ──────────────────────────────────────────────────────────
+  // Chip helpers
   Widget _buildInfoChip(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -927,7 +929,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Actions ───────────────────────────────────────────────────────────────
+  // Actions
   Future<void> _openClassForm(
     AdminScheduleController ctrl, {
     ClassSessionModel? existing,
@@ -1090,7 +1092,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // Helpers
   Widget _buildEmpty(String title, String subtitle) {
     return Container(
       width: double.infinity,

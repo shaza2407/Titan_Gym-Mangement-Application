@@ -11,17 +11,17 @@ class AdminGymController extends ChangeNotifier {
       : _repo            = GymRepository(),
         statsController  = statsController ?? GymStatsController();
 
-  // ── Gym list ──────────────────────────────────────────────────────────────
+  // Gym list
   List<GymModel> gyms = [];
   bool isLoading = false;
   String? errorMessage;
 
-  // ── Dashboard stats ───────────────────────────────────────────────────────
+  // Dashboard stats
   GymDashboardStats? dashboardStats;
   bool isLoadingStats = false;
   String? statsError;
 
-  // ── Load gym list ─────────────────────────────────────────────────────────
+  // Load gym list
   Future<void> loadGyms({required String token}) async {
     isLoading = true;
     errorMessage = null;
@@ -43,7 +43,7 @@ class AdminGymController extends ChangeNotifier {
     }
   }
 
-  // ── Load dashboard stats for one gym ─────────────────────────────────────
+  // Load dashboard stats for one gym
   Future<void> loadDashboardStats({
     required String token,
     required int gymId,

@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/create_gym_controller.dart';
@@ -50,7 +49,7 @@ class _CreateGymView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Basic Info ──────────────────────────────────────────────
+                // Basic Info
                 _sectionHeader(
                     Icons.article, 'Basic Information', 'Enter the gym details'),
                 const SizedBox(height: 12),
@@ -61,7 +60,7 @@ class _CreateGymView extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Schedule ────────────────────────────────────────────────
+                // Schedule
                 _sectionHeader(
                     Icons.access_time, 'Schedule', 'Set operating hours'),
                 const SizedBox(height: 12),
@@ -103,7 +102,7 @@ class _CreateGymView extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Settings ────────────────────────────────────────────────
+                // Settings
                 _sectionHeader(
                     Icons.settings, 'Settings', 'Gym configuration'),
                 const SizedBox(height: 12),
@@ -116,7 +115,7 @@ class _CreateGymView extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // ── Machines ────────────────────────────────────────────────
+                // Machines
                 _sectionHeader(Icons.fitness_center, 'Gym Machines',
                     'Add available equipment'),
                 const SizedBox(height: 12),
@@ -226,7 +225,7 @@ class _CreateGymView extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // ── Error ───────────────────────────────────────────────────
+                // Error
                 if (controller.errorMessage != null)
                   Container(
                     width: double.infinity,
@@ -252,7 +251,7 @@ class _CreateGymView extends StatelessWidget {
                     ),
                   ),
 
-                // ── Submit ──────────────────────────────────────────────────
+                // Submit
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -289,7 +288,7 @@ class _CreateGymView extends StatelessWidget {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // Helpers
 
   Widget _sectionHeader(IconData icon, String title, String subtitle) {
     return Container(

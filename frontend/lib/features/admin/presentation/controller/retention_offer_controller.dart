@@ -9,27 +9,27 @@ class RetentionOfferController extends ChangeNotifier {
   RetentionOfferController({required String token, required int gymId})
       : _repo = RetentionOfferRepository(token: token, gymId: gymId);
 
-  // ── Dashboard State ───────────────────────────────────────────────────────
+  // Dashboard State
   RetentionDashboard? dashboard;
   bool isLoadingDashboard = false;
   String? dashboardError;
 
-  // ── Preview State ─────────────────────────────────────────────────────────
+  // Preview State
   List<MemberPreview> previewMembers = [];
   bool isLoadingPreview = false;
   String? previewError;
 
-  // ── Send State ────────────────────────────────────────────────────────────
+  // Send State
   bool isSending = false, sendSuccess = false;
   String? sendError;
 
-  // ── Form State ────────────────────────────────────────────────────────────
+  // Form State
   String offerType = 'discount', targetType = 'highest_risk';
   int numberOfMembers = 0;
   List<int> selectedMemberIds = [];
   Set<int> manualSelected = {};
 
-  // ── Dashboard ─────────────────────────────────────────────────────────────
+  // Dashboard
   Future<void> loadDashboard() async {
     isLoadingDashboard = true;
     dashboardError = null;
@@ -44,7 +44,7 @@ class RetentionOfferController extends ChangeNotifier {
     }
   }
 
-  // ── Preview ───────────────────────────────────────────────────────────────
+  // Preview
   Future<void> loadPreview() async {
     isLoadingPreview = true;
     previewError = null;
@@ -64,7 +64,7 @@ class RetentionOfferController extends ChangeNotifier {
     }
   }
 
-  // ── Setters ───────────────────────────────────────────────────────────────
+  // Setters
   void setOfferType(String value) {
     offerType = value;
     notifyListeners();
@@ -84,7 +84,6 @@ class RetentionOfferController extends ChangeNotifier {
     }
   }
 
-  // FIX: replaces direct ctrl.notifyListeners() call from the view
   void setValidUntil(DateTime date) {
     notifyListeners();
   }
@@ -98,7 +97,7 @@ class RetentionOfferController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Formatters ────────────────────────────────────────────────────────────
+  // Formatters
   String formatTargetType(String t) {
     switch (t) {
       case 'highest_risk':     return 'Highest Risk';
@@ -119,7 +118,7 @@ class RetentionOfferController extends ChangeNotifier {
     }
   }
 
-  // ── Send ──────────────────────────────────────────────────────────────────
+  // Send
   Future<void> sendOffer({
     required String title,
     required String description,

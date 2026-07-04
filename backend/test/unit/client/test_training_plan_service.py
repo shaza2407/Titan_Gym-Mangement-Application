@@ -1,34 +1,3 @@
-"""
-Test suite for app/services/client/training_plan.py
-
-Testing technique used: Equivalence Partitioning (EP) + Boundary Value
-Analysis (BVA).
-
-The most important numeric boundary in this module is the workout
-completion threshold:
-
-    completion = completed_exercises / total_exercises * 100
-    status     = COMPLETED if completion >= 80 else PARTIAL
-
-Equivalence classes for `completion`:
-    EP1: [0, 80)    -> PARTIAL
-    EP2: [80, 100]  -> COMPLETED
-    EP3: total_exercises == 0 (undefined-ratio guard -> completion forced to 0)
-
-Boundary values exercised around the 80% threshold:
-    79%  (just below)  -> PARTIAL
-    80%  (exact)        -> COMPLETED
-    81%  (just above)  -> COMPLETED
-    0%   (lower bound)  -> PARTIAL
-    100% (upper bound)  -> COMPLETED
-    >100% (over-completion, e.g. more completed than total) -> COMPLETED
-
-A second boundary lives in `_check_auto_complete`:
-    completed_workouts >= total_expected_workouts
-    tested at: completed == total - 1 (just below), completed == total
-    (exact), completed > total (over count).
-"""
-
 import json
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock

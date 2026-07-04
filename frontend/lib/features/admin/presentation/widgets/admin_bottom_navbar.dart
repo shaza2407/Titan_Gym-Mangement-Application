@@ -56,7 +56,7 @@ class _AdminShellState extends State<AdminShell> {
 
   void _onTap(int index) {
     if (index == _currentIndex) {
-      // Same tab tapped — pop to root and refresh
+      // Same tab tapped - pop to root and refresh
       _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
     }
 

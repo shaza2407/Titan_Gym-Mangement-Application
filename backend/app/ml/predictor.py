@@ -1,11 +1,15 @@
-import joblib ##Add joblib and sklearn to requi.txt
+import joblib 
 import numpy as np
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
-model = joblib.load(BASE_DIR / "churn_model.pkl")
-le = joblib.load(BASE_DIR / "label_encoder.pkl")
-FEATURES = joblib.load(BASE_DIR / "features.pkl")
+
+try:
+    model = joblib.load(BASE_DIR / "churn_model.pkl")
+    le = joblib.load(BASE_DIR / "label_encoder.pkl")
+    FEATURES = joblib.load(BASE_DIR / "features.pkl")
+except Exception as e:
+    raise Exception(f"Error loading ML model files: {e}")
 
 
 def predict(payload: dict) -> str:
@@ -29,8 +33,8 @@ def predict(payload: dict) -> str:
         payload["days_until_expiry"],
     ]
 
-    print("FEATURES: ", features)
+    # print("FEATURES: ", features)
     features_arr = np.array(features).reshape(1, -1)
     prediction = model.predict(features_arr)[0]
-    print("THE FINAL RES: ", le.inverse_transform([prediction])[0])
+    # print("THE FINAL RES: ", le.inverse_transform([prediction])[0])
     return le.inverse_transform([prediction])[0]

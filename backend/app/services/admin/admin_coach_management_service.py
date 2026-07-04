@@ -91,10 +91,14 @@ async def invite_coach(db: AsyncSession, gym: Gym, body: InviteCoachRequest):
     if existing_user.role != UserRole.coach:
         raise HTTPException(400, "This user is not a coach.")
 
+    existing_coach = (await db.execute(
+        select(Coach).where(existing_user.userID == Coach.userID)
+    )).scalar_one_or_none()
+
     # 3. Check the user isn't already a coach in this gym
     already_member = (await db.execute(
         select(GymCoachMembership).where(
-            GymCoachMembership.coachID == existing_user.userID,
+            GymCoachMembership.coachID == existing_coach.coachID,
             GymCoachMembership.gymID == gym.gymID,
         )
     )).scalar_one_or_none()

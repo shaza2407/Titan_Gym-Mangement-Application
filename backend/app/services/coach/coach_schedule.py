@@ -74,7 +74,7 @@ def _active_gym_join(coachID: int, TargetModel):
         GymCoachMembership.coachID == coachID,
         or_(
             GymCoachMembership.status == CoachMembershipStatus.active,
-            GymCoachMembership.status.is_(None)  # Handle legacy active rows where status might be NULL
+            # GymCoachMembership.status.is_(None) 
         )
     )
 
@@ -367,6 +367,9 @@ async def create_class_request(
     )
 
     db.add(new_request)
+
+    await db.commit()
+    await db.refresh(new_request)
     
     gym_name = await get_gym_name(gymID, db)
 
@@ -385,8 +388,6 @@ async def create_class_request(
             "request_id": str(new_request.id),
         }
     )
-    await db.commit()
-    await db.refresh(new_request)
 
     return {
         "message": "Request submitted successfully",

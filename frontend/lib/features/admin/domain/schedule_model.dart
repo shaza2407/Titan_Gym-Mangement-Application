@@ -1,5 +1,3 @@
-// lib/features/admin/domain/schedule_model.dart
-
 class AdminScheduleStatsModel {
   final int totalClasses;
   final int totalEnrolled;

@@ -1,11 +1,8 @@
-// lib/features/admin/presentation/screens/class_form_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:frontend/features/admin/presentation/controller/admin_schedule_controller.dart';
 import '../../domain/schedule_model.dart';
 import '../../../shared/connectivity_helper.dart';
 
-// Simple, consistent palette used throughout this screen.
 class _Palette {
   static const primary = Color.fromARGB(255, 85, 58, 182); // deep teal
   static const primaryTint = Color(0xFFE3F4F1); // soft teal background

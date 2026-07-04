@@ -108,9 +108,11 @@ class TestInviteCoach:
         body = MagicMock()
         body.email = "coach@example.com"
         user = make_user(role="coach")
+        existing_coach = MagicMock()
         existing_membership = MagicMock()
         mock_db.execute.side_effect = [
             scalar_one_or_none_result(user),
+            scalar_one_or_none_result(existing_coach),      # <-- coach lookup
             scalar_one_or_none_result(existing_membership),
         ]
 
@@ -118,14 +120,17 @@ class TestInviteCoach:
             await invite_coach(mock_db, mock_gym, body)
         assert exc.value.status_code == 400
 
+
     async def test_creates_new_invitation(self, mock_db, mock_gym):
         body = MagicMock()
         body.email = "coach@example.com"
         user = make_user(role="coach")
+        existing_coach = MagicMock()
         mock_db.execute.side_effect = [
-            scalar_one_or_none_result(user),   # user found
-            scalar_one_or_none_result(None),   # not a member
-            scalar_one_or_none_result(None),   # no pending invite
+            scalar_one_or_none_result(user),          # user found
+            scalar_one_or_none_result(existing_coach),# <-- coach lookup
+            scalar_one_or_none_result(None),          # not a member
+            scalar_one_or_none_result(None),          # no pending invite
         ]
 
         with patch("app.services.admin.admin_coach_management_service.notify_invite", new_callable=AsyncMock):
@@ -135,13 +140,16 @@ class TestInviteCoach:
         mock_db.commit.assert_called_once()
         assert result.email == body.email
 
+
     async def test_refreshes_existing_invitation(self, mock_db, mock_gym):
         body = MagicMock()
         body.email = "coach@example.com"
         user = make_user(role="coach")
+        existing_coach = MagicMock()
         existing_inv = MagicMock()
         mock_db.execute.side_effect = [
             scalar_one_or_none_result(user),
+            scalar_one_or_none_result(existing_coach),  # <-- coach lookup
             scalar_one_or_none_result(None),
             scalar_one_or_none_result(existing_inv),
         ]
@@ -151,7 +159,6 @@ class TestInviteCoach:
 
         mock_db.add.assert_not_called()
         assert result.message == "Invitation sent successfully."
-
 
 # suspend_a_coach
 class TestSuspendACoach:

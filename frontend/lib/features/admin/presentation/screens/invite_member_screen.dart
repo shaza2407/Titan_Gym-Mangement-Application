@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/gym_model.dart';
@@ -67,17 +66,17 @@ class _InviteMemberView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header ───────────────────────────────────────────
+              // Header
               _buildHeader(controller),
               const SizedBox(height: 24),
 
-              // ── Invite As ────────────────────────────────────────
+              // Invite As
               _buildLabel('Invite as *'),
               const SizedBox(height: 8),
               _buildInviteAsDropdown(controller),
               const SizedBox(height: 16),
 
-              // ── Email ────────────────────────────────────────────
+              // Email
               _buildLabel('Email Address *'),
               const SizedBox(height: 8),
               TextField(
@@ -95,7 +94,7 @@ class _InviteMemberView extends StatelessWidget {
                 ),
               ),
 
-              // ── Subscription (client only) ────────────────────────
+              // Subscription (client only)
               if (!controller.isCoach) ...[
                 const SizedBox(height: 24),
                 _buildSubscriptionSection(context, controller),
@@ -103,7 +102,7 @@ class _InviteMemberView extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // ── Action Buttons ────────────────────────────────────
+              // Action Buttons
               _buildActions(context, controller),
             ],
           ),
@@ -112,7 +111,7 @@ class _InviteMemberView extends StatelessWidget {
     );
   }
 
-  // ── Header ────────────────────────────────────────────────────────────────
+  // Header
   Widget _buildHeader(InviteMemberController controller) {
     return Row(
       children: [
@@ -145,7 +144,7 @@ class _InviteMemberView extends StatelessWidget {
     );
   }
 
-  // ── Invite As Dropdown ────────────────────────────────────────────────────
+  // Invite As Dropdown
   Widget _buildInviteAsDropdown(InviteMemberController controller) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -181,7 +180,7 @@ class _InviteMemberView extends StatelessWidget {
     );
   }
 
-  // ── Subscription Section ──────────────────────────────────────────────────
+  // Subscription Section
   Widget _buildSubscriptionSection(
       BuildContext context, InviteMemberController controller) {
     return Column(
@@ -266,7 +265,7 @@ class _InviteMemberView extends StatelessWidget {
     );
   }
 
-  // ── Subscription Type Toggle ──────────────────────────────────────────────
+  // Subscription Type Toggle
   Widget _buildSubscriptionToggle(InviteMemberController controller) {
     return Row(
       children: ['monthly', 'yearly'].map((type) {
@@ -302,7 +301,7 @@ class _InviteMemberView extends StatelessWidget {
     );
   }
 
-  // ── Action Buttons ────────────────────────────────────────────────────────
+  // Action Buttons
   Widget _buildActions(
       BuildContext context, InviteMemberController controller) {
     return Row(
@@ -363,7 +362,7 @@ class _InviteMemberView extends StatelessWidget {
     );
   }
 
-  // ── Shared ────────────────────────────────────────────────────────────────
+  // Shared
   Widget _buildLabel(String text) {
     return Text(text,
         style:

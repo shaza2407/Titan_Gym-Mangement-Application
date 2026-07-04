@@ -14,7 +14,7 @@ class GymStatsRepository {
     'Authorization': 'Bearer $token',
   };
 
-  // ─── Total Members ───────────────────────────────────────────────────────────
+  // Total Members
 
   Future<int> getTotalMembers({required String token}) async {
     final isOnline = await ConnectivityHelper.isOnline();
@@ -40,7 +40,7 @@ class GymStatsRepository {
     return int.tryParse(cached ?? '') ?? 0;
   }
 
-  // ─── Per-Gym Stats (batched into one cache entry per gym) ────────────────────
+  // Per-Gym Stats (batched into one cache entry per gym)
 
   /// Loads member/coach/class counts for a gym, using a single cache entry.
   /// Returns a map with keys: 'members', 'coaches', 'classes'
@@ -84,8 +84,6 @@ class GymStatsRepository {
     return stats;
   }
 
-  // Keep the original individual methods but delegate to getGymStats
-  // so callers that use them directly still work without refactoring.
 
   Future<int> getGymMemberCount({
     required String token,
@@ -111,7 +109,7 @@ class GymStatsRepository {
     return stats['classes'] ?? 0;
   }
 
-  // ─── Private Helpers ─────────────────────────────────────────────────────────
+  // Private Helpers
 
   Future<int> _fetchCount({
     required String token,
