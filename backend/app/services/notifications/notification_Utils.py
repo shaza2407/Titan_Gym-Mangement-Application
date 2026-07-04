@@ -39,7 +39,6 @@ async def send_push_notification(db: AsyncSession, user_id: int, title: str, bod
     fcm = result.scalar_one_or_none()
     if not fcm:
         return
-
     message = messaging.Message(
         notification=messaging.Notification(title=title, body=body),
         data={k: str(v) for k, v in data.items()},

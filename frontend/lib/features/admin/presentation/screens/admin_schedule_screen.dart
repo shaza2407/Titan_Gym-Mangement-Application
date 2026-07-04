@@ -139,7 +139,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
       ),
       child: Row(
         children: [
-          _buildTab(ctrl, 0, 'Schedule'),
+          _buildTab(ctrl, 0, 'This Week'),
           _buildTab(ctrl, 1, 'All Classes', icon: Icons.grid_view),
           _buildTab(ctrl, 2, 'Requests', badge: ctrl.requests.length),
         ],
@@ -332,10 +332,11 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                       color: Colors.grey,
                     ),
                     const SizedBox(width: 4),
-                    Text(
+                    Flexible(child: Text(
                       c.coachName ?? '',
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
+                    ),),
+                    
                     const SizedBox(width: 10),
                     const Icon(
                       Icons.timer_outlined,
@@ -347,6 +348,7 @@ class _AdminScheduleScreenState extends State<AdminScheduleScreen> {
                       '${c.duration} min',
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
+                    const SizedBox(width: 10),
                   ],
                 ),
               ],
