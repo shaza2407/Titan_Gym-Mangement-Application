@@ -113,7 +113,11 @@ async def test_mark_workout_completed_existing_tracking_threshold_boundaries(
         db.commit.assert_awaited_once()
         mock_check_completion.assert_awaited_once_with(1, 1, db)
         mock_update_weekly.assert_awaited_once_with(1, 1, db)
-        mock_achievement.assert_awaited_once_with(1, db)
+        
+        if expected_status == WorkoutStatus.COMPLETED:
+            mock_achievement.assert_awaited_once_with(1, db)
+        else:
+            mock_achievement.assert_not_called()
 
 
 @pytest.mark.asyncio

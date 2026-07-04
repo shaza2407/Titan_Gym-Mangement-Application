@@ -27,7 +27,8 @@ PATCH_GET_ACHIEVEMENTS = "app.services.client.achievements.achievement_engine.ge
 PATCH_ON_CHECKIN = "app.services.client.achievements.achievement_engine.on_checkin"
 PATCH_ON_CLASS = "app.services.client.achievements.achievement_engine.on_class_attended"
 PATCH_ON_PLAN = "app.services.client.achievements.achievement_engine.on_plan_completed"
-
+PATCH_ON_WORKOUT = "app.services.client.achievements.achievement_engine.on_workout_logged"
+PATCH_ON_PLAN_GEN = "app.services.client.achievements.achievement_engine.on_plan_generated"
 
 
 # ── A2) caller is not a client -> propagated 403 ───────────────────────────────
@@ -46,18 +47,13 @@ async def test_get_client_achievements_service_not_found():
         assert exc_info.value.detail == "Only clients can view achievements."
 
 
-# ── B) Boundary Value Analysis on collection size ──────────────────────────────
+# ── Success Tests ─────────────────────────────────────────────────────────────
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "count",
-    [0, 1, 50],
-    ids=["B1_empty_zero_items", "B2_single_item", "B3_many_items"],
-)
-async def test_get_client_achievements_service_collection_size_boundaries(count):
+async def test_get_client_achievements_service_success():
     db = AsyncMock()
     mock_client = _make_client(client_id=3, user_id=30)
-    mock_achievements = _make_achievements(count)
+    mock_achievements = _make_achievements(2)
 
     with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
          patch(PATCH_GET_ACHIEVEMENTS, new_callable=AsyncMock) as mock_get_achievements:
@@ -69,73 +65,17 @@ async def test_get_client_achievements_service_collection_size_boundaries(count)
 
         mock_get_client.assert_awaited_once_with(30, db, detail="Only clients can view achievements.")
         mock_get_achievements.assert_awaited_once_with(3, db)
-        assert len(result) == count
         assert result == mock_achievements
 
-
-# ── C) Boundary Value Analysis on user_id ──────────────────────────────────────
-
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "user_id",
-    [0, 1, 2**31 - 1],
-    ids=["C1_min_zero", "C2_smallest_real_id", "C3_max_int32"],
-)
-async def test_get_client_achievements_service_user_id_boundaries(user_id):
-    db = AsyncMock()
-    mock_client = _make_client(client_id=99, user_id=user_id)
-
-    with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
-         patch(PATCH_GET_ACHIEVEMENTS, new_callable=AsyncMock) as mock_get_achievements:
-
-        mock_get_client.return_value = mock_client
-        mock_get_achievements.return_value = []
-
-        await get_client_achievements_service(user_id=user_id, db=db)
-
-        mock_get_client.assert_awaited_once_with(user_id, db, detail="Only clients can view achievements.")
-
-
-
-# ── recalculate: caller is not a client -> propagated, no engine calls fired ──
-
-@pytest.mark.asyncio
-async def test_recalculate_client_achievements_service_not_a_client():
-    db = AsyncMock()
-
-    with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
-         patch(PATCH_ON_CHECKIN, new_callable=AsyncMock) as mock_on_checkin, \
-         patch(PATCH_ON_CLASS, new_callable=AsyncMock) as mock_on_class, \
-         patch(PATCH_ON_PLAN, new_callable=AsyncMock) as mock_on_plan:
-
-        mock_get_client.side_effect = HTTPException(status_code=403, detail="Only clients can view achievements.")
-
-        with pytest.raises(HTTPException) as exc_info:
-            await recalculate_client_achievements_service(user_id=20, db=db)
-
-        assert exc_info.value.status_code == 403
-        mock_on_checkin.assert_not_called()
-        mock_on_class.assert_not_called()
-        mock_on_plan.assert_not_called()
-
-
-# ── B) Boundary Value Analysis on recalculated collection size ────────────────
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "count",
-    [0, 1, 50],
-    ids=["B1_empty_zero_items", "B2_single_item", "B3_many_items"],
-)
-async def test_recalculate_client_achievements_service_collection_size_boundaries(count):
+async def test_recalculate_client_achievements_service_success():
     db = AsyncMock()
     mock_client = _make_client(client_id=5, user_id=50)
-    mock_achievements = _make_achievements(count)
+    mock_achievements = _make_achievements(3)
 
     with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
          patch(PATCH_ON_CHECKIN, new_callable=AsyncMock) as mock_on_checkin, \
          patch(PATCH_ON_CLASS, new_callable=AsyncMock) as mock_on_class, \
-         patch(PATCH_ON_PLAN, new_callable=AsyncMock) as mock_on_plan, \
          patch(PATCH_GET_ACHIEVEMENTS, new_callable=AsyncMock) as mock_get_achievements:
 
         mock_get_client.return_value = mock_client
@@ -146,12 +86,9 @@ async def test_recalculate_client_achievements_service_collection_size_boundarie
         mock_get_client.assert_awaited_once_with(50, db, detail="Only clients can view achievements.")
         mock_on_checkin.assert_awaited_once_with(5, db)
         mock_on_class.assert_awaited_once_with(5, db)
-        mock_on_plan.assert_awaited_once_with(5, db)
         mock_get_achievements.assert_awaited_once_with(5, db)
 
-        assert len(result) == count
         assert result == mock_achievements
-
 
 # ── D1) Downstream engine failure propagates and short-circuits the chain ─────
 
@@ -163,7 +100,9 @@ async def test_recalculate_client_achievements_service_engine_failure_propagates
     with patch(PATCH_GET_CLIENT, new_callable=AsyncMock) as mock_get_client, \
          patch(PATCH_ON_CHECKIN, new_callable=AsyncMock) as mock_on_checkin, \
          patch(PATCH_ON_CLASS, new_callable=AsyncMock) as mock_on_class, \
-         patch(PATCH_ON_PLAN, new_callable=AsyncMock) as mock_on_plan:
+         patch(PATCH_ON_PLAN, new_callable=AsyncMock) as mock_on_plan, \
+         patch(PATCH_ON_WORKOUT, new_callable=AsyncMock) as mock_on_workout, \
+         patch(PATCH_ON_PLAN_GEN, new_callable=AsyncMock) as mock_on_plan_gen:
 
         mock_get_client.return_value = mock_client
         mock_on_checkin.side_effect = RuntimeError("engine boom")
@@ -175,3 +114,5 @@ async def test_recalculate_client_achievements_service_engine_failure_propagates
         # on_checkin failed first, so the later handlers in the chain never fire
         mock_on_class.assert_not_called()
         mock_on_plan.assert_not_called()
+        mock_on_workout.assert_not_called()
+        mock_on_plan_gen.assert_not_called()

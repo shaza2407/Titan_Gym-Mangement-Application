@@ -14,7 +14,7 @@ from app.services.client.client_schedule import (
     get_client_schedule_stats, get_my_classes, browse_classes,
     get_weekly_schedule, enroll, unenroll, delete_class_reminder_notifications,
 )
-from app.services.coach.achievement_engine import achievement_engine
+from app.services.client.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/client/schedule", tags=["Client Schedule"])
 

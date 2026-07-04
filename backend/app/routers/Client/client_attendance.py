@@ -13,7 +13,7 @@ from app.services.client.client_attendance import (
     already_checked_in_today, get_checkin_block_reason,
     perform_checkin, get_recent_checkins,
 )
-from app.services.coach.achievement_engine import achievement_engine
+from app.services.client.achievement_engine import achievement_engine
 
 router = APIRouter(prefix="/client", tags=["Client Attendance"])
 
