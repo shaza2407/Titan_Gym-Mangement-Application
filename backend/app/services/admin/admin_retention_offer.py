@@ -121,8 +121,6 @@ async def preview_members_service(db: AsyncSession, gym_id: int, request: Previe
     return previews
 
 async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: CreateOfferRequest):
-    print("DEBUG: ", request)
-    print("number of members: ", len(request.selected_member_ids))
     if not request.selected_member_ids:
         raise HTTPException(status_code=400, detail="No members selected")
 
@@ -139,7 +137,6 @@ async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: 
     db.add(offer) 
     await db.flush()
 
-    print("DEBUG: ", offer)
 
     for membership_id in request.selected_member_ids:
         result = await db.execute(select(GymClientMembership).where(
@@ -167,7 +164,6 @@ async def create_and_send_offer_service(db: AsyncSession, gym_id: int, request: 
         await save_notification(db, user.userID, title, body, "gym_offer", data)
         await send_push_notification(db, user.userID, title, body, data)
 
-    # print("Debug from send offer: ", request.selected_member_ids)
     await db.commit()
     await db.refresh(offer)
     return {
