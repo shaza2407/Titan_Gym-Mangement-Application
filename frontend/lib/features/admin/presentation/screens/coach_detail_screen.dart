@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import '../../domain/coach_model.dart';
 
@@ -78,7 +77,7 @@ class CoachDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ── Profile Card ────────────────────────────────────────────
+          // Profile Card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -115,7 +114,7 @@ class CoachDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // ── Employment Card ──────────────────────────────────────────
+          // Employment Card
           if (coach.status != 'pending')
             Container(
               padding: const EdgeInsets.all(20),

@@ -6,7 +6,7 @@ import '../../../shared/connectivity_helper.dart';
 class CreateGymController extends ChangeNotifier {
   final GymRepository _repo = GymRepository();
 
-  // ── Form controllers ──────────────────────────────────────────────────────
+  // Form controllers
   final gymNameController      = TextEditingController();
   final locationController     = TextEditingController();
   final openingHoursController = TextEditingController();
@@ -15,18 +15,18 @@ class CreateGymController extends ChangeNotifier {
   String selectedGymType = 'mixed';
   final List<String> gymTypeOptions = ['males', 'females', 'mixed'];
 
-  // ── Machines ──────────────────────────────────────────────────────────────
+  // Machines
   List<MachineInput> machines = [];
   final List<String> machineTypeOptions = [
     'Cardio', 'Strength', 'Flexibility', 'Balance', 'Other'
   ];
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // State
   bool isCreating = false;
   String? errorMessage;
   GymModel? createdGym;
 
-  // ── Validation ────────────────────────────────────────────────────────────
+  // Validation
   String? validate() {
     if (gymNameController.text.trim().isEmpty)      return 'Gym name is required.';
     if (locationController.text.trim().isEmpty)     return 'Location is required.';
@@ -41,7 +41,7 @@ class CreateGymController extends ChangeNotifier {
     return null;
   }
 
-  // ── Machines helpers ──────────────────────────────────────────────────────
+  // Machines helpers
   void addMachine() { machines.add(MachineInput()); notifyListeners(); }
 
   void removeMachine(int index) { machines.removeAt(index); notifyListeners(); }
@@ -76,7 +76,7 @@ class CreateGymController extends ChangeNotifier {
         .toList();
   }
 
-  // ── Create gym ────────────────────────────────────────────────────────────
+  // Create gym
   Future<bool> createGym({required String token}) async {
     final isOnline = await ConnectivityHelper.isOnline();
 

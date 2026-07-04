@@ -3,9 +3,13 @@ import numpy as np
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
-model = joblib.load(BASE_DIR / "churn_model.pkl")
-le = joblib.load(BASE_DIR / "label_encoder.pkl")
-FEATURES = joblib.load(BASE_DIR / "features.pkl")
+
+try:
+    model = joblib.load(BASE_DIR / "churn_model.pkl")
+    le = joblib.load(BASE_DIR / "label_encoder.pkl")
+    FEATURES = joblib.load(BASE_DIR / "features.pkl")
+except Exception as e:
+    raise Exception(f"Error loading ML model files: {e}")
 
 
 def predict(payload: dict) -> str:

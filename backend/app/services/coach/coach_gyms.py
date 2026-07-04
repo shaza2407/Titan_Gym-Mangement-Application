@@ -151,7 +151,7 @@ async def get_coach_announcements(user_id: int, db: AsyncSession, gym_id: int | 
         )
     )
 
-    # 2. Apply the gym_id filter if the app asks for a specific gym!
+    # 2. Apply the gym_id filter if the app asks for a specific gym
     if gym_id:
         gyms_query = gyms_query.where(Gym.gymID == gym_id)
 

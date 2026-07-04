@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -60,7 +59,7 @@ class RetentionOfferScreen extends StatelessWidget {
     );
   }
 
-  // ── Body ──────────────────────────────────────────────────────────────────
+  // Body
   Widget _buildBody(
       BuildContext context, RetentionOfferController controller) {
     final dashboard = controller.dashboard!;
@@ -68,7 +67,7 @@ class RetentionOfferScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // ── Stat Cards ──────────────────────────────────────────────────────
+        // Stat Cards
         Row(
           children: [
             Expanded(
@@ -86,7 +85,7 @@ class RetentionOfferScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // ── AI Insight ──────────────────────────────────────────────────────
+        // AI Insight
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -121,7 +120,7 @@ class RetentionOfferScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // ── Create Offer Button ─────────────────────────────────────────────
+        // Create Offer Button
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -143,7 +142,7 @@ class RetentionOfferScreen extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // ── Offer History ───────────────────────────────────────────────────
+        // Offer History
         const Text('Offer History',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const Text('Previously sent retention offers',
@@ -165,7 +164,7 @@ class RetentionOfferScreen extends StatelessWidget {
     );
   }
 
-  // ── Stat Card ─────────────────────────────────────────────────────────────
+  // Stat Card
   Widget _statCard(String label, String value, Color color) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -191,7 +190,7 @@ class RetentionOfferScreen extends StatelessWidget {
     return Icons.card_giftcard;
   }
 
-  // ── History Card ──────────────────────────────────────────────────────────
+  // History Card
   Widget _buildHistoryCard(BuildContext context,
       RetentionOfferController controller, OfferHistoryItem offer) {
     return GestureDetector(
@@ -252,7 +251,7 @@ class RetentionOfferScreen extends StatelessWidget {
     );
   }
 
-  // ── Show Modal ────────────────────────────────────────────────────────────
+  // Show Modal
   void _showCreateOfferModal(
       BuildContext context, RetentionOfferController controller) {
     showModalBottomSheet(
@@ -274,7 +273,7 @@ class RetentionOfferScreen extends StatelessWidget {
   }
 }
 
-// ── Create Offer Modal ────────────────────────────────────────────────────────
+// Create Offer Modal
 
 class _CreateOfferModal extends StatefulWidget {
   final int maxMembers;
@@ -290,7 +289,7 @@ class _CreateOfferModal extends StatefulWidget {
 }
 
 class _CreateOfferModalState extends State<_CreateOfferModal> {
-  // ── Local form state ──────────────────────────────────────────────────────
+  // Local form state
   final _titleCtrl       = TextEditingController();
   final _descCtrl        = TextEditingController();
   final _benefitCtrl     = TextEditingController();
@@ -318,7 +317,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
     super.dispose();
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // Build
   @override
   Widget build(BuildContext context) {
     final ctrl = context.watch<RetentionOfferController>();
@@ -332,7 +331,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Header ────────────────────────────────────────────────────
+            // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -356,12 +355,12 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
             ),
             const SizedBox(height: 16),
 
-            // ── Offer Title ───────────────────────────────────────────────
+            // Offer Title
             _label('Offer Title *'),
             _textField(_titleCtrl, 'e.g., Welcome Back Bonus'),
             const SizedBox(height: 12),
 
-            // ── Offer Type ────────────────────────────────────────────────
+            // Offer Type
             _label('Offer Type *'),
             _dropdown(
               value: ctrl.offerType,
@@ -375,17 +374,17 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
             ),
             const SizedBox(height: 12),
 
-            // ── Description ───────────────────────────────────────────────
+            // Description
             _label('Description *'),
             _textField(_descCtrl, 'Describe the offer', maxLines: 3),
             const SizedBox(height: 12),
 
-            // ── Benefit ───────────────────────────────────────────────────
+            // Benefit
             _label('Discount/Benefit *'),
             _textField(_benefitCtrl, 'e.g., 20% or 2 free sessions'),
             const SizedBox(height: 12),
 
-            // ── Valid Until ───────────────────────────────────────────────
+            // Valid Until
             _label('Valid Until'),
             GestureDetector(
               onTap: () async {
@@ -398,7 +397,6 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
                       DateTime.now().add(const Duration(days: 365)),
                 );
                 if (picked != null) {
-                  // FIX: use controller method instead of notifyListeners()
                   ctrl.setValidUntil(picked);
                   setState(() {
                     _pickedDate = picked;
@@ -417,7 +415,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
             ),
             const SizedBox(height: 12),
 
-            // ── Target Members ────────────────────────────────────────────
+            // Target Members
             _label('Target Members *'),
             _dropdown(
               value: ctrl.targetType,
@@ -434,7 +432,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
             ),
             const SizedBox(height: 12),
 
-            // ── Number of Members ─────────────────────────────────────────
+            // Number of Members
             if (ctrl.targetType != 'manual_selection' &&
                 ctrl.targetType != 'all_members') ...[
               _label('Number of Members'),
@@ -442,7 +440,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
               const SizedBox(height: 12),
             ],
 
-            // ── Manual Selection ──────────────────────────────────────────
+            // Manual Selection
             if (ctrl.targetType == 'manual_selection') ...[
               _label(
                   'Select Members (${ctrl.manualSelected.length} selected)'),
@@ -451,11 +449,11 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
               const SizedBox(height: 12),
             ],
 
-            // ── Preview ───────────────────────────────────────────────────
+            // Preview
             _buildPreviewSection(ctrl),
             const SizedBox(height: 16),
 
-            // ── Error ─────────────────────────────────────────────────────
+            // Error
             if (_formError != null)
               Container(
                 width: double.infinity,
@@ -481,7 +479,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
               ),
             const SizedBox(height: 16),
 
-            // ── Send Button ───────────────────────────────────────────────
+            // Send Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -517,7 +515,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
     );
   }
 
-  // ── Send ──────────────────────────────────────────────────────────────────
+  // Send
   Future<void> _send(RetentionOfferController ctrl) async {
     if (_titleCtrl.text.trim().isEmpty ||
         _benefitCtrl.text.trim().isEmpty) {
@@ -550,7 +548,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
     }
   }
 
-  // ── Member Count Stepper ──────────────────────────────────────────────────
+  // Member Count Stepper
   Widget _buildMemberCountStepper(RetentionOfferController ctrl) {
     return Container(
       decoration: BoxDecoration(
@@ -616,7 +614,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
     );
   }
 
-  // ── Manual Member Search ──────────────────────────────────────────────────
+  // Manual Member Search
   Widget _buildManualSearch(RetentionOfferController ctrl) {
     final searchCtrl = TextEditingController();
     return StatefulBuilder(builder: (context, setInner) {
@@ -681,7 +679,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
     });
   }
 
-  // ── Preview Section ───────────────────────────────────────────────────────
+  // Preview Section
   Widget _buildPreviewSection(RetentionOfferController ctrl) {
     if (ctrl.targetType == 'manual_selection') {
       final selected = ctrl.previewMembers
@@ -730,7 +728,7 @@ class _CreateOfferModalState extends State<_CreateOfferModal> {
     );
   }
 
-  // ── Shared UI helpers ─────────────────────────────────────────────────────
+  // Shared UI helpers
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: Text(text,

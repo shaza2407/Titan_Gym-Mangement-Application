@@ -272,24 +272,7 @@ class AchievementEngine:
         db: AsyncSession,
     ) -> None:
         """Completed training plans: 1 / 3 / 5 / 10 / 20"""
-
-        result = await db.execute(
-            select(func.count(TrainingPlan.planID))
-            .where(
-                TrainingPlan.clientID == client_id,
-                TrainingPlan.status == PlanStatus.COMPLETED,
-                TrainingPlan.is_active == True,
-            )
-        )
-
-        count = result.scalar() or 0
-
-        await self._apply_progress(
-            "training_plan_completion",
-            client_id,
-            count,
-            db,
-        )
+        await self._increment_progress("training_plan_completion", client_id, 1, db)
 
     async def _update_workout_warrior(
         self,
@@ -297,15 +280,7 @@ class AchievementEngine:
         db: AsyncSession,
     ) -> None:
         """Total workout days completed: 5 / 15 / 30 / 60 / 100"""
-        result = await db.execute(
-            select(func.count(TrainingPlanTracking.trackingID))
-            .where(
-                TrainingPlanTracking.clientID == client_id,
-                TrainingPlanTracking.status == WorkoutStatus.COMPLETED,
-            )
-        )
-        count = result.scalar() or 0
-        await self._apply_progress("workout_warrior", client_id, count, db)
+        await self._increment_progress("workout_warrior", client_id, 1, db)
 
     async def _update_plan_pioneer(
         self,
@@ -313,12 +288,7 @@ class AchievementEngine:
         db: AsyncSession,
     ) -> None:
         """Total AI plans generated: 1 / 3 / 5 / 10 / 25"""
-        result = await db.execute(
-            select(func.count(TrainingPlan.planID))
-            .where(TrainingPlan.clientID == client_id)
-        )
-        count = result.scalar() or 0
-        await self._apply_progress("plan_pioneer", client_id, count, db)
+        await self._increment_progress("plan_pioneer", client_id, 1, db)
 
     # ── Badge Collector ───────────────────────────────────────────────────────
 
@@ -450,7 +420,7 @@ class AchievementEngine:
             if ca.is_unlocked:
                 continue
 
-            ca.current_value = min(raw_value, lvl.target)
+            ca.current_value = max(ca.current_value, min(raw_value, lvl.target))
 
             if raw_value > ca.best_value:
                 ca.best_value = raw_value
@@ -487,6 +457,28 @@ class AchievementEngine:
 
             else:
                 break
+
+    async def _increment_progress(
+        self,
+        chain_key: str,
+        client_id: int,
+        amount: int,
+        db: AsyncSession,
+    ) -> None:
+        """
+        Increment the user's progress for a specific achievement chain by `amount`.
+        """
+        result = await db.execute(
+            select(func.max(ClientAchievement.current_value))
+            .join(Achievement, ClientAchievement.achievementID == Achievement.achievementID)
+            .where(
+                ClientAchievement.clientID == client_id,
+                Achievement.chain_key == chain_key,
+            )
+        )
+        current_max = result.scalar() or 0
+        new_value = current_max + amount
+        await self._apply_progress(chain_key, client_id, new_value, db)
 
     # ── Streak calculation ────────────────────────────────────────────────────
 

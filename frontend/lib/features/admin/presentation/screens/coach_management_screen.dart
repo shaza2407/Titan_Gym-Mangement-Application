@@ -1,4 +1,3 @@
-//done
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controller/coach_management_controller.dart';
@@ -272,7 +271,7 @@ class _CoachManagementScreenState extends State<CoachManagementScreen> {
   }
 }
 
-// ── Filter Row ────────────────────────────────────────────────────────────────
+// Filter Row
 
 class _FilterRow extends StatelessWidget {
   final String selected;
@@ -327,7 +326,7 @@ class _FilterRow extends StatelessWidget {
   }
 }
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
+// Stat Card
 
 class _StatCard extends StatelessWidget {
   final String label, value;
@@ -367,7 +366,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ── Coach Card ────────────────────────────────────────────────────────────────
+// Coach Card
 
 class _CoachCard extends StatelessWidget {
   final CoachListItem coach;
@@ -558,7 +557,7 @@ class _CoachCard extends StatelessWidget {
   }
 }
 
-// ── Info Cell ─────────────────────────────────────────────────────────────────
+// Info Cell
 
 class _InfoCell extends StatelessWidget {
   final String label, value;

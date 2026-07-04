@@ -301,7 +301,7 @@ class _ClientManagementScreenState extends State<ClientManagementScreen> {
   }
 }
 
-// ── Filter Row ────────────────────────────────────────────────────────────────
+// Filter Row
 
 class _FilterRow extends StatelessWidget {
   final String selected;
@@ -354,7 +354,7 @@ class _FilterRow extends StatelessWidget {
   }
 }
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
+// Stat Card
 
 class _StatCard extends StatelessWidget {
   final String label, value;
@@ -394,7 +394,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ── Client Card ───────────────────────────────────────────────────────────────
+// Client Card
 
 class _ClientCard extends StatelessWidget {
   final ClientListItem member;
@@ -666,7 +666,7 @@ class _ClientCard extends StatelessWidget {
   }
 }
 
-// ── Info Cell ─────────────────────────────────────────────────────────────────
+// Info Cell
 
 class _InfoCell extends StatelessWidget {
   final String label, value;
