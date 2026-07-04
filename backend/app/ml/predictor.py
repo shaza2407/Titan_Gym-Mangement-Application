@@ -1,4 +1,4 @@
-import joblib ##Add joblib and sklearn to requi.txt
+import joblib 
 import numpy as np
 from pathlib import Path
 
@@ -33,8 +33,8 @@ def predict(payload: dict) -> str:
         payload["days_until_expiry"],
     ]
 
-    print("FEATURES: ", features)
+    # print("FEATURES: ", features)
     features_arr = np.array(features).reshape(1, -1)
     prediction = model.predict(features_arr)[0]
-    print("THE FINAL RES: ", le.inverse_transform([prediction])[0])
+    # print("THE FINAL RES: ", le.inverse_transform([prediction])[0])
     return le.inverse_transform([prediction])[0]

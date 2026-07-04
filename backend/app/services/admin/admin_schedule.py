@@ -7,6 +7,7 @@ from app.models.class_session import ClassSession
 from app.models.class_request import ClassRequest, RequestStatus
 from app.models.class_enrollment import ClassEnrollment
 from app.models.coach import Coach
+from app.models.client import Client
 from app.models import User
 from app.schemas.shared.schedule_schema import CreateClassRequest, EditClassRequest
 from app.models import GymCoachMembership
@@ -583,8 +584,6 @@ async def get_class_members(
     session = result.scalar_one_or_none()
     if not session:
         return []
-
-    from app.models.client import Client
 
     query = select(ClassEnrollment, User, Client).join(
         Client, Client.clientID == ClassEnrollment.clientID

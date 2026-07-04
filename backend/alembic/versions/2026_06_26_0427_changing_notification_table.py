@@ -18,7 +18,6 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-# ✅ fixed — drop the old UUID column and recreate as serial Integer
 def upgrade():
     # 1 — drop the old UUID primary key
     op.drop_constraint('notifications_pkey', 'notifications', type_='primary')

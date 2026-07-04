@@ -56,8 +56,8 @@ class SignupController extends ChangeNotifier {
 
     if (passwordController.text.isEmpty) {
       fieldErrors['password'] = 'Password is required';
-    } else if (passwordController.text.length < 6) {
-      fieldErrors['password'] = 'Password must be at least 6 characters';
+    } else if (passwordController.text.length < 8) {
+      fieldErrors['password'] = 'Password must be at least 8 characters';
     }
 
     if (confirmController.text.isEmpty) {
@@ -65,7 +65,6 @@ class SignupController extends ChangeNotifier {
     } else if (passwordController.text != confirmController.text) {
       fieldErrors['confirm'] = 'Passwords do not match';
     }
-
     notifyListeners();
     return fieldErrors.isEmpty;
   }

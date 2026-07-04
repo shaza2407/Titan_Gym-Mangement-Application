@@ -16,7 +16,7 @@ class WeeklyAgendaSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'This Week\'s Agenda',
+          'My Week\'s Agenda',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         const SizedBox(height: 16),

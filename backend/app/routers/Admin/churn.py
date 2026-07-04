@@ -28,7 +28,6 @@ async def get_weekly_attendance(client_id: int, gym_id: int, db: AsyncSession) -
         )
     )
     checkins = [row[0] for row in result.all()]
-
     weeks = []
     for i in range(11, -1, -1):
         week_start = now - timedelta(days=i * 7 + 7)
@@ -80,3 +79,4 @@ async def predict_churn_risk(membership: GymClientMembership, db: AsyncSession):
         return predict(payload)
     except Exception as e:
         return f"Error  : {e}"
+
