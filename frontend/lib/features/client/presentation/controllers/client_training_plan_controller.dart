@@ -75,10 +75,12 @@ class ClientTrainingPlanController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadActivePlan(String token) async {
-    isLoading = true;
-    errorMessage = null;
-    notifyListeners();
+  Future<void> loadActivePlan(String token, {bool showLoading = true}) async {
+    if (showLoading) {
+      isLoading = true;
+      errorMessage = null;
+      notifyListeners();
+    }
 
     try {
       summaries = await _repo.listTrainingPlans(token);
@@ -100,7 +102,9 @@ class ClientTrainingPlanController extends ChangeNotifier {
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
-      isLoading = false;
+      if (showLoading) {
+        isLoading = false;
+      }
       notifyListeners();
     }
   }

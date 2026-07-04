@@ -17,6 +17,7 @@ import 'client_achievement_screen.dart';
 import '../controllers/client_achievement_controller.dart';
 import 'subscription_blocked_screen.dart';
 import '../../../shared/notifications/notification_badge_controller.dart';
+import '../controllers/client_training_plan_controller.dart';
 
 class ClientDashboardScreen extends StatefulWidget {
   final String token;
@@ -41,6 +42,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
   late ClientDashboardController _ctrl;
   late ClientAchievementController _achievementCtrl;
   late NotificationBadgeController _badgeCtrl;
+  late ClientTrainingPlanController _trainingPlanCtrl;
 
   static const int _kGym = 4;
   static const int _kTraining = 5;
@@ -61,6 +63,8 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     if (widget.testBadgeCtrl == null) {
       _badgeCtrl.load(widget.token, getUserIdFromToken(widget.token));
     }
+    
+    _trainingPlanCtrl = ClientTrainingPlanController();
   }
 
   @override
@@ -68,6 +72,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
     _ctrl.dispose();
     _achievementCtrl.dispose();
     _badgeCtrl.dispose();
+    _trainingPlanCtrl.dispose();
     super.dispose();
   }
 
@@ -78,6 +83,7 @@ class _ClientDashboardScreenState extends State<ClientDashboardScreen> {
         ChangeNotifierProvider.value(value: _ctrl),
         ChangeNotifierProvider.value(value: _achievementCtrl),
         ChangeNotifierProvider.value(value: _badgeCtrl),
+        ChangeNotifierProvider.value(value: _trainingPlanCtrl),
       ],
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),

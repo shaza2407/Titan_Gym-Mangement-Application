@@ -19,9 +19,16 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
   @override
   void initState() {
     super.initState();
-    _ctrl = ClientTrainingPlanController();
+    _ctrl = Provider.of<ClientTrainingPlanController>(context, listen: false);
     _ctrl.addListener(_onError);
-    _ctrl.loadActivePlan(widget.token);
+    
+    if (!_ctrl.isGenerating) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _ctrl.loadActivePlan(widget.token, showLoading: _ctrl.activePlan == null);
+        }
+      });
+    }
   }
 
   void _onError() {
@@ -39,15 +46,12 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
   @override
   void dispose() {
     _ctrl.removeListener(_onError);
-    _ctrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _ctrl,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFFF3F4F6), // Light background
         appBar: AppBar(
           backgroundColor: Colors.white,
@@ -96,8 +100,7 @@ class _TrainingPlanScreenState extends State<TrainingPlanScreen> {
             return _buildActivePlanView(ctrl);
           },
         ),
-      ),
-    );
+      );
   }
 
   // ── AI Generation Loader ──────────────────────────────────────────────────
