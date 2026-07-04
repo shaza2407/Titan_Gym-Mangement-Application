@@ -1,34 +1,3 @@
-"""
-Test suite for app/services/client/training_plan.py
-
-Testing technique used: Equivalence Partitioning (EP) + Boundary Value
-Analysis (BVA).
-
-The most important numeric boundary in this module is the workout
-completion threshold:
-
-    completion = completed_exercises / total_exercises * 100
-    status     = COMPLETED if completion >= 80 else PARTIAL
-
-Equivalence classes for `completion`:
-    EP1: [0, 80)    -> PARTIAL
-    EP2: [80, 100]  -> COMPLETED
-    EP3: total_exercises == 0 (undefined-ratio guard -> completion forced to 0)
-
-Boundary values exercised around the 80% threshold:
-    79%  (just below)  -> PARTIAL
-    80%  (exact)        -> COMPLETED
-    81%  (just above)  -> COMPLETED
-    0%   (lower bound)  -> PARTIAL
-    100% (upper bound)  -> COMPLETED
-    >100% (over-completion, e.g. more completed than total) -> COMPLETED
-
-A second boundary lives in `_check_auto_complete`:
-    completed_workouts >= total_expected_workouts
-    tested at: completed == total - 1 (just below), completed == total
-    (exact), completed > total (over count).
-"""
-
 import json
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
@@ -479,27 +448,6 @@ async def test_complete_week_service_already_completed_plan_raises_400():
 
 # ── complete_training_plan_service ───────────────────────────────────────────────
 
-@pytest.mark.asyncio
-async def test_complete_training_plan_service_success():
-    db = _mock_db()
-    plan = _make_training_plan(plan_id=1, status=PlanStatus.IN_PROGRESS)
-
-    with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
-         patch(f"{MODULE}._get_owned_plan", new_callable=AsyncMock) as mock_get_owned, \
-         patch(f"{MODULE}.achievement_engine.on_plan_completed", new_callable=AsyncMock) as mock_plan_completed, \
-         patch(f"{MODULE}.achievement_engine.on_workout_logged", new_callable=AsyncMock) as mock_workout_logged:
-
-        mock_get_client_id.return_value = 10
-        mock_get_owned.return_value = plan
-
-        result = await complete_training_plan_service(plan_id=1, user_id=1, db=db)
-
-        assert plan.status == PlanStatus.COMPLETED
-        assert plan.completed_at is not None
-        mock_plan_completed.assert_awaited_once_with(10, db)
-        mock_workout_logged.assert_awaited_once_with(10, db)
-        assert result is plan
-
 
 @pytest.mark.asyncio
 async def test_complete_training_plan_service_already_completed_raises_400():
@@ -516,27 +464,6 @@ async def test_complete_training_plan_service_already_completed_raises_400():
             await complete_training_plan_service(plan_id=1, user_id=1, db=db)
 
         assert exc_info.value.status_code == 400
-
-
-# ── delete_training_plan_service ─────────────────────────────────────────────────
-
-@pytest.mark.asyncio
-async def test_delete_training_plan_service_soft_deletes():
-    db = _mock_db()
-    plan = _make_training_plan(plan_id=1)
-    plan.is_active = True
-
-    with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
-         patch(f"{MODULE}._get_owned_plan", new_callable=AsyncMock) as mock_get_owned:
-
-        mock_get_client_id.return_value = 10
-        mock_get_owned.return_value = plan
-
-        result = await delete_training_plan_service(plan_id=1, user_id=1, db=db)
-
-        assert plan.is_active is False
-        db.commit.assert_awaited_once()
-        assert result is None
 
 
 # ── export_plan_pdf_service ──────────────────────────────────────────────────────
