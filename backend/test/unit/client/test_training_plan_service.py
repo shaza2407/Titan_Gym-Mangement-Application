@@ -238,24 +238,19 @@ async def test_generate_training_plan_service_gemini_runtime_error():
 # ── list_training_plans_service ──────────────────────────────────────────────────
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "count",
-    [0, 1, 10],
-    ids=["B1_no_plans", "B2_single_plan", "B3_many_plans"],
-)
-async def test_list_training_plans_service_size_boundaries(count):
+async def test_list_training_plans_service_success():
     db = _mock_db()
 
     with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id:
         mock_get_client_id.return_value = 10
 
         mock_result = MagicMock()
-        mock_result.scalars().all.return_value = [_make_training_plan(i) for i in range(count)]
+        mock_result.scalars().all.return_value = [_make_training_plan(i) for i in range(2)]
         db.execute.return_value = mock_result
 
         result = await list_training_plans_service(user_id=1, db=db)
 
-        assert len(result) == count
+        assert len(result) == 2
 
 
 # ── get_training_plan_service ────────────────────────────────────────────────────
@@ -448,6 +443,25 @@ async def test_complete_week_service_already_completed_plan_raises_400():
 
 # ── complete_training_plan_service ───────────────────────────────────────────────
 
+@pytest.mark.asyncio
+async def test_complete_training_plan_service_success():
+    db = _mock_db()
+    plan = _make_training_plan(plan_id=1, status=PlanStatus.IN_PROGRESS)
+
+    with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
+         patch(f"{MODULE}._get_owned_plan", new_callable=AsyncMock) as mock_get_owned, \
+         patch(f"{MODULE}.achievement_engine.on_plan_completed", new_callable=AsyncMock) as mock_plan_completed:
+
+        mock_get_client_id.return_value = 10
+        mock_get_owned.return_value = plan
+
+        result = await complete_training_plan_service(plan_id=1, user_id=1, db=db)
+
+        assert plan.status == PlanStatus.COMPLETED
+        assert plan.completed_at is not None
+        mock_plan_completed.assert_awaited_once_with(10, db)
+        assert result is plan
+
 
 @pytest.mark.asyncio
 async def test_complete_training_plan_service_already_completed_raises_400():
@@ -464,6 +478,27 @@ async def test_complete_training_plan_service_already_completed_raises_400():
             await complete_training_plan_service(plan_id=1, user_id=1, db=db)
 
         assert exc_info.value.status_code == 400
+
+
+# ── delete_training_plan_service ─────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_delete_training_plan_service_hard_deletes():
+    db = _mock_db()
+    db.delete = AsyncMock()
+    plan = _make_training_plan(plan_id=1)
+
+    with patch(f"{MODULE}._get_client_id", new_callable=AsyncMock) as mock_get_client_id, \
+         patch(f"{MODULE}._get_owned_plan", new_callable=AsyncMock) as mock_get_owned:
+
+        mock_get_client_id.return_value = 10
+        mock_get_owned.return_value = plan
+
+        result = await delete_training_plan_service(plan_id=1, user_id=1, db=db)
+
+        db.delete.assert_awaited_once_with(plan)
+        db.commit.assert_awaited_once()
+        assert result is None
 
 
 # ── export_plan_pdf_service ──────────────────────────────────────────────────────

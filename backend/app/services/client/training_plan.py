@@ -22,7 +22,7 @@ from app.schemas.client.CompleteDayRequest import CompleteDayRequest
 from pydantic import BaseModel
 
 from app.services.client.gemini_agent import gemini_agent
-from app.services.coach.achievement_engine import achievement_engine
+from app.services.client.achievement_engine import achievement_engine
 from app.services.client.training_plan_tracker import training_plan_tracker
 from app.services.client.client_utils import get_client_by_user_id
 

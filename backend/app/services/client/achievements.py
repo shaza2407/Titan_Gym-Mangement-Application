@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models.client import Client
-from app.services.coach.achievement_engine import achievement_engine
+from app.services.client.achievement_engine import achievement_engine
 from app.services.client.client_utils import get_client_by_user_id
 
 
@@ -17,9 +17,10 @@ async def recalculate_client_achievements_service(user_id: int, db: AsyncSession
     client = await get_client_by_user_id(user_id, db, detail="Only clients can view achievements.")
     cid = client.clientID
 
-    # Fire all event handlers to rebuild every chain
+    # Fire event handlers to rebuild state-based achievements
+    # Note: We do NOT fire on_plan_completed, on_workout_logged, or on_plan_generated
+    # because they are purely event-driven incremental metrics (since plans can be hard-deleted).
     await achievement_engine.on_checkin(cid, db)
     await achievement_engine.on_class_attended(cid, db)
-    await achievement_engine.on_plan_completed(cid, db)
 
     return await achievement_engine.get_client_achievements(cid, db)
