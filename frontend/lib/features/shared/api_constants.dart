@@ -6,6 +6,11 @@ class ApiConstants {
   static late String baseUrl;
 
   static Future<void> initialize() async {
+    if (kReleaseMode) {
+      baseUrl = 'https://titangym-mangement-application-production.up.railway.app';
+      return;
+    }
+
     const String realDeviceIp = 'http://192.168.1.8:8000';
 
     if (kIsWeb) {
