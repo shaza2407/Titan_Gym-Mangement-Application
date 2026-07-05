@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from app.schemas.auth.SignInResponse import SignInResponse
 from app.schemas.auth.SignInRequest import SignInRequest
 from app.schemas.auth.SignUpRequest import SignUpRequest
+from app.schemas.auth import ResetPasswordRequest
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("SECRET_KEY")   #will be used in production, should be env var
@@ -174,3 +175,24 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession) -> d
     await send_reset_email(user.email, code)
 
     return {"message": "A reset code has been sent."}
+
+async def reset_password(payload: ResetPasswordRequest, db: AsyncSession) -> dict:
+    result = await db.execute(select(User).where(func.lower(User.email) == payload.email.lower()))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(404, "Email not found")
+
+    if not user.reset_token or user.reset_token != payload.code:
+        raise HTTPException(400, "Invalid reset code")
+
+    if not user.reset_token_exp or user.reset_token_exp < datetime.now():
+        raise HTTPException(400, "Reset code has expired")
+
+    user.password = pwd_context.hash(payload.new_password)
+    user.reset_token = None
+    user.reset_token_exp = None
+
+    await db.commit()
+
+    return {"message": "Password reset successfully. You can now sign in."}

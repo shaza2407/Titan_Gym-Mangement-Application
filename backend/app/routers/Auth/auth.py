@@ -10,6 +10,8 @@ from app.schemas.auth.SignInResponse import SignInResponse
 from app.schemas.auth.SignInRequest import SignInRequest
 from app.schemas.auth.SignUpRequest import SignUpRequest
 from app.schemas.auth.SignUpResponse import SignUpResponse
+from app.schemas.auth.ResetPasswordRequest import ResetPasswordRequest
+from app.services.auth.auth_service import reset_password
 
 router = APIRouter(prefix="/auth", tags=["Auth"])           #path prefix for all routes in this file, and tag for docs
 
@@ -52,3 +54,9 @@ async def resend_verification_route(request: ResendVerificationRequest, db: Asyn
 @router.post("/forgot-password")
 async def forgot_password_route(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_session)):
     return await forgot_password(payload, db)
+
+
+# POST /auth/reset-password
+@router.post("/reset-password")
+async def reset_password_route(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_session)):
+    return await reset_password(payload, db)
