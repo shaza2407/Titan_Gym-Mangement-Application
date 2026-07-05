@@ -108,7 +108,7 @@ class _SummaryCards extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 1.4,
+      childAspectRatio: 1.15,
       children: [
         _SummaryCard(
           icon: Icons.attach_money,
@@ -191,6 +191,7 @@ class _SummaryCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
@@ -198,14 +199,19 @@ class _SummaryCard extends StatelessWidget {
                 BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, color: iconColor, size: 18),
           ),
-          const Spacer(),
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+          const SizedBox(height: 8),
+          Text(label,
+              style: const TextStyle(color: Colors.grey, fontSize: 11),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis),
           const SizedBox(height: 2),
           Text(value,
               style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87)),
+                  color: Colors.black87),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
           const SizedBox(height: 2),
           Row(children: [
             Icon(trendIcon, size: 12, color: trendColor),

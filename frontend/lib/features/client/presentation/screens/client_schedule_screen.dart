@@ -433,13 +433,15 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                       color: Color(0xFF9CA3AF),
                     ),
                     const SizedBox(width: 3),
+                    Flexible(child:
                     Text(
                       item.coachName ?? 'Gym Instructor',
                       style: const TextStyle(
                         fontSize: 11,
                         color: Color(0xFF6B7280),
                       ),
-                    ),
+                    ), ),
+                    
                     const SizedBox(width: 10),
                     const Icon(
                       Icons.timer_outlined,
@@ -447,13 +449,15 @@ class _ClientScheduleScreenState extends State<ClientScheduleScreen> {
                       color: Color(0xFF9CA3AF),
                     ),
                     const SizedBox(width: 3),
+                    Flexible(child:
                     Text(
                       '${item.duration} min',
                       style: const TextStyle(
                         fontSize: 11,
                         color: Color(0xFF6B7280),
                       ),
-                    ),
+                    ), )
+                    
                   ],
                 ),
               ],
