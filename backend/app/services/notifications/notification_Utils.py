@@ -9,10 +9,17 @@ from app.models.notification import Notification, FcmToken
 from app.models.Gym import Gym
 from app.models import Admin, Coach, ClassRequest, GymClientMembership, Client, GymCoachMembership
 
+import json
+
 if not firebase_admin._apps:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    cred_path = os.path.join(BASE_DIR, "..", "../serviceAccountKey.json")
-    cred = credentials.Certificate(cred_path)
+    firebase_env = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
+    if firebase_env:
+        cred_dict = json.loads(firebase_env)
+        cred = credentials.Certificate(cred_dict)
+    else:
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        cred_path = os.path.join(BASE_DIR, "..", "../serviceAccountKey.json")
+        cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 
 
