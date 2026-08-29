@@ -1,202 +1,256 @@
-# 🏋️‍♂️ Titan-Gym Management System
+# 🏋️ Titan — Gym Community Management System
 
-A full-stack intelligent Gym Management Platform that connects **administrators, coaches, and clients** in a unified ecosystem. The system manages gyms, memberships, attendance, subscriptions, scheduling, community engagement, notifications, and AI-powered churn prediction for retention optimization.
+Titan is a mobile-first, role-based platform that digitizes day-to-day gym operations while building an interactive, AI-supported fitness experience for members. It brings gym administration, coaching, attendance, personalized training, and member-retention analytics into a single system for **admins**, **coaches**, and **clients**.
 
----
-
-## 🚀 Features
-
-### 🏢 Gym Management
-
-* Create and manage gym profiles (name, location, contact info, machines, subscription plans)
-* Activate, update, or deactivate gyms
-* Assign coaches and clients to gyms
-
-### 🔐 Authentication & Authorization
-
-* Role-based access control (Admin / Coach / Client)
-* Secure login & registration
-* Email verification with activation link
-* Restricted access until verification is completed
-
-### 👤 Client Management
-
-* Personal fitness profiles
-* Update fitness goals and personal data
-* View profile and activity history
-
-### 💳 Subscription System
-
-* Subscription tracking (start/end dates)
-* Renewal and expiration handling
-* Notifications for subscription status
-* Admin-controlled subscription management
-
-### 📊 Attendance System (QR-Based)
-
-* Unique QR code per gym
-* Clients scan QR to check-in
-* Automatic attendance logging (Client ID, Gym ID, timestamp)
-* Prevention of duplicate daily attendance
-* Block access for expired/suspended memberships
-
-### 🧑‍🏫 Coach & Timetable Management
-
-* Coach profiles across multiple gyms
-* Personal coach schedules
-* Admin-approved class scheduling requests
-* Gym-wide timetable visibility
-* Client personal timetable view
-
-### 🏃‍♂️ Class Enrollment System
-
-* Class capacity control
-* Real-time slot availability
-* Enrollment conflict prevention
-* Cancel enrollment before class start
-
-### 💬 Community System
-
-* Gym-specific private community spaces
-* Member-only access per gym
-
-### 🔔 Notifications & Announcements
-
-* Gym announcements (Admin)
-* Email + in-app notifications
-* Class reminders and schedule updates
-
-### 📈 Dashboard & Reporting
-
-* Admin analytics (revenue, attendance, subscriptions)
-* User activity summaries
-* Attendance tracking reports
-
-### 🧠 AI Personalized Training Plans
-
-* Fitness goal-based plan generation
-* Activity-aware recommendations
-* Personalized gym programs
-
-### 🏅 Gamification System
-
-* Attendance-based badges
-* Weekly/monthly streak rewards
-* Engagement achievements stored in profiles
-
-### 🤖 Churn Prediction Model
-
-* ML model predicts member churn risk:
-
-  * LOW / MED / HIGH risk
-* Uses attendance, subscription, engagement data
-* On-demand prediction during retention campaigns
-* Historical prediction tracking
-
-### 🎯 Retention Offer System
-
-* Admin-generated retention offers (discounts, free sessions, supplements)
-* ML-based targeted selection of members
-* Admin review before sending offers
-* Excludes users with active offers
+> Graduation Project — Cairo University, Faculty of Computing and Artificial Intelligence, Department of Computer Science (2025–2026)
 
 ---
 
-## ⚙️ Non-Functional Requirements
+## 📖 Table of Contents
 
-### ⚡ Performance
-
-* Response time < **2 seconds (95% requests)**
-* Supports **1,000+ concurrent users**
-* Efficient mobile usage (< 50MB app size)
-
-### 🔐 Security
-
-* JWT-based authentication
-* Role-based access control (RBAC)
-* AES-256 encryption for sensitive data
-* Secure password hashing
-
-### 📱 Usability
-
-* Mobile-first UI (Android & iOS)
-* Simple, intuitive UX for non-technical users
-* Clear error handling and messages
-
-### 🛡 Reliability
-
-* Daily automated backups (30-day retention)
-* Fault tolerance and recovery mechanisms
-
-### 📈 Scalability
-
-* Supports scaling up to **10,000 users**
-* Handles up to **1M+ records**
-
-### 🔄 Compatibility
-
-* Frontend: **Flutter (Android 8+, iOS 12+)**
-* Backend: **FastAPI**
-* Database: **Supabase (PostgreSQL)**
-
-### 🤖 ML Requirements
-
-* ≥ 75% churn prediction accuracy
-* Prediction completes within 30 seconds
-* Predictions are advisory (admin-controlled actions)
+- [About the Project](#about-the-project)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [System Architecture](#system-architecture)
+- [AI & Machine Learning](#ai--machine-learning)
+- [Screenshots](#screenshots)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Testing](#testing)
+- [Security](#security)
+- [Limitations & Future Work](#limitations--future-work)
+- [Team](#team)
+- [License](#license)
+- [References](#references)
 
 ---
 
-## 🏗 Tech Stack
+## About the Project
 
-* **Frontend:** Flutter
-* **Backend:** FastAPI (Python)
-* **Database:** Supabase (PostgreSQL)
-* **Authentication:** JWT + Email Verification
-* **Notifications:** Firebase Cloud Messaging + Email Service
-* **ML Model:** Python (Scikit-learn / TensorFlow)
+Many gyms still run on manual processes or disconnected tools, leading to inefficient workflows, poor communication, and little personalization for members. **Titan** solves this with a single mobile platform that:
 
----
-
-## 📦 System Architecture
-
-* Mobile App (Flutter)
-* RESTful API (FastAPI)
-* PostgreSQL Database (Supabase)
-* ML Prediction Service
-* Notification Service (Email + Push)
+- Automates gym administration (memberships, subscriptions, attendance, scheduling, announcements).
+- Enforces strict **role-based access control (RBAC)** for three user types — Admins, Coaches, and Clients.
+- Generates **AI-personalized training plans** using an LLM agent.
+- Predicts **member churn risk** with a trained ML model, feeding into a targeted retention-offer workflow.
+- Encourages engagement through a **gamified badge system**.
 
 ---
 
-## 📊 Key Modules
+## Key Features
 
-* Gym Management Module
-* User Authentication Module
-* Subscription & Attendance Module
-* Scheduling & Enrollment Module
-* Community Module
-* Notification Module
-* Analytics Dashboard
-* ML Churn Prediction Engine
+### 🛠️ Administrator
+- Multi-gym creation and management (machine inventory, hours, location).
+- Client & coach invitations, membership activation/suspension, subscription tracking.
+- Class approval workflow, capacity management, and scheduling oversight.
+- Announcements targeted to clients, coaches, or both.
+- Revenue, attendance, and membership analytics dashboard.
+- AI-driven churn-risk dashboard with retention offer creation and recipient review.
+
+### 🧑‍🏫 Coach
+- Personalized cross-gym timetable.
+- Class request workflow (add/update/remove), pending admin approval.
+- Attendance visibility for assigned sessions.
+- Gym-specific announcements and profile management.
+
+### 🏃 Client
+- Profile & fitness-goal management, gym enrollment.
+- QR-code based gym check-in with subscription validation.
+- Class browsing and enrollment with conflict/capacity checks.
+- **AI-generated personalized training plans** (goal, level, duration, equipment-aware), exportable as PDF, with per-exercise progress tracking.
+- Gamified **achievement badges** for attendance streaks and milestones.
+- Gym community space and in-app/push notifications.
 
 ---
 
-## 📌 Future Enhancements
+## Tech Stack
 
-* Real-time chat between coaches and clients
-* Wearable device integration
-* Advanced AI fitness coaching assistant
-* Payment gateway integration
-* Live class streaming support
+| Layer            | Technology                                              |
+|-------------------|----------------------------------------------------------|
+| Mobile Frontend   | Flutter (Dart) — single codebase for Android & iOS       |
+| Backend           | FastAPI (Python), SQLAlchemy (async)                      |
+| Database          | PostgreSQL, hosted on Supabase                            |
+| Authentication    | JWT (HS256) + bcrypt password hashing                     |
+| Push Notifications| Firebase Cloud Messaging (FCM)                             |
+| AI / ML           | scikit-learn (Decision Tree churn model), Gemini API (training-plan generation) |
+| Testing           | pytest, AsyncMock, Postman                                 |
+| Tooling           | Git/GitHub, Figma, Draw.io, Linear                          |
 
 ---
 
-## 👨‍💻 Authors
+## System Architecture
 
-Developed as a full-stack gym ecosystem project covering:
+Titan follows a layered architecture:
 
-* Backend engineering (FastAPI)
-* Mobile development (Flutter)
-* Database design (PostgreSQL/Supabase)
-* Machine learning integration
+```
+Presentation Layer   → Flutter mobile app (Auth, Profiles, Timetable, QR Attendance, AI Plans, Analytics)
+Application Layer    → FastAPI backend (Identity & RBAC, Membership & Billing, Scheduling,
+                       Attendance, Churn Prediction, Retention Offers, Notifications)
+Data Layer           → Supabase PostgreSQL (SQLAlchemy + Alembic migrations)
+External Services    → Email provider, Firebase FCM, Google Gemini API
+```
 
+- **Security:** JWT authentication, RBAC, HS256 + HTTPS-only, bcrypt password hashing.
+- **Performance targets:** <2s response time, 1,000+ concurrent users, <30s churn-prediction batch, ≥85% model accuracy.
+
+---
+
+## AI & Machine Learning
+
+### Churn Prediction
+- **Model:** Decision Tree Classifier (scikit-learn), 3-class output — `High` / `Mid` / `Low` risk.
+- **Accuracy:** 88.5% on a held-out test set (3,200 train / 800 test, stratified split).
+- **Features:** 12 weeks of bucketed attendance levels plus 7 engineered statistics (weighted recency score, days since last visit, days until subscription expiry, etc.).
+- **Training data:** Built from the public [Gym Customers Features & Churn](https://www.kaggle.com/datasets/adrianvinueza/gym-customers-features-and-churn) Kaggle dataset, with a custom Poisson-based simulation to reconstruct weekly attendance patterns.
+- **Serving:** Predictions run on-demand per gym via `GET /retention/dashboard/{gym_id}`, feeding the admin retention-offer workflow. Predictions are **advisory only** — no action is taken without admin approval.
+
+### Personalized Training Plans
+- Uses the **Gemini API** as an LLM agent to generate multi-week, equipment-aware workout plans from a client's goal, level, and availability — rather than static templates.
+- Supports progress tracking at the day/week/plan level, auto-completion, and PDF export.
+
+---
+
+## Screenshots
+
+> Add your app screenshots here, e.g.:
+>
+> | Sign Up | Client Dashboard | QR Check-in |
+> |---|---|---|
+> | ![Sign Up](docs/screenshots/sign_up.png) | ![Dashboard](docs/screenshots/client_dashboard.png) | ![QR Check-in](docs/screenshots/qr_checkin.png) |
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Python 3.11+
+- Flutter SDK (3.x) with Android/iOS toolchains
+- A Supabase project (PostgreSQL) or local PostgreSQL instance
+- Firebase project (for push notifications)
+- A Google Gemini API key (for AI training plans)
+
+### Backend Setup
+
+```bash
+# Clone the repo
+git clone https://github.com/shaza2407/Titan_Gym-Mangement-Application.git
+cd Titan_Gym-Mangement-Application/backend
+
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# then fill in: DATABASE_URL, JWT_SECRET, FIREBASE credentials, GEMINI_API_KEY, SMTP settings
+
+# Run database migrations
+alembic upgrade head
+
+# Start the API server
+uvicorn app.main:app --reload
+```
+
+### Frontend Setup
+
+```bash
+cd ../frontend
+
+# Install dependencies
+flutter pub get
+
+# Point the app at your backend base URL (see lib/config or .env)
+
+# Run on a connected device/emulator
+flutter run
+```
+
+---
+
+## Project Structure
+
+```
+Titan_Gym-Mangement-Application/
+├── backend/
+│   ├── app/
+│   │   ├── models/          # SQLAlchemy models
+│   │   ├── schemas/         # Pydantic schemas
+│   │   ├── services/        # Business logic (admin, client, coach, ML, notifications)
+│   │   ├── routers/         # FastAPI route definitions
+│   │   └── main.py
+│   ├── ml/                  # Churn prediction: training scripts + saved artifacts (.pkl)
+│   ├── tests/                # pytest unit tests
+│   └── alembic/              # Database migrations
+├── frontend/
+│   └── lib/
+│       ├── screens/          # Admin / Coach / Client UI
+│       ├── services/         # API client, auth, caching
+│       └── widgets/
+└── docs/                     # Diagrams, ERD, mockups, reports, screenshots
+```
+
+---
+
+## Testing
+
+- **612 unit tests** (pytest + AsyncMock) covering admin, auth, client, coach, ML, and notification services — 100% pass rate.
+- **Postman collection** covering every REST endpoint (auth, admin, client, coach flows), verified against a live backend.
+- **Performance profiling** via Chrome DevTools across core user journeys — most API requests complete in under 2 seconds.
+
+Run the backend test suite:
+```bash
+cd backend
+pytest
+```
+
+---
+
+## Security
+
+- JWT (HS256) authentication with bcrypt-hashed passwords.
+- Role-Based Access Control enforced at the API layer for Admin / Coach / Client.
+- Email verification and password-reset flows via signed, time-limited tokens.
+- QR-based attendance validated server-side against membership status to prevent forged or duplicate check-ins.
+- Sensitive configuration kept in `.env`, excluded from version control.
+
+---
+
+## Limitations & Future Work
+
+- No payment integration yet — subscriptions are managed by admins.
+- No wearable-device integration.
+- No CI/CD pipeline or containerization (Docker) yet.
+- No formal load/concurrency testing (current benchmarks are single-user, client-side profiling).
+
+Planned: payment gateway integration, wearable support, Docker + CI/CD, hosted deployment, and load testing.
+
+---
+
+## Team
+
+Built by a team of five Computer Science students at Cairo University, under the supervision of **Dr. Manar Elkady** and **TA. Nourhan Atef**:
+
+- Shaza Ahmed Mohamed Wagdy
+- Ahmed Ashraf Attia Mabrouk
+- Aisha Ibrahim Abdulsalam Kotb
+- Rania Rafat Edwar
+- Abdullah Mohamed Abdullah Mohamed
+
+---
+
+## License
+
+This project was developed as an academic graduation project.
+
+---
+
+## References
+
+- [Gym Customers Features & Churn — Kaggle](https://www.kaggle.com/datasets/adrianvinueza/gym-customers-features-and-churn)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Flutter Documentation](https://docs.flutter.dev/)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Google Gemini API](https://ai.google.dev/gemini-api/docs/api-key)
